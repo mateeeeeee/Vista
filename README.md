@@ -1,4 +1,7 @@
-﻿# Vista
+﻿<p align="center">
+  <img src="Data/Logos/Vista4.png" alt="Vista Logo" style="width:60%;" />
+</p>
+
 A real-time D3D12 frame analysis tool for capturing, inspecting, and debugging graphics commands, pipeline state and resources.
 
 Unlike traditional capture-based debuggers, **Vista** enables live introspection, making it useful for catching transient or synchronization-related issues, 

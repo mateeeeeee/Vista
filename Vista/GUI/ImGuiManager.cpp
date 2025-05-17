@@ -261,7 +261,6 @@ namespace vista
 
 		UnregisterClass(L"VistaWindowClass", GetModuleHandle(nullptr));
 
-		// Ensure all resources are released before COM pointers are destroyed
 		Flush();
 
 		gpuVisibleHeap = nullptr;
@@ -269,7 +268,6 @@ namespace vista
 		swapChain = nullptr;
 		commandQueue = nullptr;
 		commandList = nullptr;
-		// device should probably be released by the caller of Initialize
 
 		commandAllocators.clear();
 		backBuffers.clear();
@@ -280,7 +278,7 @@ namespace vista
 			CloseHandle(fenceEvent);
 			fenceEvent = nullptr;
 		}
-		fence = nullptr; // Release fence COM object
+		fence = nullptr; 
 	}
 
 	void ImGuiManager::SetStyle()

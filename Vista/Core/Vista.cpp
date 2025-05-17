@@ -145,7 +145,7 @@ namespace vista
 					hr = pSwapChain->GetBuffer(i, IID_PPV_ARGS(backBuffer.GetAddressOf()));
 					if (SUCCEEDED(hr))
 					{
-						ResourceDesc resourceDesc = {};
+						ResourceDesc resourceDesc{};
 						resourceDesc.heapProperties = D3D12_HEAP_PROPERTIES{}; 
 						resourceDesc.heapFlags = D3D12_HEAP_FLAG_NONE; 
 						resourceDesc.resourceDesc = backBuffer->GetDesc(); 
