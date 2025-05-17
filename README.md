@@ -1,17 +1,17 @@
-﻿<img align="center" padding="2" src="Data/Logos/Vista3.png"/>
-
+﻿# Vista
 A real-time D3D12 frame analysis tool for capturing, inspecting, and debugging graphics commands, pipeline state and resources.
-Unlike traditional capture-based debuggers, **Vista** enables **live introspection**, making it useful for catching transient or synchronization-related issues, 
+
+Unlike traditional capture-based debuggers, **Vista** enables live introspection, making it useful for catching transient or synchronization-related issues, 
 quickly identifying problematic command patterns, or generally observing GPU behavior frame-by-frame without the need to stop and save a capture.
 > ⚠️ **Note**: Vista is still in **very early development**. Crashes or incomplete features should be expected.
----
 
 ## Features
 - **Live D3D12 Frame Inspection**  
-  Capture commands in real-time without halting the target application. Freeze the frame at any time to allow stable inspection.
-
-- **Command/Event List**  
-  View all captured commands in a scrollable event list.  
+  - Capture commands in real-time without halting the target application 
+  - Freeze the capture at any time to allow stable inspection
+    
+- **Event List**  
+  - View all captured commands in a scrollable event list
   - Apply filters to quickly locate relevant events  
   - Commands are structured hierarchically by intercepting `PIXBeginEvent`/`PIXEndEvent` to show execution flow
 
@@ -29,35 +29,25 @@ quickly identifying problematic command patterns, or generally observing GPU beh
   - Preview bound resources such as `Texture2D` at the selected command
   - Resource information and descriptor view metadata shown side-by-side
 
-- **Capture Freezing**  
-  - Temporarily lock the frame to stabilize GPU state and prevent further updates while debugging
-
+## Current State
 <img align="center" padding="2" src="Data/UI.png"/>
----
 
 ## Current Limitations & Future Plans
-- Not all D3D12 calls have been hooked, e.g.
+- Not all D3D12 calls have been hooked, e.g. calls related to ray tracing API (DXR)
 - Bindless resources are not yet supported
 - Only `Texture2D` resources are previewable  
   - Support for buffers, `Texture2DArray`, etc., is planned
 - UI/UX improvements 
 - Live inspection means state can be volatile  
   - For example, the **selected command may become unselected or incorrectly reselected** between frames if the command list changes too much, Vista uses heuristics to re-identify the selected command, which may fail if the structure diverges significantly
----
 
 ## How It Works
-
 Vista consists of two main components:
-### 1. `Vista.dll`  
-Injected into the target D3D12 application to hook and monitor rendering commands, state, and resources. 
+### 1. `Vista`  
+A DLL to be injected into the target D3D12 application to hook and monitor rendering commands, state, and resources. 
 Uses [DirectHook](https://github.com/mateeeeeee/DirectHook) for D3D12 hooking.
-
 ### 2. `QVista`  
-A simple Qt app that acts as a launcher and injector.  
-- Think of this as **VistaLauncher**
-- Simplifies the injection and launching process
-
----
+A simple Qt app that launches the target process and injects Vista DLL
 
 ## License
 Copyright (c) 2025 Mate Buljan
