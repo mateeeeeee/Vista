@@ -132,15 +132,9 @@ set "QT_IMAGEFORMATS=%QT_ROOT%\plugins\imageformats"
 if not exist "$(TargetDir)platforms" mkdir "$(TargetDir)platforms"
 if not exist "$(TargetDir)imageformats" mkdir "$(TargetDir)imageformats"
 
-if /I "$(Configuration)"=="Debug" (
-    xcopy /Y /D /I "%QT_BIN%\Qt6*d.dll" "$(TargetDir)"
-    xcopy /Y /D /I "%QT_PLATFORMS%\qwindowsd.dll" "$(TargetDir)platforms\"
-    xcopy /Y /D /I "%QT_IMAGEFORMATS%\qicod.dll" "$(TargetDir)imageformats\"
-) else (
-    xcopy /Y /D /I "%QT_BIN%\Qt6*.dll" "$(TargetDir)"
-    xcopy /Y /D /I "%QT_PLATFORMS%\qwindows.dll" "$(TargetDir)platforms\"
-    xcopy /Y /D /I "%QT_IMAGEFORMATS%\qico.dll" "$(TargetDir)imageformats\"
-)
+xcopy /Y /D /I "%QT_BIN%\Qt6*d.dll" "$(TargetDir)"
+xcopy /Y /D /I "%QT_PLATFORMS%\qwindowsd.dll" "$(TargetDir)platforms\"
+xcopy /Y /D /I "%QT_IMAGEFORMATS%\qicod.dll" "$(TargetDir)imageformats\"
 
 </Command>
     </PostBuildEvent>
@@ -179,15 +173,11 @@ set "QT_IMAGEFORMATS=%QT_ROOT%\plugins\imageformats"
 if not exist "$(TargetDir)platforms" mkdir "$(TargetDir)platforms"
 if not exist "$(TargetDir)imageformats" mkdir "$(TargetDir)imageformats"
 
-if /I "$(Configuration)"=="Debug" (
-    xcopy /Y /D /I "%QT_BIN%\Qt6*d.dll" "$(TargetDir)"
-    xcopy /Y /D /I "%QT_PLATFORMS%\qwindowsd.dll" "$(TargetDir)platforms\"
-    xcopy /Y /D /I "%QT_IMAGEFORMATS%\qicod.dll" "$(TargetDir)imageformats\"
-) else (
-    xcopy /Y /D /I "%QT_BIN%\Qt6*.dll" "$(TargetDir)"
-    xcopy /Y /D /I "%QT_PLATFORMS%\qwindows.dll" "$(TargetDir)platforms\"
-    xcopy /Y /D /I "%QT_IMAGEFORMATS%\qico.dll" "$(TargetDir)imageformats\"
-)
+xcopy /Y /D /I "%QT_BIN%\Qt6Core.dll" "$(TargetDir)"
+xcopy /Y /D /I "%QT_BIN%\Qt6Gui.dll" "$(TargetDir)"
+xcopy /Y /D /I "%QT_BIN%\Qt6Widgets.dll" "$(TargetDir)"
+xcopy /Y /D /I "%QT_PLATFORMS%\qwindows.dll" "$(TargetDir)platforms\"
+xcopy /Y /D /I "%QT_IMAGEFORMATS%\qico.dll" "$(TargetDir)imageformats\"
 
 
 </Command>

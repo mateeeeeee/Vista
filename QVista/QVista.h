@@ -51,4 +51,6 @@ private slots:
 private:
 	void SetupUI();
 	void SetupConnections();
+	void StartProcessMonitoring();
+	void CleanupProcess();
 };

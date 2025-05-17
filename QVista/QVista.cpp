@@ -12,6 +12,7 @@
 #include <QtCore/QDir>
 #include <QtCore/QFileInfo>
 #include <QtCore/QThread>
+#include <QtCore/QTimer>
 #include "Win32Util.h"
 
 QVista::QVista(QWidget* parent) : QMainWindow(parent), processId(0)
@@ -135,7 +136,7 @@ void QVista::on_launchButton_clicked()
 	QString cmdArgs = commandArgsEdit->text();
 	QString dllName = "Vista.dll";
 
-	if (exePath.isEmpty()) 
+	if (exePath.isEmpty())
 	{
 		QMessageBox::warning(this, tr("Input Required"), tr("Please specify the executable path."));
 		return;
@@ -147,7 +148,7 @@ void QVista::on_launchButton_clicked()
 	std::wstring errorMessage;
 
 	PROCESS_INFORMATION processInfo = {};
-	if (!win32util::CreateSuspendedProcess(exePathW, workingDirW, argsW, processInfo, errorMessage)) 
+	if (!win32util::CreateSuspendedProcess(exePathW, workingDirW, argsW, processInfo, errorMessage))
 	{
 		QMessageBox::critical(this, tr("Launch Failed"), QString::fromStdWString(errorMessage));
 		return;
@@ -157,7 +158,7 @@ void QVista::on_launchButton_clicked()
 	std::wstring dllFullPathW = dllFullPath.toStdWString();
 
 	auto result = win32util::InjectDLL(processInfo.dwProcessId, dllFullPathW);
-	if (!result.success) 
+	if (!result.success)
 	{
 		QMessageBox::critical(this, tr("Injection Failed"), QString::fromStdWString(result.errorMessage));
 		::TerminateProcess(processInfo.hProcess, 1);
@@ -174,28 +175,55 @@ void QVista::on_launchButton_clicked()
 
 	launchButton->setEnabled(false);
 	terminateButton->setEnabled(true);
+
+	StartProcessMonitoring();
 }
 
 void QVista::on_terminateButton_clicked()
 {
-	if (processId == 0) 
+	if (processId == 0)
 	{
-		QMessageBox::warning(this, tr("No Process"), tr("No process is running."));
+		QMessageBox::warning(this, tr("No Process"), tr("No Process is running."));
 		return;
 	}
 
 	std::wstring errorMessage;
-	if (!win32util::TerminateProcessById(processId, errorMessage)) 
+	if (!win32util::TerminateProcessById(processId, errorMessage))
 	{
 		QMessageBox::warning(this, tr("Termination Failed"), QString::fromStdWString(errorMessage));
 		return;
 	}
 
-	processId = 0;
-	CloseHandle(processHandle);
-	CloseHandle(threadHandle);
-	processHandle = nullptr;
-	threadHandle = nullptr;
+	CleanupProcess();
+}
+
+void QVista::StartProcessMonitoring()
+{
+	if (!processHandle)
+		return;
+
+	QTimer* timer = new QTimer(this);
+	connect(timer, &QTimer::timeout, this, [this, timer]() 
+		{
+		if (processHandle && WaitForSingleObject(processHandle, 0) == WAIT_OBJECT_0) 
+		{
+			CleanupProcess();
+			timer->stop();
+			timer->deleteLater();
+		}
+		});
+	timer->start(500);
+}
+
+void QVista::CleanupProcess()
+{
+	if (processId != 0) {
+		CloseHandle(processHandle);
+		CloseHandle(threadHandle);
+		processId = 0;
+		processHandle = nullptr;
+		threadHandle = nullptr;
+	}
 
 	terminateButton->setEnabled(false);
 	launchButton->setEnabled(true);

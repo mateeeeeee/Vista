@@ -3,16 +3,10 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.13.35931.197
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "DX12App", "DX12App\DX12App.vcxproj", "{C6031657-8E11-4FFD-8000-0D3C199843BF}"
-	ProjectSection(ProjectDependencies) = postProject
-		{FA62FA12-622D-400D-9793-2D4672E47253} = {FA62FA12-622D-400D-9793-2D4672E47253}
-	EndProjectSection
-EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Vista", "Vista\Vista.vcxproj", "{FA62FA12-622D-400D-9793-2D4672E47253}"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "QVista", "QVista\QVista.vcxproj", "{1526FBB6-BF51-4A42-8E5C-3580009755E4}"
 	ProjectSection(ProjectDependencies) = postProject
-		{C6031657-8E11-4FFD-8000-0D3C199843BF} = {C6031657-8E11-4FFD-8000-0D3C199843BF}
 		{FA62FA12-622D-400D-9793-2D4672E47253} = {FA62FA12-622D-400D-9793-2D4672E47253}
 	EndProjectSection
 EndProject
@@ -33,18 +27,6 @@ Global
 		Release|x86 = Release|x86
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
-		{C6031657-8E11-4FFD-8000-0D3C199843BF}.Debug|Any CPU.ActiveCfg = Debug|x64
-		{C6031657-8E11-4FFD-8000-0D3C199843BF}.Debug|Any CPU.Build.0 = Debug|x64
-		{C6031657-8E11-4FFD-8000-0D3C199843BF}.Debug|x64.ActiveCfg = Debug|x64
-		{C6031657-8E11-4FFD-8000-0D3C199843BF}.Debug|x64.Build.0 = Debug|x64
-		{C6031657-8E11-4FFD-8000-0D3C199843BF}.Debug|x86.ActiveCfg = Debug|Win32
-		{C6031657-8E11-4FFD-8000-0D3C199843BF}.Debug|x86.Build.0 = Debug|Win32
-		{C6031657-8E11-4FFD-8000-0D3C199843BF}.Release|Any CPU.ActiveCfg = Release|x64
-		{C6031657-8E11-4FFD-8000-0D3C199843BF}.Release|Any CPU.Build.0 = Release|x64
-		{C6031657-8E11-4FFD-8000-0D3C199843BF}.Release|x64.ActiveCfg = Release|x64
-		{C6031657-8E11-4FFD-8000-0D3C199843BF}.Release|x64.Build.0 = Release|x64
-		{C6031657-8E11-4FFD-8000-0D3C199843BF}.Release|x86.ActiveCfg = Release|Win32
-		{C6031657-8E11-4FFD-8000-0D3C199843BF}.Release|x86.Build.0 = Release|Win32
 		{FA62FA12-622D-400D-9793-2D4672E47253}.Debug|Any CPU.ActiveCfg = Debug|x64
 		{FA62FA12-622D-400D-9793-2D4672E47253}.Debug|Any CPU.Build.0 = Debug|x64
 		{FA62FA12-622D-400D-9793-2D4672E47253}.Debug|x64.ActiveCfg = Debug|x64
