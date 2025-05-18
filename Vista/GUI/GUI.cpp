@@ -43,13 +43,7 @@ namespace vista
 
 		if (ImGui::Begin("Event List"))
 		{
-			ImGui::Checkbox("Freeze Capture", &isFreezed);
-
-			static Char filterBuffer[256] = "";
-			ImGui::InputText("Filter", filterBuffer, sizeof(filterBuffer));
-			std::string filterText = filterBuffer;
-
-			RenderEventList(recorderManager, filterText);
+			RenderEventList(recorderManager);
 		}
 		ImGui::End();
 
@@ -73,9 +67,10 @@ namespace vista
 		imguiManager.EndFrame();
 	}
 
-	void GUI::RenderEventList(RecorderManager const& recorderManager, std::string const& filterText)
+	void GUI::RenderEventList(RecorderManager const& recorderManager)
 	{
-		ImGui::BeginChild("EventListContent", ImVec2(0, 0), true);
+		ImGui::Checkbox("Freeze Capture", &isFreezed);
+		ImGui::BeginChild("EventList", ImVec2(0, 0), true);
 		{
 			static Int selectedTimelineIndex = 1;
 			static std::vector<std::string> timelineOptions;
@@ -120,6 +115,13 @@ namespace vista
 				selectedTimelineIndex = 0;
 			}
 
+			static Bool flatten = false;
+			ImGui::Checkbox("Flatten", &flatten);
+
+			static Char filterBuffer[256] = "";
+			ImGui::InputText("Filter", filterBuffer, sizeof(filterBuffer));
+			std::string filterText = filterBuffer;
+
 			if (ImGui::BeginCombo("##TimelineSelect", timelineOptions[selectedTimelineIndex].c_str()))
 			{
 				for (Uint32 i = 0; i < timelineOptions.size(); ++i)
@@ -143,14 +145,18 @@ namespace vista
 			}
 			ImGui::Separator();
 
-			Bool cpuTimeline = (selectedTimelineIndex == 0);
-			EventListCommandVisitor treeVisitor(cpuTimeline, filterText, selectedCommand, selectedCommandInfo);
-			for (void* recorderKey : timelineIndexRecorderMap[selectedTimelineIndex])
+			ImGui::BeginChild("EventListContent", ImVec2(0, 0), true);
 			{
-				ImGui::PushID(recorderKey);
-				recorderManager.GetRecorder(recorderKey)->Accept(treeVisitor);
-				ImGui::PopID();
+				Bool cpuTimeline = (selectedTimelineIndex == 0);
+				EventListCommandVisitor treeVisitor(cpuTimeline, flatten, filterText, selectedCommand, selectedCommandInfo);
+				for (void* recorderKey : timelineIndexRecorderMap[selectedTimelineIndex])
+				{
+					ImGui::PushID(recorderKey);
+					recorderManager.GetRecorder(recorderKey)->Accept(treeVisitor);
+					ImGui::PopID();
+				}
 			}
+			ImGui::EndChild();
 		}
 		ImGui::EndChild();
 	}

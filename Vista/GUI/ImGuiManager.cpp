@@ -245,7 +245,6 @@ namespace vista
 			backBufferDescriptors[i] = rtvHandle;
 			rtvHandle.ptr += rtvSize;
 		}
-
 		bufferIndex = swapChain->GetCurrentBackBufferIndex(); 
 
 		return true;
@@ -262,7 +261,6 @@ namespace vista
 		UnregisterClass(L"VistaWindowClass", GetModuleHandle(nullptr));
 
 		Flush();
-
 		gpuVisibleHeap = nullptr;
 		rtvDescriptorHeap = nullptr;
 		swapChain = nullptr;

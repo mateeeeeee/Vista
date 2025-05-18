@@ -7,7 +7,7 @@ namespace vista
 	class EventListCommandVisitor : public CommandVisitor
 	{
 	public:
-		EventListCommandVisitor(Bool cpuTimeline, std::string const& filterText, Command const*& selectedCommand, SelectedCommandInfo& selectedCommandInfo);
+		EventListCommandVisitor(Bool cpuTimeline, Bool flatten, std::string const& filterText, Command const*& selectedCommand, SelectedCommandInfo& selectedCommandInfo);
 		~EventListCommandVisitor();
 
 	#define VISIT_DECL(COMMAND_TYPE) virtual void Visit(COMMAND_TYPE const& cmd) override
@@ -82,6 +82,7 @@ namespace vista
 
 	private:
 		Bool const cpuTimeline;
+		Bool const flatten;
 		std::string filterTextLower;
 		Command const*& selectedCommand;
 		SelectedCommandInfo  oldSelectedCommandInfo;

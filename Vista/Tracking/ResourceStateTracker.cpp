@@ -217,7 +217,6 @@ namespace vista
 			if (SUCCEEDED(allocator->Reset()) &&
 				SUCCEEDED(list->Reset(allocator.Get(), nullptr)))
 			{
-				// Successfully recycled and reset
 			}
 			else
 			{

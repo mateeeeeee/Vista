@@ -44,7 +44,7 @@ namespace vista
 		State currentState{};
 
 	private:
-		void RenderEventList(RecorderManager const&, std::string const&);
+		void RenderEventList(RecorderManager const&);
 		void UpdateCurrentState(RecorderManager const&);
 		void RenderTabs(RecorderManager const&);
 		void RenderResourceViewer();

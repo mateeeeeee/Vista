@@ -4,8 +4,6 @@
 #include "Command/CommandRecorder.h"
 #include "ImGui/imgui.h"
 
-VISTA_DEBUGZONE_BEGIN
-
 namespace vista
 {
 	Bool EventListCommandVisitor::MatchesFilter(std::string const& desc) const
@@ -20,6 +18,7 @@ namespace vista
 
 	Bool EventListCommandVisitor::IsRenderingEnabled() const
 	{
+		if (flatten) return true;
 		for (Bool isOpen : openTreeNodes)
 		{
 			if (!isOpen) return false;
@@ -27,7 +26,8 @@ namespace vista
 		return true;
 	}
 
-	EventListCommandVisitor::EventListCommandVisitor(Bool cpuTimeline, std::string const& filterText, Command const*& selectedCommand, SelectedCommandInfo& selectedCommandInfo) : cpuTimeline(cpuTimeline), selectedCommand(selectedCommand), selectedCommandInfo(selectedCommandInfo), oldSelectedCommandInfo(selectedCommandInfo)
+	EventListCommandVisitor::EventListCommandVisitor(Bool cpuTimeline, Bool flatten, std::string const& filterText, Command const*& selectedCommand, SelectedCommandInfo& selectedCommandInfo)
+		: cpuTimeline(cpuTimeline), flatten(flatten), selectedCommand(selectedCommand), selectedCommandInfo(selectedCommandInfo), oldSelectedCommandInfo(selectedCommandInfo)
 	{
 		filterTextLower.resize(filterText.size());
 		std::transform(filterText.begin(), filterText.end(), filterTextLower.begin(), [](Uchar c) { return std::tolower(c); });
@@ -42,15 +42,18 @@ namespace vista
 	{
 		while (!eventMatchStack.empty()) eventMatchStack.pop_back();
 
-		while (!openTreeNodes.empty())
+		if (!flatten)
 		{
-			Bool wasOpen = openTreeNodes.back();
-			openTreeNodes.pop_back();
-
-			if (wasOpen && IsRenderingEnabled())
+			while (!openTreeNodes.empty())
 			{
-				indentLevel--;
-				ImGui::TreePop();
+				Bool wasOpen = openTreeNodes.back();
+				openTreeNodes.pop_back();
+
+				if (wasOpen && IsRenderingEnabled())
+				{
+					indentLevel--;
+					ImGui::TreePop();
+				}
 			}
 		}
 	}
@@ -62,16 +65,16 @@ namespace vista
 
 		if (isMatchingTimeline && isMatchingFilter)
 		{
-			if (!eventMatchStack.empty())
+			if (!flatten && !eventMatchStack.empty())
 				eventMatchStack.back() = true;
 
 			if (IsRenderingEnabled())
 			{
 				ImGui::PushID(&cmd);
 				Bool isSelected = IsSelected(cmd);
-				ImGui::Indent(indentLevel * 10.0f);
+				if (!flatten) ImGui::Indent(indentLevel * 10.0f);
 				ImGui::Selectable(cmd.GetDesc().c_str(), isSelected);
-				ImGui::Unindent(indentLevel * 10.0f);
+				if (!flatten) ImGui::Unindent(indentLevel * 10.0f);
 				if (ImGui::IsItemClicked(0))
 				{
 					FillSelectedCommandInfo(cmd);
@@ -88,16 +91,16 @@ namespace vista
 
 		if (isMatchingTimeline && isMatchingFilter)
 		{
-			if (!eventMatchStack.empty())
+			if (!flatten && !eventMatchStack.empty())
 				eventMatchStack.back() = true;
 
 			if (IsRenderingEnabled())
 			{
 				ImGui::PushID(&cmd);
 				Bool isSelected = IsSelected(cmd);
-				ImGui::Indent(indentLevel * 10.0f);
+				if (!flatten) ImGui::Indent(indentLevel * 10.0f);
 				ImGui::Selectable(cmd.GetDesc().c_str(), isSelected);
-				ImGui::Unindent(indentLevel * 10.0f);
+				if (!flatten) ImGui::Unindent(indentLevel * 10.0f);
 				if (ImGui::IsItemClicked(0))
 				{
 					FillSelectedCommandInfo(cmd);
@@ -125,62 +128,99 @@ namespace vista
 	{
 		Bool isMatchingTimeline = !(cpuTimeline ^ cmd.IsCPUTimeline());
 
-		eventMatchStack.push_back(MatchesFilter(cmd.GetDesc()));
-		if (isMatchingTimeline && IsRenderingEnabled())
+		if (!flatten)
 		{
-			Bool isSelected = IsSelected(cmd);
-			ImGui::PushID(&cmd);
-			ImGui::Indent(indentLevel * 10.0f);
+			Bool isMatchingFilter = MatchesFilter(cmd.GetDesc());
+			eventMatchStack.push_back(isMatchingFilter);
 
-			Float r = ((cmd.eventColor >> 16) & 0xFF) / 255.0f;
-			Float g = ((cmd.eventColor >> 8) & 0xFF) / 255.0f;
-			Float b = (cmd.eventColor & 0xFF) / 255.0f;
-			ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(r, g, b, 1.0f));
-			Bool treeNodeOpened = ImGui::TreeNodeEx(cmd.eventName.c_str(), ImGuiTreeNodeFlags_DefaultOpen | (isSelected ? ImGuiTreeNodeFlags_Selected : 0));
-			ImGui::PopStyleColor();
-
-			if (ImGui::IsItemClicked(0))
+			if (isMatchingTimeline)
 			{
-				FillSelectedCommandInfo(cmd);
+				ImGui::PushID(&cmd);
+				Bool isSelected = IsSelected(cmd);
+				ImGui::Indent(indentLevel * 10.0f);
+
+				Float r = ((cmd.eventColor >> 16) & 0xFF) / 255.0f;
+				Float g = ((cmd.eventColor >> 8) & 0xFF) / 255.0f;
+				Float b = (cmd.eventColor & 0xFF) / 255.0f;
+				ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(r, g, b, 1.0f));
+				Bool treeNodeOpened = ImGui::TreeNodeEx(cmd.eventName.c_str(), ImGuiTreeNodeFlags_DefaultOpen | (isSelected ? ImGuiTreeNodeFlags_Selected : 0));
+				ImGui::PopStyleColor();
+
+				if (ImGui::IsItemClicked(0))
+				{
+					FillSelectedCommandInfo(cmd);
+				}
+
+				openTreeNodes.push_back(treeNodeOpened);
+				ImGui::Unindent(indentLevel * 10.0f);
+				ImGui::PopID();
+
+				if (treeNodeOpened)
+				{
+					indentLevel++;
+				}
 			}
-
-			openTreeNodes.push_back(treeNodeOpened);
-			ImGui::Unindent(indentLevel * 10.0f);
-			ImGui::PopID();
-
-			if (treeNodeOpened)
+			else
 			{
-				indentLevel++;
+				openTreeNodes.push_back(false);
 			}
 		}
 		else
 		{
-			openTreeNodes.push_back(false);
+			Bool isMatchingFilter = MatchesFilter(cmd.GetDesc());
+			if (isMatchingTimeline && isMatchingFilter)
+			{
+				ImGui::PushID(&cmd);
+				Bool isSelected = IsSelected(cmd);
+
+				Float r = ((cmd.eventColor >> 16) & 0xFF) / 255.0f;
+				Float g = ((cmd.eventColor >> 8) & 0xFF) / 255.0f;
+				Float b = (cmd.eventColor & 0xFF) / 255.0f;
+				ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(r, g, b, 1.0f));
+				ImGui::Selectable(cmd.GetDesc().c_str(), isSelected);
+				ImGui::PopStyleColor();
+
+				if (ImGui::IsItemClicked(0))
+				{
+					FillSelectedCommandInfo(cmd);
+				}
+				ImGui::PopID();
+			}
 		}
 	}
 
 	void EventListCommandVisitor::Visit(EndEventCommand const& cmd)
 	{
-		Bool isMatchingTimeline = !(cpuTimeline ^ cmd.IsCPUTimeline());
-
-		if (isMatchingTimeline && MatchesFilter(cmd.GetDesc()))
+		if (!flatten)
 		{
-			if (!eventMatchStack.empty())
-				eventMatchStack.back() = true;
-		}
+			Bool isMatchingTimeline = !(cpuTimeline ^ cmd.IsCPUTimeline());
+			Bool isMatchingFilter = MatchesFilter(cmd.GetDesc());
 
-		if (!eventMatchStack.empty())
-			eventMatchStack.pop_back();
-
-		if (!openTreeNodes.empty())
-		{
-			Bool wasOpen = openTreeNodes.back();
-			openTreeNodes.pop_back();
-
-			if (wasOpen && IsRenderingEnabled())
+			if (isMatchingTimeline && isMatchingFilter && !eventMatchStack.empty())
 			{
-				indentLevel--;
-				ImGui::TreePop();
+				eventMatchStack.back() = true;
+			}
+
+			if (!eventMatchStack.empty())
+			{
+				Bool scopeMatched = eventMatchStack.back();
+				eventMatchStack.pop_back();
+				if (scopeMatched && !eventMatchStack.empty())
+				{
+					eventMatchStack.back() = true;
+				}
+			}
+
+			if (!openTreeNodes.empty())
+			{
+				Bool wasOpen = openTreeNodes.back();
+				openTreeNodes.pop_back();
+
+				if (wasOpen && IsRenderingEnabled())
+				{
+					indentLevel--;
+					ImGui::TreePop();
+				}
 			}
 		}
 	}
@@ -208,10 +248,10 @@ namespace vista
 	}
 
 #define VISIT_IMPL(COMMAND_TYPE) \
-	void EventListCommandVisitor::Visit(COMMAND_TYPE const& cmd) \
-	{ \
-		VisitCommon(cmd); \
-	}
+    void EventListCommandVisitor::Visit(COMMAND_TYPE const& cmd) \
+    { \
+        VisitCommon(cmd); \
+    }
 
 	VISIT_IMPL(Command)
 		VISIT_IMPL(CreateCommandQueueCommand)
