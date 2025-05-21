@@ -41,6 +41,7 @@ namespace vista
 	void RenderIndexBufferView(D3D12_INDEX_BUFFER_VIEW const& ibv, ObjectTracker const& objectTracker, ResourceAddressTracker const& addressTracker);
 	void RenderViewport(Uint32 index, D3D12_VIEWPORT const& vp);
 	void RenderScissorRect(Uint32 index, D3D12_RECT const& rect);
+	void RenderScissorRect(D3D12_RECT const& rect);
 	void RenderResourceBarrier(Uint32 index, D3D12_RESOURCE_BARRIER const& barrier, ObjectTracker const& objectTracker);
 	void RenderIndirectArgumentDesc(Uint32 index, D3D12_INDIRECT_ARGUMENT_DESC const& argDesc);
 

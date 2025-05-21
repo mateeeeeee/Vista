@@ -23,16 +23,22 @@ namespace vista
 	class CopyBufferRegionCommand;
 	class CopyTextureRegionCommand;
 	class CopyResourceCommand;
+	class ResolveSubresourceCommand;
+	class ResolveSubresourceRegionCommand;
 	class DrawInstancedCommand;
 	class DrawIndexedInstancedCommand;
 	class DispatchCommand;
 	class DispatchMeshCommand;
 	class ExecuteIndirectCommand;
+	class DispatchRaysCommand;
 	class RSSetViewportsCommand;
 	class RSSetScissorRectsCommand;
+	class RSSetShadingRateCommand;
+	class RSSetShadingRateImageCommand;
 	class OMSetRenderTargetsCommand;
 	class OMSetBlendFactorCommand;
 	class OMSetStencilRefCommand;
+	class OMSetDepthBoundsCommand;
 	class BeginRenderPassCommand;
 	class EndRenderPassCommand;
 	class ClearRenderTargetViewCommand;
@@ -96,16 +102,22 @@ namespace vista
 		virtual void Visit(CopyBufferRegionCommand const&) = 0;
 		virtual void Visit(CopyTextureRegionCommand const&) = 0;
 		virtual void Visit(CopyResourceCommand const&) = 0;
+		virtual void Visit(ResolveSubresourceCommand const&) = 0;
+		virtual void Visit(ResolveSubresourceRegionCommand const&) = 0;
 		virtual void Visit(DrawInstancedCommand const&) = 0;
 		virtual void Visit(DrawIndexedInstancedCommand const&) = 0;
 		virtual void Visit(DispatchCommand const&) = 0;
 		virtual void Visit(DispatchMeshCommand const&) = 0;
 		virtual void Visit(ExecuteIndirectCommand const&) = 0;
+		virtual void Visit(DispatchRaysCommand const&) = 0;
 		virtual void Visit(RSSetViewportsCommand const&) = 0;
 		virtual void Visit(RSSetScissorRectsCommand const&) = 0;
+		virtual void Visit(RSSetShadingRateCommand const&) = 0;
+		virtual void Visit(RSSetShadingRateImageCommand const&) = 0;
 		virtual void Visit(OMSetRenderTargetsCommand const&) = 0;
 		virtual void Visit(OMSetBlendFactorCommand const&) = 0;
 		virtual void Visit(OMSetStencilRefCommand const&) = 0;
+		virtual void Visit(OMSetDepthBoundsCommand const&) = 0;
 		virtual void Visit(BeginRenderPassCommand const&) = 0;
 		virtual void Visit(EndRenderPassCommand const&) = 0;
 		virtual void Visit(ClearRenderTargetViewCommand const&) = 0;
@@ -171,16 +183,22 @@ namespace vista
 		virtual void Visit(CopyBufferRegionCommand const&) {}
 		virtual void Visit(CopyTextureRegionCommand const&) {}
 		virtual void Visit(CopyResourceCommand const&) {}
+		virtual void Visit(ResolveSubresourceCommand const&) {}
+		virtual void Visit(ResolveSubresourceRegionCommand const&) {}
 		virtual void Visit(DrawInstancedCommand const&) {}
 		virtual void Visit(DrawIndexedInstancedCommand const&) {}
 		virtual void Visit(DispatchCommand const&) {}
 		virtual void Visit(DispatchMeshCommand const&) {}
 		virtual void Visit(ExecuteIndirectCommand const&) {}
+		virtual void Visit(DispatchRaysCommand const&) {}
 		virtual void Visit(RSSetViewportsCommand const&) {}
 		virtual void Visit(RSSetScissorRectsCommand const&) {}
+		virtual void Visit(RSSetShadingRateCommand const&) {}
+		virtual void Visit(RSSetShadingRateImageCommand const&) {}
 		virtual void Visit(OMSetRenderTargetsCommand const&) {}
 		virtual void Visit(OMSetBlendFactorCommand const&) {}
 		virtual void Visit(OMSetStencilRefCommand const&) {}
+		virtual void Visit(OMSetDepthBoundsCommand const&) {}
 		virtual void Visit(BeginRenderPassCommand const&) {}
 		virtual void Visit(EndRenderPassCommand const&) {}
 		virtual void Visit(ClearRenderTargetViewCommand const&) {}

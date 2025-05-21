@@ -100,6 +100,60 @@ namespace vista
 		ObjectID srcResourceId = InvalidObjectID;
 	};
 
+	class ResolveSubresourceCommand : public ListCommand
+	{
+	public:
+		ResolveSubresourceCommand() = default;
+
+		virtual std::string GetDesc() const override;
+		virtual CommandType GetType() const override { return CommandType::ResolveSubresource; }
+
+		COMMAND_ACCEPT_IMPL()
+		COMMAND_HASH_IMPL(dstResourceId, dstSubresource, srcResourceId, srcSubresource, format)
+
+		static Bool ClassOf(Command const* C)
+		{
+			using enum CommandType;
+			return C->GetType() == ResolveSubresource;
+		}
+
+	public:
+		ObjectID dstResourceId = InvalidObjectID;
+		Uint32 dstSubresource = 0;
+		ObjectID srcResourceId = InvalidObjectID;
+		Uint32 srcSubresource = 0;
+		DXGI_FORMAT format = DXGI_FORMAT_UNKNOWN;
+	};
+
+	class ResolveSubresourceRegionCommand : public ListCommand
+	{
+	public:
+		ResolveSubresourceRegionCommand() = default;
+
+		virtual std::string GetDesc() const override;
+		virtual CommandType GetType() const override { return CommandType::ResolveSubresourceRegion; }
+
+		COMMAND_ACCEPT_IMPL()
+		COMMAND_HASH_IMPL(dstResourceId, dstSubresource, dstX, dstY, srcResourceId, srcSubresource, format, resolveMode)
+
+		static Bool ClassOf(Command const* C)
+		{
+			using enum CommandType;
+			return C->GetType() == ResolveSubresourceRegion;
+		}
+
+	public:
+		ObjectID dstResourceId = InvalidObjectID;
+		Uint32 dstSubresource = 0;
+		Uint32 dstX = 0;
+		Uint32 dstY = 0;
+		ObjectID srcResourceId = InvalidObjectID;
+		Uint32 srcSubresource = 0;
+		std::optional<D3D12_RECT> srcRect = std::nullopt;
+		DXGI_FORMAT format = DXGI_FORMAT_UNKNOWN;
+		D3D12_RESOLVE_MODE resolveMode = D3D12_RESOLVE_MODE_DECOMPRESS;
+	};
+
 	class DrawInstancedCommand : public ListCommand
 	{
 	public:
@@ -221,6 +275,29 @@ namespace vista
 		Uint64 countBufferOffset = 0;
 	};
 
+	class DispatchRaysCommand : public ListCommand
+	{
+	public:
+		DispatchRaysCommand() = default;
+
+		virtual std::string GetDesc() const override;
+		virtual CommandType GetType() const override { return CommandType::DispatchRays; }
+
+		COMMAND_ACCEPT_IMPL()
+		COMMAND_HASH_IMPL(dispatchWidth, dispatchHeight, dispatchDepth)
+
+		static Bool ClassOf(Command const* C)
+		{
+			using enum CommandType;
+			return C->GetType() == DispatchRays;
+		}
+
+	public:
+		Uint32 dispatchWidth = 0;
+		Uint32 dispatchHeight = 0;
+		Uint32 dispatchDepth = 0;
+	};
+
 	class RSSetViewportsCommand : public ListCommand
 	{
 	public:
@@ -260,6 +337,47 @@ namespace vista
 
 	public:
 		std::vector<D3D12_RECT> scissorRects;
+	};
+
+	class RSSetShadingRateCommand : public ListCommand
+	{
+	public:
+		RSSetShadingRateCommand() = default;
+
+		virtual std::string GetDesc() const override;
+		virtual CommandType GetType() const override { return CommandType::SetShadingRate; }
+
+		COMMAND_ACCEPT_IMPL()
+		COMMAND_HASH_IMPL(shadingRate, shadingRateCombiners[0], shadingRateCombiners[1])
+
+		static Bool ClassOf(Command const* C)
+		{
+			return C->GetType() == CommandType::SetShadingRate;
+		}
+
+	public:
+		D3D12_SHADING_RATE shadingRate = D3D12_SHADING_RATE_1X1;
+		D3D12_SHADING_RATE_COMBINER shadingRateCombiners[2] = { D3D12_SHADING_RATE_COMBINER_PASSTHROUGH, D3D12_SHADING_RATE_COMBINER_PASSTHROUGH };
+	};
+
+	class RSSetShadingRateImageCommand : public ListCommand
+	{
+	public:
+		RSSetShadingRateImageCommand() = default;
+
+		virtual std::string GetDesc() const override;
+		virtual CommandType GetType() const override { return CommandType::SetShadingRateImage; }
+
+		COMMAND_ACCEPT_IMPL()
+		COMMAND_HASH_IMPL(shadingRateImageId)
+
+		static Bool ClassOf(Command const* C)
+		{
+			return C->GetType() == CommandType::SetShadingRateImage;
+		}
+
+	public:
+		ObjectID shadingRateImageId = InvalidObjectID;
 	};
 
 	class OMSetRenderTargetsCommand : public ListCommand
@@ -322,6 +440,27 @@ namespace vista
 
 	public:
 		Uint32 stencilRef = 0;
+	};
+
+	class OMSetDepthBoundsCommand : public ListCommand
+	{
+	public:
+		OMSetDepthBoundsCommand() = default;
+
+		virtual std::string GetDesc() const override;
+		virtual CommandType GetType() const override { return CommandType::SetDepthBounds; }
+
+		COMMAND_ACCEPT_IMPL()
+		COMMAND_HASH_IMPL(depthMin, depthMax)
+
+		static Bool ClassOf(Command const* C)
+		{
+			return C->GetType() == CommandType::SetDepthBounds;
+		}
+
+	public:
+		Float depthMin = 0.0f;
+		Float depthMax = 0.0f;
 	};
 
 	class BeginRenderPassCommand : public ListCommand

@@ -48,16 +48,22 @@ namespace vista
 			VISTA_HOOK(List, CopyBufferRegion);
 			VISTA_HOOK(List, CopyTextureRegion);
 			VISTA_HOOK(List, CopyResource);
+			VISTA_HOOK(List, ResolveSubresource);
+			VISTA_HOOK(List1, ResolveSubresourceRegion);
 			VISTA_HOOK(List, DrawInstanced);
 			VISTA_HOOK(List, DrawIndexedInstanced);
 			VISTA_HOOK(List, Dispatch);
 			VISTA_HOOK(List6, DispatchMesh);
 			VISTA_HOOK(List, ExecuteIndirect);
+			VISTA_HOOK(List4, DispatchRays);
 			VISTA_HOOK(List, RSSetViewports);
 			VISTA_HOOK(List, RSSetScissorRects);
+			VISTA_HOOK(List5, RSSetShadingRate);
+			VISTA_HOOK(List5, RSSetShadingRateImage);
 			VISTA_HOOK(List, OMSetRenderTargets);
 			VISTA_HOOK(List, OMSetBlendFactor);
 			VISTA_HOOK(List, OMSetStencilRef);
+			VISTA_HOOK(List1, OMSetDepthBounds);
 			VISTA_HOOK(List4, BeginRenderPass);
 			VISTA_HOOK(List4, EndRenderPass);
 			VISTA_HOOK(List, ClearRenderTargetView);
@@ -608,6 +614,50 @@ namespace vista
 		return d3d12PFNs.CopyResource(pCommandList, pDstResource, pSrcResource);
 	}
 
+	void Vista::OnResolveSubresource(ID3D12GraphicsCommandList* pCommandList, ID3D12Resource* pDstResource, UINT dstSubresource, ID3D12Resource* pSrcResource, UINT srcSubresource, DXGI_FORMAT format)
+	{
+		if (g_isInsideVistaRender || GUI.IsFreezed())
+		{
+			return d3d12PFNs.ResolveSubresource(pCommandList, pDstResource, dstSubresource, pSrcResource, srcSubresource, format);
+		}
+
+		CommandRecorder& recorder = recorderManager.GetOrCreateRecorder(pCommandList);
+		ResolveSubresourceCommand& cmd = recorder.AddCommand<ResolveSubresourceCommand>();
+
+		cmd.dstResourceId = objectTracker.GetObjectID(pDstResource);
+		cmd.dstSubresource = dstSubresource;
+		cmd.srcResourceId = objectTracker.GetObjectID(pSrcResource);
+		cmd.srcSubresource = srcSubresource;
+		cmd.format = format;
+
+		return d3d12PFNs.ResolveSubresource(pCommandList, pDstResource, dstSubresource, pSrcResource, srcSubresource, format);
+	}
+
+	void Vista::OnResolveSubresourceRegion(ID3D12GraphicsCommandList1* pCommandList, ID3D12Resource* pDstResource, UINT dstSubresource, UINT dstX, UINT dstY, 
+										   ID3D12Resource* pSrcResource, UINT srcSubresource, D3D12_RECT* pSrcRect, DXGI_FORMAT format, D3D12_RESOLVE_MODE resolveMode)
+	{
+		if (g_isInsideVistaRender || GUI.IsFreezed())
+		{
+			return d3d12PFNs.ResolveSubresourceRegion(pCommandList, pDstResource, dstSubresource, dstX, dstY, pSrcResource, srcSubresource, pSrcRect, format, resolveMode);
+		}
+
+		CommandRecorder& recorder = recorderManager.GetOrCreateRecorder(pCommandList);
+		ResolveSubresourceRegionCommand& cmd = recorder.AddCommand<ResolveSubresourceRegionCommand>();
+		cmd.dstResourceId = objectTracker.GetObjectID(pDstResource);
+		cmd.dstSubresource = dstSubresource;
+		cmd.dstX = dstX;
+		cmd.dstY = dstY;
+		cmd.srcResourceId = objectTracker.GetObjectID(pSrcResource);
+		cmd.srcSubresource = srcSubresource;
+		if (pSrcRect)
+		{
+			cmd.srcRect = *pSrcRect;
+		}
+		cmd.resolveMode = resolveMode;
+		cmd.format = format;
+		return d3d12PFNs.ResolveSubresourceRegion(pCommandList, pDstResource, dstSubresource, dstX, dstY, pSrcResource, srcSubresource, pSrcRect, format, resolveMode);
+	}
+
 	void Vista::OnDrawInstanced(ID3D12GraphicsCommandList* pCommandList, UINT vertexCountPerInstance, UINT instanceCount, UINT startVertexLocation, UINT startInstanceLocation)
 	{
 		if (g_isInsideVistaRender || GUI.IsFreezed())
@@ -696,6 +746,24 @@ namespace vista
 		return d3d12PFNs.ExecuteIndirect(pCommandList, pCommandSignature, maxCommandCount, pArgumentBuffer, argumentBufferOffset, pCountBuffer, countBufferOffset);
 	}
 
+	void Vista::OnDispatchRays(ID3D12GraphicsCommandList4* pCommandList, const D3D12_DISPATCH_RAYS_DESC* pDesc)
+	{
+		if (g_isInsideVistaRender || GUI.IsFreezed())
+		{
+			return d3d12PFNs.DispatchRays(pCommandList, pDesc);
+		}
+
+		CommandRecorder& recorder = recorderManager.GetOrCreateRecorder(pCommandList);
+		DispatchRaysCommand& cmd = recorder.AddCommand<DispatchRaysCommand>();
+		if (pDesc)
+		{
+			cmd.dispatchWidth = pDesc->Width;
+			cmd.dispatchWidth = pDesc->Height;
+			cmd.dispatchWidth = pDesc->Depth;
+		}
+		return d3d12PFNs.DispatchRays(pCommandList, pDesc);
+	}
+
 	void Vista::OnRSSetViewports(ID3D12GraphicsCommandList* pCommandList, UINT viewportCount, const D3D12_VIEWPORT* pViewports)
 	{
 		if (g_isInsideVistaRender || GUI.IsFreezed())
@@ -728,6 +796,40 @@ namespace vista
 			cmd.scissorRects.push_back(pRects[i]);
 		}
 		return d3d12PFNs.RSSetScissorRects(pCommandList, numRects, pRects);
+	}
+
+	void Vista::OnRSSetShadingRate(ID3D12GraphicsCommandList5* pCommandList, D3D12_SHADING_RATE baseShadingRate, const D3D12_SHADING_RATE_COMBINER* pCombiners)
+	{
+		if (g_isInsideVistaRender || GUI.IsFreezed())
+		{
+			return d3d12PFNs.RSSetShadingRate(pCommandList, baseShadingRate, pCombiners);
+		}
+
+		CommandRecorder& recorder = recorderManager.GetOrCreateRecorder(pCommandList);
+		RSSetShadingRateCommand& cmd = recorder.AddCommand<RSSetShadingRateCommand>();
+		cmd.shadingRate = baseShadingRate;
+		if (pCombiners)
+		{
+			cmd.shadingRateCombiners[0] = pCombiners[0];
+			cmd.shadingRateCombiners[1] = pCombiners[1];
+		}
+		return d3d12PFNs.RSSetShadingRate(pCommandList, baseShadingRate, pCombiners);
+	}
+
+	void Vista::OnRSSetShadingRateImage(ID3D12GraphicsCommandList5* pCommandList, ID3D12Resource* shadingRateImage)
+	{
+		if (g_isInsideVistaRender || GUI.IsFreezed())
+		{
+			return d3d12PFNs.RSSetShadingRateImage(pCommandList, shadingRateImage);
+		}
+
+		CommandRecorder& recorder = recorderManager.GetOrCreateRecorder(pCommandList);
+		RSSetShadingRateImageCommand& cmd = recorder.AddCommand<RSSetShadingRateImageCommand>();
+		if (shadingRateImage)
+		{
+			cmd.shadingRateImageId = objectTracker.GetObjectID(shadingRateImage);
+		}
+		return d3d12PFNs.RSSetShadingRateImage(pCommandList, shadingRateImage);
 	}
 
 	void Vista::OnOMSetRenderTargets(ID3D12GraphicsCommandList* pCommandList, UINT numRenderTargetDescriptors, const D3D12_CPU_DESCRIPTOR_HANDLE* pRenderTargetDescriptors, BOOL RTsSingleHandleToDescriptorRange, const D3D12_CPU_DESCRIPTOR_HANDLE* pDepthStencilDescriptor)
@@ -782,6 +884,21 @@ namespace vista
 		cmd.stencilRef = stencilRef;
 
 		return d3d12PFNs.OMSetStencilRef(pCommandList, stencilRef);
+	}
+
+	void Vista::OnOMSetDepthBounds(ID3D12GraphicsCommandList1* pCommandList, FLOAT min, FLOAT max)
+	{
+		if (g_isInsideVistaRender || GUI.IsFreezed())
+		{
+			return d3d12PFNs.OMSetDepthBounds(pCommandList, min, max);
+		}
+
+		CommandRecorder& recorder = recorderManager.GetOrCreateRecorder(pCommandList);
+		OMSetDepthBoundsCommand& cmd = recorder.AddCommand<OMSetDepthBoundsCommand>();
+		cmd.depthMin = min;
+		cmd.depthMax = max;
+
+		return d3d12PFNs.OMSetDepthBounds(pCommandList, min, max);
 	}
 
 	void Vista::OnBeginRenderPass(ID3D12GraphicsCommandList4* pCommandList, UINT numRenderTargets, const D3D12_RENDER_PASS_RENDER_TARGET_DESC* pRenderTargets, const D3D12_RENDER_PASS_DEPTH_STENCIL_DESC* pDepthStencil, D3D12_RENDER_PASS_FLAGS flags)

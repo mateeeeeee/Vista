@@ -758,4 +758,46 @@ namespace vista
 		}
 		return result.empty() ? "Unknown (0x" + std::to_string(flags) + ")" : result;
 	}
+
+	inline Char const* D3D12ShadingRateToString(D3D12_SHADING_RATE rate)
+	{
+		switch (rate)
+		{
+		case D3D12_SHADING_RATE_1X1: return "1x1";
+		case D3D12_SHADING_RATE_1X2: return "1x2";
+		case D3D12_SHADING_RATE_2X1: return "2x1";
+		case D3D12_SHADING_RATE_2X2: return "2x2";
+		case D3D12_SHADING_RATE_2X4: return "2x4";
+		case D3D12_SHADING_RATE_4X2: return "4x2";
+		case D3D12_SHADING_RATE_4X4: return "4x4";
+		default: return "Unknown";
+		}
+	}
+
+	inline Char const* D3D12ShadingRateCombinerToString(D3D12_SHADING_RATE_COMBINER combiner)
+	{
+		switch (combiner)
+		{
+		case D3D12_SHADING_RATE_COMBINER_PASSTHROUGH: return "Passthrough";
+		case D3D12_SHADING_RATE_COMBINER_OVERRIDE: return "Override";
+		case D3D12_SHADING_RATE_COMBINER_MIN: return "Min";
+		case D3D12_SHADING_RATE_COMBINER_MAX: return "Max";
+		case D3D12_SHADING_RATE_COMBINER_SUM: return "Sum";
+		default: return "Unknown";
+		}
+	}
+
+	inline Char const* D3D12ResolveModeToString(D3D12_RESOLVE_MODE mode)
+	{
+		switch (mode)
+		{
+		case D3D12_RESOLVE_MODE_DECOMPRESS: return "DECOMPRESS";
+		case D3D12_RESOLVE_MODE_MIN: return "MIN";
+		case D3D12_RESOLVE_MODE_MAX: return "MAX";
+		case D3D12_RESOLVE_MODE_AVERAGE: return "AVERAGE";
+		case D3D12_RESOLVE_MODE_ENCODE_SAMPLER_FEEDBACK: return "ENCODE_SAMPLER_FEEDBACK";
+		case D3D12_RESOLVE_MODE_DECODE_SAMPLER_FEEDBACK: return "DECODE_SAMPLER_FEEDBACK";
+		default: return "UNKNOWN";
+		}
+	}
 }

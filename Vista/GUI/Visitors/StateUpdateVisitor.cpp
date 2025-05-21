@@ -114,6 +114,16 @@ namespace vista
 		state.scissorRects = cmd.scissorRects;  
 	}
 
+	void StateUpdateVisitor::Visit(RSSetShadingRateCommand const& cmd)
+	{
+
+	}
+
+	void StateUpdateVisitor::Visit(RSSetShadingRateImageCommand const& cmd)
+	{
+
+	}
+
 	void StateUpdateVisitor::Visit(OMSetRenderTargetsCommand const& cmd)
 	{
 		state.numRenderTargetsSet = (Uint32)cmd.renderTargetDescriptors.size();
@@ -139,6 +149,12 @@ namespace vista
 	void StateUpdateVisitor::Visit(OMSetStencilRefCommand const& cmd)
 	{
 		state.stencilRef = cmd.stencilRef;
+	}
+
+	void StateUpdateVisitor::Visit(OMSetDepthBoundsCommand const& cmd)
+	{
+		state.depthMin = cmd.depthMin;
+		state.depthMax = cmd.depthMax;
 	}
 
 	void StateUpdateVisitor::Visit(BeginRenderPassCommand const& cmd)
@@ -364,5 +380,6 @@ namespace vista
 	{
 		state.Reset();
 	}
+
 }
 

@@ -50,8 +50,13 @@ namespace vista
 			depthStencilView.reset();
 			blendFactor.reset();
 			stencilRef.reset();
+			shadingRate.reset();
+			shadingRateCombiners[0] = D3D12_SHADING_RATE_COMBINER_PASSTHROUGH;
+			shadingRateCombiners[1] = D3D12_SHADING_RATE_COMBINER_PASSTHROUGH;
 			graphicsRootArguments.clear();
 			computeRootArguments.clear();
+			depthMin = 0.0f;
+			depthMax = 1.0f;
 		}
 
 		ObjectID graphicsRootSignatureId = InvalidObjectID;
@@ -76,5 +81,10 @@ namespace vista
 		D3D12_RENDER_PASS_FLAGS renderPassFlags = D3D12_RENDER_PASS_FLAG_NONE;
 		std::optional<std::array<Float, 4>> blendFactor = std::nullopt;
 		std::optional<Uint32> stencilRef = std::nullopt;
+		Float depthMin = 0.0f;
+		Float depthMax = 1.0f;
+
+		std::optional<D3D12_SHADING_RATE> shadingRate = std::nullopt;
+		D3D12_SHADING_RATE_COMBINER shadingRateCombiners[2] = { D3D12_SHADING_RATE_COMBINER_PASSTHROUGH, D3D12_SHADING_RATE_COMBINER_PASSTHROUGH };
 	};
 }

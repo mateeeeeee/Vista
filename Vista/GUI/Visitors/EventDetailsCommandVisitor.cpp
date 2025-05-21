@@ -367,6 +367,119 @@ namespace vista
 			ImGui::EndTable();
 		}
 	}
+	void EventDetailsCommandVisitor::Visit(ResolveSubresourceCommand const& cmd)
+	{
+		ImGui::Text("Command: %s", cmd.GetDesc().c_str());
+		ImGui::SeparatorText("Resolve Subresource Details");
+
+		if (ImGui::BeginTable("ResolveSubresourceTable", 2, ImGuiTableFlags_Borders | ImGuiTableFlags_Resizable))
+		{
+			ImGui::TableSetupColumn("Property", ImGuiTableColumnFlags_WidthFixed, 150.0f);
+			ImGui::TableSetupColumn("Value");
+			ImGui::TableHeadersRow();
+
+			ImGui::TableNextRow();
+			ImGui::TableSetColumnIndex(0);
+			ImGui::Text("Destination Resource");
+			ImGui::TableSetColumnIndex(1);
+			RenderObjectInfoByID(cmd.dstResourceId, objectTracker);
+
+			ImGui::TableNextRow();
+			ImGui::TableSetColumnIndex(0);
+			ImGui::Text("Destination Subresource");
+			ImGui::TableSetColumnIndex(1);
+			ImGui::Text("%u", cmd.dstSubresource);
+
+			ImGui::TableNextRow();
+			ImGui::TableSetColumnIndex(0);
+			ImGui::Text("Source Resource");
+			ImGui::TableSetColumnIndex(1);
+			RenderObjectInfoByID(cmd.srcResourceId, objectTracker);
+
+			ImGui::TableNextRow();
+			ImGui::TableSetColumnIndex(0);
+			ImGui::Text("Source Subresource");
+			ImGui::TableSetColumnIndex(1);
+			ImGui::Text("%u", cmd.srcSubresource);
+
+			ImGui::TableNextRow();
+			ImGui::TableSetColumnIndex(0);
+			ImGui::Text("Format");
+			ImGui::TableSetColumnIndex(1);
+			ImGui::Text("%s", DXGIFormatToString(cmd.format));
+
+			ImGui::EndTable();
+		}
+	}
+	void EventDetailsCommandVisitor::Visit(ResolveSubresourceRegionCommand const& cmd)
+	{
+		ImGui::Text("Command: %s", cmd.GetDesc().c_str());
+		ImGui::SeparatorText("Resolve Subresource Region Details");
+
+		if (ImGui::BeginTable("ResolveSubresourceRegionTable", 2, ImGuiTableFlags_Borders | ImGuiTableFlags_Resizable))
+		{
+			ImGui::TableSetupColumn("Property", ImGuiTableColumnFlags_WidthFixed, 150.0f);
+			ImGui::TableSetupColumn("Value");
+			ImGui::TableHeadersRow();
+
+			ImGui::TableNextRow();
+			ImGui::TableSetColumnIndex(0);
+			ImGui::Text("Destination Resource");
+			ImGui::TableSetColumnIndex(1);
+			RenderObjectInfoByID(cmd.dstResourceId, objectTracker);
+
+			ImGui::TableNextRow();
+			ImGui::TableSetColumnIndex(0);
+			ImGui::Text("Destination Subresource");
+			ImGui::TableSetColumnIndex(1);
+			ImGui::Text("%u", cmd.dstSubresource);
+
+			ImGui::TableNextRow();
+			ImGui::TableSetColumnIndex(0);
+			ImGui::Text("Destination X, Y");
+			ImGui::TableSetColumnIndex(1);
+			ImGui::Text("%u, %u", cmd.dstX, cmd.dstY);
+
+			ImGui::TableNextRow();
+			ImGui::TableSetColumnIndex(0);
+			ImGui::Text("Source Resource");
+			ImGui::TableSetColumnIndex(1);
+			RenderObjectInfoByID(cmd.srcResourceId, objectTracker);
+
+			ImGui::TableNextRow();
+			ImGui::TableSetColumnIndex(0);
+			ImGui::Text("Source Subresource");
+			ImGui::TableSetColumnIndex(1);
+			ImGui::Text("%u", cmd.srcSubresource);
+
+			ImGui::TableNextRow();
+			ImGui::TableSetColumnIndex(0);
+			ImGui::Text("Source Rect");
+			ImGui::TableSetColumnIndex(1);
+			if (cmd.srcRect.has_value())
+			{
+				RenderScissorRect(cmd.srcRect.value());
+			}
+			else
+			{
+				ImGui::Text("<Full Resource>");
+			}
+			ImGui::TableNextRow();
+			ImGui::TableSetColumnIndex(0);
+			ImGui::Text("Format");
+			ImGui::TableSetColumnIndex(1);
+			ImGui::Text("%s", DXGIFormatToString(cmd.format));
+
+			ImGui::TableNextRow();
+			ImGui::TableSetColumnIndex(0);
+			ImGui::Text("Resolve Mode");
+			ImGui::TableSetColumnIndex(1);
+			ImGui::Text("%s", D3D12ResolveModeToString(cmd.resolveMode));
+
+			ImGui::EndTable();
+		}
+	}
+
 	void EventDetailsCommandVisitor::Visit(DrawInstancedCommand const& cmd)
 	{
 		ImGui::Text("Command: %s", cmd.GetDesc().c_str());
@@ -470,6 +583,15 @@ namespace vista
 			RenderCommandSignatureDesc(std::get<CommandSignatureDesc>(cmdSigInfo->objectDesc), objectTracker); 
 		}
 	}
+	void EventDetailsCommandVisitor::Visit(DispatchRaysCommand const& cmd)
+	{
+		ImGui::Text("Command: %s", cmd.GetDesc().c_str());
+		ImGui::SeparatorText("DispatchRays Info");
+
+		ImGui::Text("DispatchWidth: %u", cmd.dispatchWidth);
+		ImGui::Text("DispatchHeight: %u", cmd.dispatchHeight);
+		ImGui::Text("DispatchDepth: %u", cmd.dispatchDepth);
+	}
 	void EventDetailsCommandVisitor::Visit(RSSetViewportsCommand const& cmd)
 	{
 		ImGui::Text("Command: %s", cmd.GetDesc().c_str());
@@ -489,6 +611,38 @@ namespace vista
 		{
 			RenderScissorRect(i, cmd.scissorRects[i]); 
 		}
+	}
+	void EventDetailsCommandVisitor::Visit(RSSetShadingRateCommand const& cmd)
+	{
+		ImGui::Text("Command: %s", cmd.GetDesc().c_str());
+		ImGui::SeparatorText("Shading Rate");
+
+		ImGui::Text("Shading Rate: %s", D3D12ShadingRateToString(cmd.shadingRate));
+		Char const* combinerNames[] = { "Combiner 0", "Combiner 1" };
+
+		if (ImGui::BeginTable("ShadingRateCombiners", 2, ImGuiTableFlags_Borders | ImGuiTableFlags_Resizable))
+		{
+			ImGui::TableSetupColumn("Combiner", ImGuiTableColumnFlags_WidthFixed, 150.0f);
+			ImGui::TableSetupColumn("Value");
+			ImGui::TableHeadersRow();
+
+			for (Int i = 0; i < 2; ++i)
+			{
+				ImGui::TableNextRow();
+				ImGui::TableSetColumnIndex(0);
+				ImGui::Text("%s", combinerNames[i]);
+
+				ImGui::TableSetColumnIndex(1);
+				ImGui::Text("%s", D3D12ShadingRateCombinerToString(cmd.shadingRateCombiners[i]));
+			}
+			ImGui::EndTable();
+		}
+	}
+	void EventDetailsCommandVisitor::Visit(RSSetShadingRateImageCommand const& cmd)
+	{
+		ImGui::Text("Command: %s", cmd.GetDesc().c_str());
+		ImGui::SeparatorText("Shading Rate Image");
+		RenderObjectInfoByID(cmd.shadingRateImageId, objectTracker);
 	}
 	void EventDetailsCommandVisitor::Visit(OMSetRenderTargetsCommand const& cmd)
 	{
@@ -532,6 +686,13 @@ namespace vista
 		ImGui::Text("Command: %s", cmd.GetDesc().c_str());
 		ImGui::SeparatorText("Stencil Ref");
 		ImGui::Text("Stencil Ref: %u", cmd.stencilRef);
+	}
+	void EventDetailsCommandVisitor::Visit(OMSetDepthBoundsCommand const& cmd)
+	{
+		ImGui::Text("Command: %s", cmd.GetDesc().c_str());
+		ImGui::SeparatorText("Stencil Ref");
+		ImGui::Text("Depth Min: %f", cmd.depthMin);
+		ImGui::Text("Depth Max: %f", cmd.depthMax);
 	}
 	void EventDetailsCommandVisitor::Visit(BeginRenderPassCommand const& cmd)
 	{

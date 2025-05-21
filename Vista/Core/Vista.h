@@ -49,16 +49,23 @@ namespace vista
 		void    OnCopyBufferRegion(ID3D12GraphicsCommandList* pCommandList, ID3D12Resource* pDstBuffer, UINT64 dstOffset, ID3D12Resource* pSrcBuffer, UINT64 srcOffset, UINT64 numBytes);
 		void    OnCopyTextureRegion(ID3D12GraphicsCommandList* pCommandList, const D3D12_TEXTURE_COPY_LOCATION* pDst, UINT dstX, UINT dstY, UINT dstZ, const D3D12_TEXTURE_COPY_LOCATION* pSrc, const D3D12_BOX* pSrcBox);
 		void    OnCopyResource(ID3D12GraphicsCommandList* pCommandList, ID3D12Resource* pDstResource, ID3D12Resource* pSrcResource);
+		void    OnResolveSubresource(ID3D12GraphicsCommandList* pCommandList, ID3D12Resource* pDstResource, UINT dstSubresource, ID3D12Resource* pSrcResource, UINT srcSubresource, DXGI_FORMAT format);
+		void    OnResolveSubresourceRegion(ID3D12GraphicsCommandList1* pCommandList, ID3D12Resource* pDstResource, UINT dstSubresource, UINT dstX, UINT dstY,
+										   ID3D12Resource* pSrcResource, UINT SrcSubresource, D3D12_RECT* pSrcRect, DXGI_FORMAT format, D3D12_RESOLVE_MODE resolveMode);
 		void    OnDrawInstanced(ID3D12GraphicsCommandList* pCommandList, UINT vertexCountPerInstance, UINT instanceCount, UINT startVertexLocation, UINT startInstanceLocation);
 		void	OnDrawIndexedInstanced(ID3D12GraphicsCommandList* pCommandList, UINT indexCountPerInstance, UINT instanceCount, UINT startIndexLocation, INT baseVertexLocation, UINT startInstanceLocation);
 		void    OnDispatch(ID3D12GraphicsCommandList* pCommandList, UINT threadGroupCountX, UINT threadGroupCountY, UINT threadGroupCountZ);
 		void    OnDispatchMesh(ID3D12GraphicsCommandList6* pCommandList, UINT threadGroupCountX, UINT threadGroupCountY, UINT threadGroupCountZ);
 		void    OnExecuteIndirect(ID3D12GraphicsCommandList* pCommandList, ID3D12CommandSignature* pCommandSignature, UINT maxCommandCount, ID3D12Resource* pArgumentBuffer, UINT64 argumentBufferOffset, ID3D12Resource* pCountBuffer, UINT64 countBufferOffset);
+		void    OnDispatchRays(ID3D12GraphicsCommandList4* pCommandList, const D3D12_DISPATCH_RAYS_DESC* pDesc);
 		void    OnRSSetViewports(ID3D12GraphicsCommandList* pCommandList, UINT viewportCount, const D3D12_VIEWPORT* pViewports);
 		void    OnRSSetScissorRects(ID3D12GraphicsCommandList* pCommandList, UINT numRects, const D3D12_RECT* pRects);
+		void    OnRSSetShadingRate(ID3D12GraphicsCommandList5* pCommandList, D3D12_SHADING_RATE baseShadingRate, const D3D12_SHADING_RATE_COMBINER* pCombiners);
+		void    OnRSSetShadingRateImage(ID3D12GraphicsCommandList5* pCommandList, ID3D12Resource* shadingRateImage);
 		void    OnOMSetRenderTargets(ID3D12GraphicsCommandList* pCommandList, UINT numRenderTargetDescriptors, const D3D12_CPU_DESCRIPTOR_HANDLE* pRenderTargetDescriptors, BOOL RTsSingleHandleToDescriptorRange, const D3D12_CPU_DESCRIPTOR_HANDLE* pDepthStencilDescriptor);
 		void    OnOMSetBlendFactor(ID3D12GraphicsCommandList* pCommandList, const FLOAT* blendFactor);
 		void    OnOMSetStencilRef(ID3D12GraphicsCommandList* pCommandList, UINT stencilRef);
+		void    OnOMSetDepthBounds(ID3D12GraphicsCommandList1* pCommandList, FLOAT min, FLOAT max);
 		void    OnBeginRenderPass(ID3D12GraphicsCommandList4* pCommandList, UINT numRenderTargets, const D3D12_RENDER_PASS_RENDER_TARGET_DESC* pRenderTargets, const D3D12_RENDER_PASS_DEPTH_STENCIL_DESC* pDepthStencil, D3D12_RENDER_PASS_FLAGS flags);
 		void	OnEndRenderPass(ID3D12GraphicsCommandList4* pCommandList);
 		void    OnClearRenderTargetView(ID3D12GraphicsCommandList* pCommandList, D3D12_CPU_DESCRIPTOR_HANDLE renderTargetView, const FLOAT* colorRGBA, UINT numRects, const D3D12_RECT* pRects);

@@ -20,6 +20,16 @@ namespace vista
 		return std::format("CopyResource(obj#{}, obj#{}) {{ this -> CommandList obj#{} }}", dstResourceId, srcResourceId, GetParentId());
 	}
 
+	std::string ResolveSubresourceCommand::GetDesc() const
+	{
+		return std::format("ResolveSubresource(obj#{}, {}, obj#{}, {}, ...) {{ this -> CommandList obj#{} }}", dstResourceId, dstSubresource, srcResourceId, srcSubresource, GetParentId());
+	}
+
+	std::string ResolveSubresourceRegionCommand::GetDesc() const
+	{
+		return std::format("ResolveSubresourceRegion(obj#{}, {}, {}, {}, obj#{}, {}, ...) {{ this -> CommandList obj#{} }}", dstResourceId, dstSubresource, dstX, dstY, srcResourceId, srcSubresource, GetParentId());
+	}
+
 	std::string DrawInstancedCommand::GetDesc() const
 	{
 		return std::format("DrawInstanced({}, {}, {}, {}) {{ this -> CommandList obj#{} }}", vertexCountPerInstance, instanceCount, startVertexLocation, startInstanceLocation, GetParentId());
@@ -46,8 +56,12 @@ namespace vista
 		{
 			return std::format("ExecuteIndirect(obj#{}, {}, {}, {}) {{ this -> CommandList obj#{} }}", commandSignatureId, maxCommandCount, argumentBufferId, argumentBufferOffset, GetParentId());
 		}
-		return std::format("ExecuteIndirect(obj#{}, {}, obj#{}, {}, obj#{}, {}) {{ this -> CommandList obj#{} }}", commandSignatureId, maxCommandCount, argumentBufferId, argumentBufferOffset,
-																											countBufferId, countBufferOffset, GetParentId());
+		return std::format("ExecuteIndirect(obj#{}, {}, obj#{}, {}, obj#{}, {}) {{ this -> CommandList obj#{} }}", commandSignatureId, maxCommandCount, argumentBufferId, argumentBufferOffset,																								countBufferId, countBufferOffset, GetParentId());
+	}
+
+	std::string DispatchRaysCommand::GetDesc() const
+	{
+		return std::format("DispatchRays({}, {}, {}) {{ this -> CommandList obj#{} }}", dispatchWidth, dispatchHeight, dispatchDepth, GetParentId());
 	}
 
 	std::string RSSetViewportsCommand::GetDesc() const
@@ -58,6 +72,16 @@ namespace vista
 	std::string RSSetScissorRectsCommand::GetDesc() const
 	{
 		return std::format("RSSetScissorRects({}, ...) {{ this -> CommandList obj#{} }}", scissorRects.size(), GetParentId());
+	}
+
+	std::string RSSetShadingRateCommand::GetDesc() const
+	{
+		return std::format("RSSetShadingRate(...) {{ this -> CommandList obj#{} }}", GetParentId());
+	}
+
+	std::string RSSetShadingRateImageCommand::GetDesc() const
+	{
+		return std::format("RSSetShadingRateImage({}) {{ this -> CommandList obj#{} }}", shadingRateImageId, GetParentId());
 	}
 
 	std::string OMSetRenderTargetsCommand::GetDesc() const
@@ -77,6 +101,11 @@ namespace vista
 	std::string OMSetStencilRefCommand::GetDesc() const
 	{
 		return std::format("OMSetStencilRef({}) {{ this -> CommandList obj#{} }}", stencilRef, GetParentId());
+	}
+
+	std::string OMSetDepthBoundsCommand::GetDesc() const
+	{
+		return std::format("OMSetDepthBounds({}, {}) {{ this -> CommandList obj#{} }}", depthMin, depthMax, GetParentId());
 	}
 
 	std::string BeginRenderPassCommand::GetDesc() const
@@ -233,4 +262,5 @@ namespace vista
 		}
 		return std::format("Reset(nullptr) {{ this -> CommandList obj#{} }}", psoId, GetParentId());
 	}
+
 }

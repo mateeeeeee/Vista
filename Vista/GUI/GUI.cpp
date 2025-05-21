@@ -1253,6 +1253,17 @@ namespace vista
 			ImGui::TreePop();
 		}
 
+		if (currentState.shadingRate.has_value())
+		{
+			ImGui::Text("Shading Rate: %s", D3D12ShadingRateToString(currentState.shadingRate.value()));
+			ImGui::Text("Shading Rate Combiner 0: %s", D3D12ShadingRateCombinerToString(currentState.shadingRateCombiners[0]));
+			ImGui::Text("Shading Rate Combiner 1: %s", D3D12ShadingRateCombinerToString(currentState.shadingRateCombiners[1]));
+		}
+		else
+		{
+			ImGui::Text("Shading Rate: <not set>");
+		}
+
 		ImGui::Text("Primitive Topology: %s", D3D12PrimitiveTopologyToString(currentState.primitiveTopology));
 
 		if (ImGui::TreeNode("Render Targets"))
@@ -1294,6 +1305,12 @@ namespace vista
 					ImGui::Text("Stencil Ref: <Not set>");
 				}
 				ImGui::TreePop();
+
+				if (ImGui::TreeNode("Depth Bounds"))
+				{
+					ImGui::Text("Depth Min: %f", currentState.depthMin);
+					ImGui::Text("Depth Max: %f", currentState.depthMax);
+				}
 			}
 
 			ImGui::TreePop();

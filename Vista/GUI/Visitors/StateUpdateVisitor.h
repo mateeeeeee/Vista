@@ -18,9 +18,12 @@ namespace vista
 		virtual void Visit(IASetIndexBufferCommand const& cmd) override;
 		virtual void Visit(RSSetViewportsCommand const& cmd) override;
 		virtual void Visit(RSSetScissorRectsCommand const& cmd) override;
+		virtual void Visit(RSSetShadingRateCommand const& cmd) override;
+		virtual void Visit(RSSetShadingRateImageCommand const& cmd) override;
 		virtual void Visit(OMSetRenderTargetsCommand const& cmd) override;
 		virtual void Visit(OMSetBlendFactorCommand const& cmd) override;
 		virtual void Visit(OMSetStencilRefCommand const& cmd) override;
+		virtual void Visit(OMSetDepthBoundsCommand const& cmd) override;
 		virtual void Visit(BeginRenderPassCommand const&) override;
 		virtual void Visit(EndRenderPassCommand const&) override;
 		virtual void Visit(SetDescriptorHeapsCommand const& cmd) override;

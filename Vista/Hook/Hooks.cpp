@@ -27,6 +27,7 @@ namespace vista::hooks
 	{
 		return g_Vista.OnCreateHeap(pDevice, pDesc, riid, ppvHeap);
 	}
+
 	HRESULT STDMETHODCALLTYPE CreateFence(ID3D12Device* pDevice, UINT64 IntialValue, D3D12_FENCE_FLAGS Flags, REFIID riid, void** ppFence)
 	{
 		return g_Vista.OnCreateFence(pDevice, IntialValue, Flags, riid, ppFence);
@@ -135,6 +136,17 @@ namespace vista::hooks
 		g_Vista.OnCopyResource(pCommandList, pDstResource, pSrcResource);
 	}
 
+	void STDMETHODCALLTYPE ResolveSubresource(ID3D12GraphicsCommandList* pCommandList, ID3D12Resource* pDstResource, UINT DstSubresource, ID3D12Resource* pSrcResource, UINT SrcSubresource, DXGI_FORMAT Format)
+	{
+		g_Vista.OnResolveSubresource(pCommandList, pDstResource, DstSubresource, pSrcResource, SrcSubresource, Format);
+	}
+
+	void STDMETHODCALLTYPE ResolveSubresourceRegion(ID3D12GraphicsCommandList1* pCommandList, ID3D12Resource* pDstResource, UINT DstSubresource, UINT DstX, UINT DstY, 
+													ID3D12Resource* pSrcResource, UINT SrcSubresource, D3D12_RECT* pSrcRect, DXGI_FORMAT Format, D3D12_RESOLVE_MODE ResolveMode)
+	{
+		g_Vista.OnResolveSubresourceRegion(pCommandList, pDstResource, DstSubresource, DstX, DstY, pSrcResource, SrcSubresource, pSrcRect, Format, ResolveMode);
+	}
+
 	void STDMETHODCALLTYPE DrawInstanced(ID3D12GraphicsCommandList* pCommandList, UINT VertexCountPerInstance, UINT InstanceCount, UINT StartVertexLocation, UINT StartInstanceLocation)
 	{
 		return g_Vista.OnDrawInstanced(pCommandList, VertexCountPerInstance, InstanceCount, StartVertexLocation, StartInstanceLocation);
@@ -160,6 +172,11 @@ namespace vista::hooks
 		return g_Vista.OnExecuteIndirect(pCommandList, pCommandSignature, MaxCommandCount, pArgumentBuffer, ArgumentBufferOffset, pCountBuffer, CountBufferOffset);
 	}
 
+	void STDMETHODCALLTYPE DispatchRays(ID3D12GraphicsCommandList4* pCommandList, const D3D12_DISPATCH_RAYS_DESC* pDesc)
+	{
+		return g_Vista.OnDispatchRays(pCommandList, pDesc);
+	}
+
 	void STDMETHODCALLTYPE RSSetViewports(ID3D12GraphicsCommandList* pCommandList, UINT ViewportCount, const D3D12_VIEWPORT* Viewports)
 	{
 		return g_Vista.OnRSSetViewports(pCommandList, ViewportCount, Viewports);
@@ -168,6 +185,16 @@ namespace vista::hooks
 	void STDMETHODCALLTYPE RSSetScissorRects(ID3D12GraphicsCommandList* pCommandList, UINT NumRects, const D3D12_RECT* pRects)
 	{
 		return g_Vista.OnRSSetScissorRects(pCommandList, NumRects, pRects);
+	}
+
+	void STDMETHODCALLTYPE RSSetShadingRate(ID3D12GraphicsCommandList5* pCommandList, D3D12_SHADING_RATE BaseShadingRate, const D3D12_SHADING_RATE_COMBINER* pCombiners)
+	{
+		return g_Vista.OnRSSetShadingRate(pCommandList, BaseShadingRate, pCombiners);
+	}
+
+	void STDMETHODCALLTYPE RSSetShadingRateImage(ID3D12GraphicsCommandList5* pCommandList, ID3D12Resource* ShadingRateImage)
+	{
+		return g_Vista.OnRSSetShadingRateImage(pCommandList, ShadingRateImage);
 	}
 
 	void STDMETHODCALLTYPE OMSetRenderTargets(ID3D12GraphicsCommandList* pCommandList, UINT NumRenderTargetDescriptors, const D3D12_CPU_DESCRIPTOR_HANDLE* pRenderTargetDescriptors, BOOL RTsSingleHandleToDescriptorRange, const D3D12_CPU_DESCRIPTOR_HANDLE* pDepthStencilDescriptor)
@@ -183,6 +210,11 @@ namespace vista::hooks
 	void STDMETHODCALLTYPE OMSetStencilRef(ID3D12GraphicsCommandList* pCommandList, UINT StencilRef)
 	{
 		return g_Vista.OnOMSetStencilRef(pCommandList, StencilRef);
+	}
+
+	void STDMETHODCALLTYPE OMSetDepthBounds(ID3D12GraphicsCommandList1* pCommandList, FLOAT Min, FLOAT Max)
+	{
+		return g_Vista.OnOMSetDepthBounds(pCommandList, Min, Max);
 	}
 
 	void STDMETHODCALLTYPE BeginRenderPass(ID3D12GraphicsCommandList4* pCommandList, UINT NumRenderTargets, const D3D12_RENDER_PASS_RENDER_TARGET_DESC* pRenderTargets, const D3D12_RENDER_PASS_DEPTH_STENCIL_DESC* pDepthStencil, D3D12_RENDER_PASS_FLAGS Flags)

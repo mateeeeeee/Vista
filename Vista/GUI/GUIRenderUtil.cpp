@@ -1108,6 +1108,42 @@ namespace vista
 		}
 	}
 
+	void RenderScissorRect(D3D12_RECT const& rect)
+	{
+		if (ImGui::BeginTable("ScissorRectTable", 2, ImGuiTableFlags_Borders | ImGuiTableFlags_SizingFixedFit | ImGuiTableFlags_NoHostExtendX))
+		{
+			ImGui::TableSetupColumn("Property", ImGuiTableColumnFlags_WidthFixed, 100.0f);
+			ImGui::TableSetupColumn("Value", ImGuiTableColumnFlags_WidthFixed, 150.0f);
+			ImGui::TableHeadersRow();
+
+			ImGui::TableNextRow();
+			ImGui::TableSetColumnIndex(0);
+			ImGui::Text("Left");
+			ImGui::TableSetColumnIndex(1);
+			ImGui::Text("%d", rect.left);
+
+			ImGui::TableNextRow();
+			ImGui::TableSetColumnIndex(0);
+			ImGui::Text("Top");
+			ImGui::TableSetColumnIndex(1);
+			ImGui::Text("%d", rect.top);
+
+			ImGui::TableNextRow();
+			ImGui::TableSetColumnIndex(0);
+			ImGui::Text("Right");
+			ImGui::TableSetColumnIndex(1);
+			ImGui::Text("%d", rect.right);
+
+			ImGui::TableNextRow();
+			ImGui::TableSetColumnIndex(0);
+			ImGui::Text("Bottom");
+			ImGui::TableSetColumnIndex(1);
+			ImGui::Text("%d", rect.bottom);
+
+			ImGui::EndTable();
+		}
+	}
+
 	void RenderResourceBarrier(Uint32 index, D3D12_RESOURCE_BARRIER const& barrier, ObjectTracker const& objectTracker)
 	{
 		ImGui::PushID(index);
