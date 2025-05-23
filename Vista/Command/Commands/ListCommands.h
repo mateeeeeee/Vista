@@ -380,6 +380,26 @@ namespace vista
 		ObjectID shadingRateImageId = InvalidObjectID;
 	};
 
+	class SetViewInstanceMaskCommand : public ListCommand
+	{
+	public:
+		SetViewInstanceMaskCommand() = default;
+
+		virtual std::string GetDesc() const override;
+		virtual CommandType GetType() const override { return CommandType::SetViewInstanceMask; }
+
+		COMMAND_ACCEPT_IMPL()
+		COMMAND_HASH_IMPL(viewInstanceMask)
+
+		static Bool ClassOf(Command const* C)
+		{
+			return C->GetType() == CommandType::SetViewInstanceMask;
+		}
+
+	public:
+		Uint32 viewInstanceMask = 0;
+	};
+
 	class OMSetRenderTargetsCommand : public ListCommand
 	{
 	public:

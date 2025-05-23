@@ -9,9 +9,19 @@ namespace vista
 		return std::format("CreateCommandQueue(..., obj#{}) {{ this -> Device obj#{}, return -> {} }}", commandQueueId, GetParentId(), HResultToString(hr));
 	}
 
+	std::string CreateCommandQueue1Command::GetDesc() const
+	{
+		return std::format("CreateCommandQueue1(..., obj#{}) {{ this -> Device obj#{}, return -> {} }}", commandQueueId, GetParentId(), HResultToString(hr));
+	}
+
 	std::string CreateCommandListCommand::GetDesc() const
 	{
 		return std::format("CreateCommandList(..., obj#{}) {{ this -> Device obj#{}, return -> {} }}", commandListId, GetParentId(), HResultToString(hr));
+	}
+
+	std::string CreateCommandList1Command::GetDesc() const
+	{
+		return std::format("CreateCommandList1(..., obj#{}) {{ this -> Device obj#{}, return -> {} }}", commandListId, GetParentId(), HResultToString(hr));
 	}
 
 	std::string CreateCommandAllocatorCommand::GetDesc() const
@@ -27,6 +37,11 @@ namespace vista
 	std::string CreateHeapCommand::GetDesc() const
 	{
 		return std::format("CreateHeap(..., obj#{}) {{ this -> Device obj#{}, return -> {} }}", heapId, GetParentId(), HResultToString(hr));
+	}
+
+	std::string CreateHeap1Command::GetDesc() const
+	{
+		return std::format("CreateHeap1(..., obj#{}) {{ this -> Device obj#{}, return -> {} }}", heapId, GetParentId(), HResultToString(hr));
 	}
 
 	std::string CreateRootSignatureCommand::GetDesc() const
@@ -54,10 +69,21 @@ namespace vista
 		return std::format("CreateCommittedResource(..., obj#{}) {{ this -> Device obj#{}, return -> {} }}", resourceId, GetParentId(), HResultToString(hr));
 	}
 
+	std::string CreateCommittedResource1Command::GetDesc() const
+	{
+		return std::format("CreateCommittedResource1(..., obj#{}) {{ this -> Device obj#{}, return -> {} }}", resourceId, GetParentId(), HResultToString(hr));
+	}
+
 	std::string CreatePlacedResourceCommand::GetDesc() const
 	{
 		return std::format("CreatePlacedResource(..., obj#{}) {{ this -> Device obj#{}, return -> {} }}", resourceId, GetParentId(), HResultToString(hr));
 	}
+
+	std::string CreatePlacedResource1Command::GetDesc() const
+	{
+		return std::format("CreatePlacedResource1(..., obj#{}) {{ this -> Device obj#{}, return -> {} }}", resourceId, GetParentId(), HResultToString(hr));
+	}
+
 	std::string CreateDescriptorHeapCommand::GetDesc() const
 	{
 		return std::format("CreateDescriptorHeap(..., obj#{}) {{ this -> Device obj#{}, return -> {} }}", descriptorHeapId, GetParentId(), HResultToString(hr));

@@ -7,6 +7,7 @@ namespace vista
 	{
 		UINT nodeMask;
 		D3D12_COMMAND_LIST_TYPE type;
+		D3D12_COMMAND_LIST_FLAGS flags = D3D12_COMMAND_LIST_FLAG_NONE;
 		ObjectID commandAllocatorId;
 		ObjectID initialStateId;
 	};

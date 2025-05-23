@@ -13,16 +13,21 @@ namespace vista
 	#define VISIT_DECL(COMMAND_TYPE) virtual void Visit(COMMAND_TYPE const& cmd) override
 		VISIT_DECL(Command);
 		VISIT_DECL(CreateCommandQueueCommand);
+		VISIT_DECL(CreateCommandQueue1Command);
 		VISIT_DECL(CreateCommandListCommand);
+		VISIT_DECL(CreateCommandList1Command);
 		VISIT_DECL(CreateCommandAllocatorCommand);
 		VISIT_DECL(CreateFenceCommand);
 		VISIT_DECL(CreateHeapCommand);
+		VISIT_DECL(CreateHeap1Command);
 		VISIT_DECL(CreateRootSignatureCommand);
 		VISIT_DECL(CreateCommandSignatureCommand);
 		VISIT_DECL(CreateGraphicsPipelineStateCommand);
 		VISIT_DECL(CreateComputePipelineStateCommand);
 		VISIT_DECL(CreateCommittedResourceCommand);
+		VISIT_DECL(CreateCommittedResource1Command);
 		VISIT_DECL(CreatePlacedResourceCommand);
+		VISIT_DECL(CreatePlacedResource1Command);
 		VISIT_DECL(CreateDescriptorHeapCommand);
 
 		VISIT_DECL(ExecuteCommandListsCommand);
@@ -43,6 +48,7 @@ namespace vista
 		VISIT_DECL(RSSetScissorRectsCommand);
 		VISIT_DECL(RSSetShadingRateCommand);
 		VISIT_DECL(RSSetShadingRateImageCommand);
+		VISIT_DECL(SetViewInstanceMaskCommand);
 		VISIT_DECL(OMSetRenderTargetsCommand);
 		VISIT_DECL(OMSetBlendFactorCommand);
 		VISIT_DECL(OMSetStencilRefCommand);

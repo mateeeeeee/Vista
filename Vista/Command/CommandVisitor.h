@@ -5,16 +5,21 @@ namespace vista
 	class Command;
 
 	class CreateCommandQueueCommand;
+	class CreateCommandQueue1Command;
 	class CreateCommandListCommand;
+	class CreateCommandList1Command;
 	class CreateCommandAllocatorCommand;
 	class CreateFenceCommand;
 	class CreateHeapCommand;
+	class CreateHeap1Command;
 	class CreateRootSignatureCommand;
 	class CreateCommandSignatureCommand;
 	class CreateGraphicsPipelineStateCommand;
 	class CreateComputePipelineStateCommand;
 	class CreateCommittedResourceCommand;
+	class CreateCommittedResource1Command;
 	class CreatePlacedResourceCommand;
+	class CreatePlacedResource1Command;
 	class CreateDescriptorHeapCommand;
 
 	class ExecuteCommandListsCommand;
@@ -35,6 +40,7 @@ namespace vista
 	class RSSetScissorRectsCommand;
 	class RSSetShadingRateCommand;
 	class RSSetShadingRateImageCommand;
+	class SetViewInstanceMaskCommand;
 	class OMSetRenderTargetsCommand;
 	class OMSetBlendFactorCommand;
 	class OMSetStencilRefCommand;
@@ -84,16 +90,21 @@ namespace vista
 		virtual void Visit(Command const&) = 0;
 
 		virtual void Visit(CreateCommandQueueCommand const&) = 0;
+		virtual void Visit(CreateCommandQueue1Command const&) = 0;
 		virtual void Visit(CreateCommandListCommand const&) = 0;
+		virtual void Visit(CreateCommandList1Command const&) = 0;
 		virtual void Visit(CreateCommandAllocatorCommand const&) = 0;
 		virtual void Visit(CreateFenceCommand const&) = 0;
 		virtual void Visit(CreateHeapCommand const&) = 0;
+		virtual void Visit(CreateHeap1Command const&) = 0;
 		virtual void Visit(CreateRootSignatureCommand const&) = 0;
 		virtual void Visit(CreateCommandSignatureCommand const&) = 0;
 		virtual void Visit(CreateGraphicsPipelineStateCommand const&) = 0;
 		virtual void Visit(CreateComputePipelineStateCommand const&) = 0;
 		virtual void Visit(CreateCommittedResourceCommand const&) = 0;
+		virtual void Visit(CreateCommittedResource1Command const&) = 0;
 		virtual void Visit(CreatePlacedResourceCommand const&) = 0;
+		virtual void Visit(CreatePlacedResource1Command const&) = 0;
 		virtual void Visit(CreateDescriptorHeapCommand const&) = 0;
 
 		virtual void Visit(ExecuteCommandListsCommand const&) = 0;
@@ -114,6 +125,7 @@ namespace vista
 		virtual void Visit(RSSetScissorRectsCommand const&) = 0;
 		virtual void Visit(RSSetShadingRateCommand const&) = 0;
 		virtual void Visit(RSSetShadingRateImageCommand const&) = 0;
+		virtual void Visit(SetViewInstanceMaskCommand const&) = 0;
 		virtual void Visit(OMSetRenderTargetsCommand const&) = 0;
 		virtual void Visit(OMSetBlendFactorCommand const&) = 0;
 		virtual void Visit(OMSetStencilRefCommand const&) = 0;
@@ -165,16 +177,21 @@ namespace vista
 		virtual void Visit(Command const&) {}
 
 		virtual void Visit(CreateCommandQueueCommand const&) {}
+		virtual void Visit(CreateCommandQueue1Command const&) {}
 		virtual void Visit(CreateCommandListCommand const&) {}
+		virtual void Visit(CreateCommandList1Command const&) {}
 		virtual void Visit(CreateCommandAllocatorCommand const&) {}
 		virtual void Visit(CreateFenceCommand const&) {}
 		virtual void Visit(CreateHeapCommand const&) {}
+		virtual void Visit(CreateHeap1Command const&) {}
 		virtual void Visit(CreateRootSignatureCommand const&) {}
 		virtual void Visit(CreateCommandSignatureCommand const&) {}
 		virtual void Visit(CreateGraphicsPipelineStateCommand const&) {}
 		virtual void Visit(CreateComputePipelineStateCommand const&) {}
 		virtual void Visit(CreateCommittedResourceCommand const&) {}
+		virtual void Visit(CreateCommittedResource1Command const&) {}
 		virtual void Visit(CreatePlacedResourceCommand const&) {}
+		virtual void Visit(CreatePlacedResource1Command const&) {}
 		virtual void Visit(CreateDescriptorHeapCommand const&) {}
 
 		virtual void Visit(ExecuteCommandListsCommand const&) {}
@@ -195,6 +212,7 @@ namespace vista
 		virtual void Visit(RSSetScissorRectsCommand const&) {}
 		virtual void Visit(RSSetShadingRateCommand const&) {}
 		virtual void Visit(RSSetShadingRateImageCommand const&) {}
+		virtual void Visit(SetViewInstanceMaskCommand const&) {}
 		virtual void Visit(OMSetRenderTargetsCommand const&) {}
 		virtual void Visit(OMSetBlendFactorCommand const&) {}
 		virtual void Visit(OMSetStencilRefCommand const&) {}

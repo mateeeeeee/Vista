@@ -12,6 +12,7 @@ namespace vista
 		std::optional<D3D12_CLEAR_VALUE> optimizedClearValue;
 		ObjectID heapId = InvalidObjectID;
 		Uint64 heapOffset = 0;
+		D3D12_MIP_REGION mipRegion;
 	};
 	template<>
 	struct ObjectTraits<ID3D12Resource>

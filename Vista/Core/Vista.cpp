@@ -25,16 +25,21 @@ namespace vista
 #define VISTA_HOOK2(Category, Name) Hook(d3d12::##Category##_##Name, d3d12PFNs.##Category##_##Name, hooks::##Name)
 			VISTA_HOOK(SwapChain, Present);
 			VISTA_HOOK(Device, CreateCommandQueue);
+			VISTA_HOOK(Device9, CreateCommandQueue1);
 			VISTA_HOOK(Device, CreateCommandList);
+			VISTA_HOOK(Device4, CreateCommandList1);
 			VISTA_HOOK(Device, CreateCommandAllocator);
 			VISTA_HOOK(Device, CreateFence);
 			VISTA_HOOK(Device, CreateHeap);
+			VISTA_HOOK(Device4, CreateHeap1);
 			VISTA_HOOK(Device, CreateRootSignature);
 			VISTA_HOOK(Device, CreateCommandSignature);
 			VISTA_HOOK(Device, CreateGraphicsPipelineState);
 			VISTA_HOOK(Device, CreateComputePipelineState);
 			VISTA_HOOK(Device, CreateCommittedResource);
+			VISTA_HOOK(Device4, CreateCommittedResource1);
 			VISTA_HOOK(Device, CreatePlacedResource);
+			VISTA_HOOK(Device8, CreatePlacedResource1);
 			VISTA_HOOK(Device, CreateDescriptorHeap);
 			VISTA_HOOK(Device, CreateRenderTargetView);
 			VISTA_HOOK(Device, CreateDepthStencilView);
@@ -60,6 +65,7 @@ namespace vista
 			VISTA_HOOK(List, RSSetScissorRects);
 			VISTA_HOOK(List5, RSSetShadingRate);
 			VISTA_HOOK(List5, RSSetShadingRateImage);
+			VISTA_HOOK(List1, SetViewInstanceMask);
 			VISTA_HOOK(List, OMSetRenderTargets);
 			VISTA_HOOK(List, OMSetBlendFactor);
 			VISTA_HOOK(List, OMSetStencilRef);
@@ -198,6 +204,26 @@ namespace vista
 		return hr;
 	}
 
+	HRESULT Vista::OnCreateCommandQueue1(ID3D12Device9* pDevice, const D3D12_COMMAND_QUEUE_DESC* pDesc, REFIID creatorID, REFIID riid, void** ppCommandQueue)
+	{
+		if (g_isInsideVistaRender || GUI.IsFreezed())
+		{
+			return d3d12PFNs.CreateCommandQueue1(pDevice, pDesc, creatorID, riid, ppCommandQueue);
+		}
+
+		CommandRecorder& queueRecorder = recorderManager.GetOrCreateRecorder(pDevice);
+		CreateCommandQueue1Command& cmd = queueRecorder.AddCommand<CreateCommandQueue1Command>();
+
+		HRESULT hr = d3d12PFNs.CreateCommandQueue1(pDevice, pDesc, creatorID, riid, ppCommandQueue);
+		cmd.hr = hr;
+		if (SUCCEEDED(hr) && ppCommandQueue && *ppCommandQueue)
+		{
+			QueueDesc desc{ .queueDesc = pDesc ? *pDesc : D3D12_COMMAND_QUEUE_DESC{} };
+			cmd.commandQueueId = objectTracker.TrackObject<ID3D12CommandQueue>(*ppCommandQueue, desc);
+		}
+		return hr;
+	}
+
 	HRESULT Vista::OnCreateCommandList(ID3D12Device* pDevice, UINT nodeMask, D3D12_COMMAND_LIST_TYPE type, ID3D12CommandAllocator* pCommandAllocator, ID3D12PipelineState* pInitialState, REFIID riid, void** ppCommandList)
 	{
 		if (g_isInsideVistaRender || GUI.IsFreezed())
@@ -217,6 +243,29 @@ namespace vista
 			listDesc.type = type;
 			listDesc.commandAllocatorId = objectTracker.GetObjectID(pCommandAllocator);
 			listDesc.initialStateId = objectTracker.GetObjectID(pInitialState);
+			cmd.commandListId = objectTracker.TrackObject<ID3D12CommandList>(*ppCommandList, listDesc);
+		}
+		return hr;
+	}
+
+	HRESULT Vista::OnCreateCommandList1(ID3D12Device4* pDevice, UINT nodeMask, D3D12_COMMAND_LIST_TYPE type, D3D12_COMMAND_LIST_FLAGS flags, REFIID riid, void** ppCommandList)
+	{
+		if (g_isInsideVistaRender || GUI.IsFreezed())
+		{
+			return d3d12PFNs.CreateCommandList1(pDevice, nodeMask, type, flags, riid, ppCommandList);
+		}
+
+		CommandRecorder& queueRecorder = recorderManager.GetOrCreateRecorder(pDevice);
+		CreateCommandList1Command& cmd = queueRecorder.AddCommand<CreateCommandList1Command>();
+
+		HRESULT hr = d3d12PFNs.CreateCommandList1(pDevice, nodeMask, type, flags, riid, ppCommandList);
+		cmd.hr = hr;
+		if (SUCCEEDED(hr) && ppCommandList && *ppCommandList)
+		{
+			ListDesc listDesc{};
+			listDesc.nodeMask = nodeMask;
+			listDesc.type = type;
+			listDesc.flags = flags;
 			cmd.commandListId = objectTracker.TrackObject<ID3D12CommandList>(*ppCommandList, listDesc);
 		}
 		return hr;
@@ -252,6 +301,24 @@ namespace vista
 		CommandRecorder& queueRecorder = recorderManager.GetOrCreateRecorder(pDevice);
 		CreateHeapCommand& cmd = queueRecorder.AddCommand<CreateHeapCommand>();
 		HRESULT hr = d3d12PFNs.CreateHeap(pDevice, pDesc, riid, ppvHeap);
+		cmd.hr = hr;
+		if (SUCCEEDED(hr) && ppvHeap && *ppvHeap)
+		{
+			HeapDesc heapDesc{ .heapDesc = pDesc ? *pDesc : D3D12_HEAP_DESC {} };
+			cmd.heapId = objectTracker.TrackObject<ID3D12Heap>(*ppvHeap, heapDesc);
+		}
+		return hr;
+	}
+
+	HRESULT Vista::OnCreateHeap1(ID3D12Device4* pDevice, const D3D12_HEAP_DESC* pDesc, ID3D12ProtectedResourceSession* pProtectedSession, REFIID riid, void** ppvHeap)
+	{
+		if (g_isInsideVistaRender || GUI.IsFreezed())
+		{
+			return d3d12PFNs.CreateHeap1(pDevice, pDesc, pProtectedSession, riid, ppvHeap);
+		}
+		CommandRecorder& queueRecorder = recorderManager.GetOrCreateRecorder(pDevice);
+		CreateHeap1Command& cmd = queueRecorder.AddCommand<CreateHeap1Command>();
+		HRESULT hr = d3d12PFNs.CreateHeap1(pDevice, pDesc, pProtectedSession, riid, ppvHeap);
 		cmd.hr = hr;
 		if (SUCCEEDED(hr) && ppvHeap && *ppvHeap)
 		{
@@ -379,7 +446,7 @@ namespace vista
 			ResourceDesc resourceDesc{};
 			resourceDesc.heapProperties = pHeapProperties ? *pHeapProperties : D3D12_HEAP_PROPERTIES{};
 			resourceDesc.heapFlags = heapFlags;
-			resourceDesc.resourceDesc = *pDesc;
+			resourceDesc.resourceDesc = pDesc ? *pDesc : D3D12_RESOURCE_DESC{};
 			resourceDesc.initialResourceState = initialResourceState;
 			if (pOptimizedClearValue)
 			{
@@ -387,8 +454,38 @@ namespace vista
 			}
 			cmd.resourceId = objectTracker.TrackObject<ID3D12Resource>(*ppvResource, resourceDesc);
 
-			stateTracker.OnResourceCreated((ID3D12Resource*)*ppvResource, initialResourceState);
-			addressTracker.OnResourceCreated((ID3D12Resource*)*ppvResource, *pDesc);
+			stateTracker.OnResourceCreated((ID3D12Resource*)*ppvResource, resourceDesc.initialResourceState);
+			addressTracker.OnResourceCreated((ID3D12Resource*)*ppvResource, resourceDesc.resourceDesc);
+		}
+		return hr;
+	}
+
+	HRESULT Vista::OnCreateCommittedResource1(ID3D12Device4* pDevice, const D3D12_HEAP_PROPERTIES* pHeapProperties, D3D12_HEAP_FLAGS heapFlags, const D3D12_RESOURCE_DESC* pDesc, D3D12_RESOURCE_STATES initialResourceState, const D3D12_CLEAR_VALUE* pOptimizedClearValue, ID3D12ProtectedResourceSession* pProtectedSession, REFIID riid, void** ppvResource)
+	{
+		if (g_isInsideVistaRender || GUI.IsFreezed())
+		{
+			return d3d12PFNs.CreateCommittedResource1(pDevice, pHeapProperties, heapFlags, pDesc, initialResourceState, pOptimizedClearValue, pProtectedSession, riid, ppvResource);
+		}
+
+		CommandRecorder& queueRecorder = recorderManager.GetOrCreateRecorder(pDevice);
+		CreateCommittedResource1Command& cmd = queueRecorder.AddCommand<CreateCommittedResource1Command>();
+		HRESULT hr = d3d12PFNs.CreateCommittedResource1(pDevice, pHeapProperties, heapFlags, pDesc, initialResourceState, pOptimizedClearValue, pProtectedSession, riid, ppvResource);
+		cmd.hr = hr;
+		if (SUCCEEDED(hr) && ppvResource && *ppvResource)
+		{
+			ResourceDesc resourceDesc{};
+			resourceDesc.heapProperties = pHeapProperties ? *pHeapProperties : D3D12_HEAP_PROPERTIES{};
+			resourceDesc.heapFlags = heapFlags;
+			resourceDesc.resourceDesc = pDesc ? *pDesc : D3D12_RESOURCE_DESC{};
+			resourceDesc.initialResourceState = initialResourceState;
+			if (pOptimizedClearValue)
+			{
+				resourceDesc.optimizedClearValue = *pOptimizedClearValue;
+			}
+			cmd.resourceId = objectTracker.TrackObject<ID3D12Resource>(*ppvResource, resourceDesc);
+
+			stateTracker.OnResourceCreated((ID3D12Resource*)*ppvResource, resourceDesc.initialResourceState);
+			addressTracker.OnResourceCreated((ID3D12Resource*)*ppvResource, resourceDesc.resourceDesc);
 		}
 		return hr;
 	}
@@ -399,14 +496,15 @@ namespace vista
 		{
 			return d3d12PFNs.CreatePlacedResource(pDevice, pHeap, heapOffset, pDesc, initialState, pOptimizedClearValue, riid, ppvResource);
 		}
+
 		CommandRecorder& queueRecorder = recorderManager.GetOrCreateRecorder(pDevice);
-		CreateCommittedResourceCommand& cmd = queueRecorder.AddCommand<CreateCommittedResourceCommand>();
+		CreatePlacedResourceCommand& cmd = queueRecorder.AddCommand<CreatePlacedResourceCommand>();
 		HRESULT hr = d3d12PFNs.CreatePlacedResource(pDevice, pHeap, heapOffset, pDesc, initialState, pOptimizedClearValue, riid, ppvResource);
 		cmd.hr = hr;
 		if (SUCCEEDED(hr) && ppvResource && *ppvResource)
 		{
 			ResourceDesc resourceDesc{};
-			resourceDesc.resourceDesc = *pDesc;
+			resourceDesc.resourceDesc = pDesc ? *pDesc : D3D12_RESOURCE_DESC{};
 			resourceDesc.initialResourceState = initialState;
 			resourceDesc.heapId = InvalidObjectID;
 			resourceDesc.heapOffset = heapOffset;
@@ -416,8 +514,50 @@ namespace vista
 			}
 			cmd.resourceId = objectTracker.TrackObject<ID3D12Resource>(*ppvResource, resourceDesc);
 
-			stateTracker.OnResourceCreated((ID3D12Resource*)*ppvResource, initialState);
-			addressTracker.OnResourceCreated((ID3D12Resource*)*ppvResource, *pDesc);
+			stateTracker.OnResourceCreated((ID3D12Resource*)*ppvResource, resourceDesc.initialResourceState);
+			addressTracker.OnResourceCreated((ID3D12Resource*)*ppvResource, resourceDesc.resourceDesc);
+		}
+		return hr;
+	}
+
+	HRESULT Vista::OnCreatePlacedResource1(ID3D12Device8* pDevice, ID3D12Heap* pHeap, UINT64 heapOffset, const D3D12_RESOURCE_DESC1* pDesc, D3D12_RESOURCE_STATES initialState, const D3D12_CLEAR_VALUE* pOptimizedClearValue, REFIID riid, void** ppvResource)
+	{
+		if (g_isInsideVistaRender || GUI.IsFreezed())
+		{
+			return d3d12PFNs.CreatePlacedResource1(pDevice, pHeap, heapOffset, pDesc, initialState, pOptimizedClearValue, riid, ppvResource);
+		}
+
+		CommandRecorder& queueRecorder = recorderManager.GetOrCreateRecorder(pDevice);
+		CreatePlacedResource1Command& cmd = queueRecorder.AddCommand<CreatePlacedResource1Command>();
+		HRESULT hr = d3d12PFNs.CreatePlacedResource1(pDevice, pHeap, heapOffset, pDesc, initialState, pOptimizedClearValue, riid, ppvResource);
+		cmd.hr = hr;
+		if (SUCCEEDED(hr) && ppvResource && *ppvResource)
+		{
+			ResourceDesc resourceDesc{};
+			if (pDesc)
+			{
+				resourceDesc.resourceDesc.Dimension = pDesc->Dimension;
+				resourceDesc.resourceDesc.Alignment = pDesc->Alignment;
+				resourceDesc.resourceDesc.Width = pDesc->Height;
+				resourceDesc.resourceDesc.DepthOrArraySize = pDesc->DepthOrArraySize;
+				resourceDesc.resourceDesc.MipLevels = pDesc->MipLevels;
+				resourceDesc.resourceDesc.Format = pDesc->Format;
+				resourceDesc.resourceDesc.SampleDesc = pDesc->SampleDesc;
+				resourceDesc.resourceDesc.Layout = pDesc->Layout;
+				resourceDesc.resourceDesc.Flags = pDesc->Flags;
+				resourceDesc.mipRegion = pDesc->SamplerFeedbackMipRegion;
+			}
+			resourceDesc.initialResourceState = initialState;
+			resourceDesc.heapId = InvalidObjectID;
+			resourceDesc.heapOffset = heapOffset;
+			if (pOptimizedClearValue)
+			{
+				resourceDesc.optimizedClearValue = *pOptimizedClearValue;
+			}
+			cmd.resourceId = objectTracker.TrackObject<ID3D12Resource>(*ppvResource, resourceDesc);
+
+			stateTracker.OnResourceCreated((ID3D12Resource*)*ppvResource, resourceDesc.initialResourceState);
+			addressTracker.OnResourceCreated((ID3D12Resource*)*ppvResource, resourceDesc.resourceDesc);
 		}
 		return hr;
 	}
@@ -814,6 +954,18 @@ namespace vista
 			cmd.shadingRateCombiners[1] = pCombiners[1];
 		}
 		return d3d12PFNs.RSSetShadingRate(pCommandList, baseShadingRate, pCombiners);
+	}
+
+	void Vista::OnSetViewInstanceMask(ID3D12GraphicsCommandList1* pCommandList, UINT mask)
+	{
+		if (g_isInsideVistaRender || GUI.IsFreezed())
+		{
+			return d3d12PFNs.SetViewInstanceMask(pCommandList, mask);
+		}
+		CommandRecorder& recorder = recorderManager.GetOrCreateRecorder(pCommandList);
+		SetViewInstanceMaskCommand& cmd = recorder.AddCommand<SetViewInstanceMaskCommand>();
+		cmd.viewInstanceMask = mask;
+		return d3d12PFNs.SetViewInstanceMask(pCommandList, mask);
 	}
 
 	void Vista::OnRSSetShadingRateImage(ID3D12GraphicsCommandList5* pCommandList, ID3D12Resource* shadingRateImage)

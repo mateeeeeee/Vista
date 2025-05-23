@@ -6,6 +6,7 @@ namespace vista
 	void ResourceAddressTracker::Initialize(ID3D12Device* dev)
 	{
 		device = dev;
+		device->QueryInterface(IID_PPV_ARGS(device8.GetAddressOf()));
 	}
 
 	void ResourceAddressTracker::OnResourceCreated(ID3D12Resource* resource, D3D12_RESOURCE_DESC const& desc, ID3D12Heap* heap /*= nullptr*/)
@@ -16,6 +17,22 @@ namespace vista
 			std::lock_guard lock(addressMutex);
 
 			D3D12_RESOURCE_ALLOCATION_INFO info = device->GetResourceAllocationInfo(0, 1, &desc);
+			AddressInfo addressInfo;
+			addressInfo.startAddress = resource->GetGPUVirtualAddress();
+			addressInfo.allocatedSizeInBytes = info.SizeInBytes;
+			resourceAddresses[resource] = addressInfo;
+			addressToResource[addressInfo.startAddress] = resource;
+		}
+	}
+
+	void ResourceAddressTracker::OnResourceCreated(ID3D12Resource* resource, D3D12_RESOURCE_DESC1 const& desc, ID3D12Heap* heap /*= nullptr*/)
+	{
+		VISTA_ASSERT(device8);
+		if (resource)
+		{
+			std::lock_guard lock(addressMutex);
+			
+			D3D12_RESOURCE_ALLOCATION_INFO info = device8->GetResourceAllocationInfo2(0, 1, &desc, nullptr);
 			AddressInfo addressInfo;
 			addressInfo.startAddress = resource->GetGPUVirtualAddress();
 			addressInfo.allocatedSizeInBytes = info.SizeInBytes;

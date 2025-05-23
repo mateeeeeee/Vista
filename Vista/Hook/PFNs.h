@@ -10,16 +10,21 @@ namespace vista
 		d3d12::PFN_DXGISwapChain_Present Present;
 
 		d3d12::PFN_D3D12Device_CreateCommandQueue CreateCommandQueue;
+		d3d12::PFN_D3D12Device9_CreateCommandQueue1 CreateCommandQueue1;
 		d3d12::PFN_D3D12Device_CreateCommandList CreateCommandList;
+		d3d12::PFN_D3D12Device4_CreateCommandList1 CreateCommandList1;
 		d3d12::PFN_D3D12Device_CreateCommandAllocator CreateCommandAllocator;
 		d3d12::PFN_D3D12Device_CreateFence CreateFence;
 		d3d12::PFN_D3D12Device_CreateHeap CreateHeap;
+		d3d12::PFN_D3D12Device4_CreateHeap1 CreateHeap1;
 		d3d12::PFN_D3D12Device_CreateRootSignature CreateRootSignature;
 		d3d12::PFN_D3D12Device_CreateCommandSignature CreateCommandSignature;
 		d3d12::PFN_D3D12Device_CreateGraphicsPipelineState CreateGraphicsPipelineState;
 		d3d12::PFN_D3D12Device_CreateComputePipelineState CreateComputePipelineState;
 		d3d12::PFN_D3D12Device_CreateCommittedResource CreateCommittedResource;
+		d3d12::PFN_D3D12Device4_CreateCommittedResource1 CreateCommittedResource1;
 		d3d12::PFN_D3D12Device_CreatePlacedResource CreatePlacedResource;
+		d3d12::PFN_D3D12Device8_CreatePlacedResource1 CreatePlacedResource1;
 		d3d12::PFN_D3D12Device_CreateDescriptorHeap CreateDescriptorHeap;
 		d3d12::PFN_D3D12Device_CreateRenderTargetView CreateRenderTargetView;
 		d3d12::PFN_D3D12Device_CreateDepthStencilView CreateDepthStencilView;
@@ -48,6 +53,7 @@ namespace vista
 		d3d12::PFN_D3D12CommandList_RSSetScissorRects RSSetScissorRects;
 		d3d12::PFN_D3D12CommandList5_RSSetShadingRate RSSetShadingRate;
 		d3d12::PFN_D3D12CommandList5_RSSetShadingRateImage RSSetShadingRateImage;
+		d3d12::PFN_D3D12CommandList1_SetViewInstanceMask SetViewInstanceMask;
 		d3d12::PFN_D3D12CommandList_OMSetRenderTargets OMSetRenderTargets;
 		d3d12::PFN_D3D12CommandList_OMSetBlendFactor OMSetBlendFactor;
 		d3d12::PFN_D3D12CommandList_OMSetStencilRef OMSetStencilRef;

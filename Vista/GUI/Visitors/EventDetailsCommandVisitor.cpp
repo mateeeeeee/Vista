@@ -21,7 +21,7 @@ namespace vista
 	void EventDetailsCommandVisitor::Visit(CreateCommandQueueCommand const& cmd)
 	{
 		ImGui::Text("Command: %s", cmd.GetDesc().c_str());
-		ImGui::SeparatorText("Queue Info");
+		ImGui::SeparatorText("CommandQueue Info");
 
 		if (TrackedObjectInfo const* info = objectTracker.GetObjectInfo(cmd.commandQueueId))
 		{
@@ -31,10 +31,23 @@ namespace vista
 			}
 		}
 	}
+	void EventDetailsCommandVisitor::Visit(CreateCommandQueue1Command const& cmd)
+	{
+		ImGui::Text("Command: %s", cmd.GetDesc().c_str());
+		ImGui::SeparatorText("CommandQueue1 Info");
+
+		if (TrackedObjectInfo const* info = objectTracker.GetObjectInfo(cmd.commandQueueId))
+		{
+			if (std::holds_alternative<QueueDesc>(info->objectDesc))
+			{
+				RenderQueueDesc(std::get<QueueDesc>(info->objectDesc));
+			}
+		}
+	}
 	void EventDetailsCommandVisitor::Visit(CreateCommandListCommand const& cmd)
 	{
 		ImGui::Text("Command: %s", cmd.GetDesc().c_str());
-		ImGui::SeparatorText("List Info");
+		ImGui::SeparatorText("CommandList Info");
 
 		if (TrackedObjectInfo const* info = objectTracker.GetObjectInfo(cmd.commandListId))
 		{
@@ -44,10 +57,23 @@ namespace vista
 			}
 		}
 	}
+	void EventDetailsCommandVisitor::Visit(CreateCommandList1Command const& cmd)
+	{
+		ImGui::Text("Command: %s", cmd.GetDesc().c_str());
+		ImGui::SeparatorText("CommandList1 Info");
+
+		if (TrackedObjectInfo const* info = objectTracker.GetObjectInfo(cmd.commandListId))
+		{
+			if (std::holds_alternative<ListDesc>(info->objectDesc))
+			{
+				RenderListDesc(std::get<ListDesc>(info->objectDesc));
+			}
+		}
+	}
 	void EventDetailsCommandVisitor::Visit(CreateCommandAllocatorCommand const& cmd)
 	{
 		ImGui::Text("Command: %s", cmd.GetDesc().c_str());
-		ImGui::SeparatorText("Allocator Info");
+		ImGui::SeparatorText("CommandAllocator Info");
 		if (TrackedObjectInfo const* info = objectTracker.GetObjectInfo(cmd.commandAllocatorId))
 		{
 			if (std::holds_alternative<AllocatorDesc>(info->objectDesc))
@@ -73,6 +99,19 @@ namespace vista
 	{
 		ImGui::Text("Command: %s", cmd.GetDesc().c_str());
 		ImGui::SeparatorText("Heap Info");
+
+		if (TrackedObjectInfo const* info = objectTracker.GetObjectInfo(cmd.heapId))
+		{
+			if (std::holds_alternative<HeapDesc>(info->objectDesc))
+			{
+				RenderHeapDesc(std::get<HeapDesc>(info->objectDesc));
+			}
+		}
+	}
+	void EventDetailsCommandVisitor::Visit(CreateHeap1Command const& cmd)
+	{
+		ImGui::Text("Command: %s", cmd.GetDesc().c_str());
+		ImGui::SeparatorText("Heap1 Info");
 
 		if (TrackedObjectInfo const* info = objectTracker.GetObjectInfo(cmd.heapId))
 		{
@@ -141,7 +180,7 @@ namespace vista
 	void EventDetailsCommandVisitor::Visit(CreateCommandSignatureCommand const& cmd)
 	{
 		ImGui::Text("Command: %s", cmd.GetDesc().c_str());
-		ImGui::SeparatorText("Create Command Signature");
+		ImGui::SeparatorText("CommandSignature Info");
 
 		TrackedObjectInfo const* cmdSigInfo = objectTracker.GetObjectInfo(cmd.cmdSignatureId);
 
@@ -186,7 +225,7 @@ namespace vista
 	void EventDetailsCommandVisitor::Visit(CreateCommittedResourceCommand const& cmd)
 	{
 		ImGui::Text("Command: %s", cmd.GetDesc().c_str());
-		ImGui::SeparatorText("Resource Info");
+		ImGui::SeparatorText("CommitedResource Info");
 
 		if (TrackedObjectInfo const* info = objectTracker.GetObjectInfo(cmd.resourceId))
 		{
@@ -196,10 +235,36 @@ namespace vista
 			}
 		}
 	}
+	void EventDetailsCommandVisitor::Visit(CreateCommittedResource1Command const& cmd)
+	{
+		ImGui::Text("Command: %s", cmd.GetDesc().c_str());
+		ImGui::SeparatorText("CommittedResource1 Info");
+
+		if (TrackedObjectInfo const* info = objectTracker.GetObjectInfo(cmd.resourceId))
+		{
+			if (std::holds_alternative<ResourceDesc>(info->objectDesc))
+			{
+				RenderResourceDesc(std::get<ResourceDesc>(info->objectDesc));
+			}
+		}
+	}
 	void EventDetailsCommandVisitor::Visit(CreatePlacedResourceCommand const& cmd)
 	{
 		ImGui::Text("Command: %s", cmd.GetDesc().c_str());
-		ImGui::SeparatorText("Resource Info");
+		ImGui::SeparatorText("PlacedResource Info");
+
+		if (TrackedObjectInfo const* info = objectTracker.GetObjectInfo(cmd.resourceId))
+		{
+			if (std::holds_alternative<ResourceDesc>(info->objectDesc))
+			{
+				RenderResourceDesc(std::get<ResourceDesc>(info->objectDesc));
+			}
+		}
+	}
+	void EventDetailsCommandVisitor::Visit(CreatePlacedResource1Command const& cmd)
+	{
+		ImGui::Text("Command: %s", cmd.GetDesc().c_str());
+		ImGui::SeparatorText("PlacedResource1 Info");
 
 		if (TrackedObjectInfo const* info = objectTracker.GetObjectInfo(cmd.resourceId))
 		{
@@ -643,6 +708,12 @@ namespace vista
 		ImGui::Text("Command: %s", cmd.GetDesc().c_str());
 		ImGui::SeparatorText("Shading Rate Image");
 		RenderObjectInfoByID(cmd.shadingRateImageId, objectTracker);
+	}
+	void EventDetailsCommandVisitor::Visit(SetViewInstanceMaskCommand const& cmd)
+	{
+		ImGui::Text("Command: %s", cmd.GetDesc().c_str());
+		ImGui::SeparatorText("Set View Instance Mask");
+		ImGui::Text("Mask: %u", cmd.viewInstanceMask);
 	}
 	void EventDetailsCommandVisitor::Visit(OMSetRenderTargetsCommand const& cmd)
 	{

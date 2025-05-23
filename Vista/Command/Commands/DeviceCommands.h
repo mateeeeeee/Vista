@@ -36,6 +36,26 @@ namespace vista
 		HRESULT hr = S_OK;
 	};
 
+	class CreateCommandQueue1Command : public DeviceCommand
+	{
+	public:
+		CreateCommandQueue1Command() = default;
+
+		virtual std::string GetDesc() const override;
+		virtual CommandType GetType() const override { return CommandType::CreatorCommandQueue1; }
+
+		COMMAND_ACCEPT_IMPL()
+		COMMAND_HASH_IMPL_WITH_PARENT_ID(commandQueueId)
+
+		static Bool ClassOf(Command const* C)
+		{
+			return C->GetType() == CommandType::CreatorCommandQueue1;
+		}
+
+	public:
+		ObjectID commandQueueId = InvalidObjectID;
+		HRESULT hr = S_OK;
+	};
 
 	class CreateCommandListCommand : public DeviceCommand
 	{
@@ -52,6 +72,28 @@ namespace vista
 		{
 			using enum CommandType;
 			return C->GetType() == CreateCommandList;
+		}
+
+	public:
+		ObjectID commandListId = InvalidObjectID;
+		HRESULT hr = S_OK;
+	};
+
+	class CreateCommandList1Command : public DeviceCommand
+	{
+	public:
+		CreateCommandList1Command() = default;
+
+		virtual std::string GetDesc() const override;
+		virtual CommandType GetType() const override { return CommandType::CreateCommandList1; }
+
+		COMMAND_ACCEPT_IMPL()
+		COMMAND_HASH_IMPL_WITH_PARENT_ID(commandListId)
+
+		static Bool ClassOf(Command const* C)
+		{
+			using enum CommandType;
+			return C->GetType() == CreateCommandList1;
 		}
 
 	public:
@@ -96,6 +138,28 @@ namespace vista
 		{
 			using enum CommandType;
 			return C->GetType() == CreateHeap;
+		}
+
+	public:
+		ObjectID heapId = InvalidObjectID;
+		HRESULT hr = S_OK;
+	};
+
+	class CreateHeap1Command : public DeviceCommand
+	{
+	public:
+		CreateHeap1Command() = default;
+
+		virtual std::string GetDesc() const override;
+		virtual CommandType GetType() const override { return CommandType::CreateHeap1; }
+
+		COMMAND_ACCEPT_IMPL()
+		COMMAND_HASH_IMPL_WITH_PARENT_ID(heapId)
+
+		static Bool ClassOf(Command const* C)
+		{
+			using enum CommandType;
+			return C->GetType() == CreateHeap1;
 		}
 
 	public:
@@ -235,6 +299,28 @@ namespace vista
 		HRESULT hr = S_OK;
 	};
 
+	class CreateCommittedResource1Command : public DeviceCommand
+	{
+	public:
+		CreateCommittedResource1Command() = default;
+
+		virtual std::string GetDesc() const override;
+		virtual CommandType GetType() const override { return CommandType::CreateCommittedResource1; }
+
+		COMMAND_ACCEPT_IMPL()
+		COMMAND_HASH_IMPL_WITH_PARENT_ID(resourceId)
+
+		static Bool ClassOf(Command const* C)
+		{
+			using enum CommandType;
+			return C->GetType() == CreateCommittedResource1;
+		}
+
+	public:
+		ObjectID resourceId = InvalidObjectID;
+		HRESULT hr = S_OK;
+	};
+
 	class CreatePlacedResourceCommand : public DeviceCommand
 	{
 	public:
@@ -257,6 +343,27 @@ namespace vista
 		HRESULT hr = S_OK;
 	};
 
+	class CreatePlacedResource1Command : public DeviceCommand
+	{
+	public:
+		CreatePlacedResource1Command() = default;
+
+		virtual std::string GetDesc() const override;
+		virtual CommandType GetType() const override { return CommandType::CreatePlacedResource1; }
+
+		COMMAND_ACCEPT_IMPL()
+		COMMAND_HASH_IMPL_WITH_PARENT_ID(resourceId)
+
+		static Bool ClassOf(Command const* C)
+		{
+			using enum CommandType;
+			return C->GetType() == CreatePlacedResource1;
+		}
+
+	public:
+		ObjectID resourceId = InvalidObjectID;
+		HRESULT hr = S_OK;
+	};
 
 	class CreateDescriptorHeapCommand : public DeviceCommand
 	{

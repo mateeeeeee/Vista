@@ -19,16 +19,21 @@ namespace vista
 		virtual void Visit(Command const& cmd) override;
 
 		virtual void Visit(CreateCommandQueueCommand const&) override;
+		virtual void Visit(CreateCommandQueue1Command const&) override;
 		virtual void Visit(CreateCommandListCommand const&) override;
+		virtual void Visit(CreateCommandList1Command const&) override;
 		virtual void Visit(CreateCommandAllocatorCommand const&) override;
 		virtual void Visit(CreateFenceCommand const&) override;
 		virtual void Visit(CreateHeapCommand const&) override;
+		virtual void Visit(CreateHeap1Command const&) override;
 		virtual void Visit(CreateGraphicsPipelineStateCommand const&) override;
 		virtual void Visit(CreateComputePipelineStateCommand const&) override;
 		virtual void Visit(CreateRootSignatureCommand const&) override;
 		virtual void Visit(CreateCommandSignatureCommand const&) override;
 		virtual void Visit(CreateCommittedResourceCommand const&) override;
+		virtual void Visit(CreateCommittedResource1Command const&) override;
 		virtual void Visit(CreatePlacedResourceCommand const&) override;
+		virtual void Visit(CreatePlacedResource1Command const&) override;
 		virtual void Visit(CreateDescriptorHeapCommand const&) override;
 
 		virtual void Visit(ExecuteCommandListsCommand const& cmd) override;
@@ -49,6 +54,7 @@ namespace vista
 		virtual void Visit(RSSetScissorRectsCommand const& cmd) override;
 		virtual void Visit(RSSetShadingRateCommand const& cmd) override;
 		virtual void Visit(RSSetShadingRateImageCommand const& cmd) override;
+		virtual void Visit(SetViewInstanceMaskCommand const& cmd) override;
 		virtual void Visit(OMSetRenderTargetsCommand const& cmd) override;
 		virtual void Visit(OMSetBlendFactorCommand const& cmd) override;
 		virtual void Visit(OMSetStencilRefCommand const& cmd) override;

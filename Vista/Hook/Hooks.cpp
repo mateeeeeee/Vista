@@ -13,9 +13,19 @@ namespace vista::hooks
 		return g_Vista.OnCreateCommandQueue(pDevice, pDesc, riid, ppCommandQueue);
 	}
 
+	HRESULT STDMETHODCALLTYPE CreateCommandQueue1(ID3D12Device9* pDevice, const D3D12_COMMAND_QUEUE_DESC* pDesc, REFIID CreatorID, REFIID riid, void** ppCommandQueue)
+	{
+		return g_Vista.OnCreateCommandQueue1(pDevice, pDesc, CreatorID, riid, ppCommandQueue);
+	}
+
 	HRESULT STDMETHODCALLTYPE CreateCommandList(ID3D12Device* pDevice, UINT NodeMask, D3D12_COMMAND_LIST_TYPE Type, ID3D12CommandAllocator* pCommandAllocator, ID3D12PipelineState* pInitialState, REFIID riid, void** ppCommandList)
 	{
 		return g_Vista.OnCreateCommandList(pDevice, NodeMask, Type, pCommandAllocator, pInitialState, riid, ppCommandList);
+	}
+
+	HRESULT STDMETHODCALLTYPE CreateCommandList1(ID3D12Device4* pDevice, UINT NodeMask, D3D12_COMMAND_LIST_TYPE Type, D3D12_COMMAND_LIST_FLAGS Flags, REFIID riid, void** ppCommandList)
+	{
+		return g_Vista.OnCreateCommandList1(pDevice, NodeMask, Type, Flags, riid, ppCommandList);
 	}
 
 	HRESULT STDMETHODCALLTYPE CreateCommandAllocator(ID3D12Device* pDevice, D3D12_COMMAND_LIST_TYPE Type, REFIID riid, void** ppCommandAllocator)
@@ -26,6 +36,11 @@ namespace vista::hooks
 	HRESULT STDMETHODCALLTYPE CreateHeap(ID3D12Device* pDevice, const D3D12_HEAP_DESC* pDesc, REFIID riid, void** ppvHeap)
 	{
 		return g_Vista.OnCreateHeap(pDevice, pDesc, riid, ppvHeap);
+	}
+
+	HRESULT STDMETHODCALLTYPE CreateHeap1(ID3D12Device4* pDevice, const D3D12_HEAP_DESC* pDesc, ID3D12ProtectedResourceSession* pProtectedSession, REFIID riid, void** ppvHeap)
+	{
+		return g_Vista.OnCreateHeap1(pDevice, pDesc, pProtectedSession, riid, ppvHeap);
 	}
 
 	HRESULT STDMETHODCALLTYPE CreateFence(ID3D12Device* pDevice, UINT64 IntialValue, D3D12_FENCE_FLAGS Flags, REFIID riid, void** ppFence)
@@ -59,9 +74,20 @@ namespace vista::hooks
 		return g_Vista.OnCreateCommittedResource(pDevice, pHeapProperties, HeapFlags, pDesc, InitialResourceState, pOptimizedClearValue, riid, ppvResource);
 	}
 
+	HRESULT STDMETHODCALLTYPE CreateCommittedResource1(ID3D12Device4* pDevice, const D3D12_HEAP_PROPERTIES* pHeapProperties, D3D12_HEAP_FLAGS HeapFlags,
+		const D3D12_RESOURCE_DESC* pDesc, D3D12_RESOURCE_STATES InitialResourceState, const D3D12_CLEAR_VALUE* pOptimizedClearValue, ID3D12ProtectedResourceSession* pProtectedSession, REFIID riid, void** ppvResource)
+	{
+		return g_Vista.OnCreateCommittedResource1(pDevice, pHeapProperties, HeapFlags, pDesc, InitialResourceState, pOptimizedClearValue, pProtectedSession, riid, ppvResource);
+	}
+
 	HRESULT STDMETHODCALLTYPE CreatePlacedResource(ID3D12Device* pDevice, ID3D12Heap* pHeap, UINT64 HeapOffset, const D3D12_RESOURCE_DESC* pDesc, D3D12_RESOURCE_STATES InitialState, const D3D12_CLEAR_VALUE* pOptimizedClearValue, REFIID riid, void** ppvResource)
 	{
 		return g_Vista.OnCreatePlacedResource(pDevice, pHeap, HeapOffset, pDesc, InitialState, pOptimizedClearValue, riid, ppvResource);
+	}
+
+	HRESULT STDMETHODCALLTYPE CreatePlacedResource1(ID3D12Device8* pDevice, ID3D12Heap* pHeap, UINT64 HeapOffset, const D3D12_RESOURCE_DESC1* pDesc, D3D12_RESOURCE_STATES InitialState, const D3D12_CLEAR_VALUE* pOptimizedClearValue, REFIID riid, void** ppvResource)
+	{
+		return g_Vista.OnCreatePlacedResource1(pDevice, pHeap, HeapOffset, pDesc, InitialState, pOptimizedClearValue, riid, ppvResource);
 	}
 
 	HRESULT STDMETHODCALLTYPE CreateDescriptorHeap(ID3D12Device* pDevice, const D3D12_DESCRIPTOR_HEAP_DESC* pHeapProperties, REFIID riid, void** ppDescriptorHeap)
@@ -197,6 +223,10 @@ namespace vista::hooks
 		return g_Vista.OnRSSetShadingRateImage(pCommandList, ShadingRateImage);
 	}
 
+	void STDMETHODCALLTYPE SetViewInstanceMask(ID3D12GraphicsCommandList1* pCommandList, UINT Mask)
+	{
+		return g_Vista.OnSetViewInstanceMask(pCommandList, Mask);
+	}
 	void STDMETHODCALLTYPE OMSetRenderTargets(ID3D12GraphicsCommandList* pCommandList, UINT NumRenderTargetDescriptors, const D3D12_CPU_DESCRIPTOR_HANDLE* pRenderTargetDescriptors, BOOL RTsSingleHandleToDescriptorRange, const D3D12_CPU_DESCRIPTOR_HANDLE* pDepthStencilDescriptor)
 	{
 		return g_Vista.OnOMSetRenderTargets(pCommandList, NumRenderTargetDescriptors, pRenderTargetDescriptors, RTsSingleHandleToDescriptorRange, pDepthStencilDescriptor);

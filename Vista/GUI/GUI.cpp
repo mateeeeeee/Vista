@@ -1310,6 +1310,7 @@ namespace vista
 				{
 					ImGui::Text("Depth Min: %f", currentState.depthMin);
 					ImGui::Text("Depth Max: %f", currentState.depthMax);
+					ImGui::TreePop();
 				}
 			}
 

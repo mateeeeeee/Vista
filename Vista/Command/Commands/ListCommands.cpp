@@ -84,6 +84,11 @@ namespace vista
 		return std::format("RSSetShadingRateImage({}) {{ this -> CommandList obj#{} }}", shadingRateImageId, GetParentId());
 	}
 
+	std::string SetViewInstanceMaskCommand::GetDesc() const
+	{
+		return std::format("SetViewInstanceMask({}) {{ this -> CommandList obj#{} }}", viewInstanceMask, GetParentId());
+	}
+
 	std::string OMSetRenderTargetsCommand::GetDesc() const
 	{
 		return std::format("OMSetRenderTargets({}, DepthStencil: {}) {{ this -> CommandList obj#{} }}",
