@@ -36,6 +36,9 @@ namespace vista
 			VISTA_HOOK(Device, CreateCommandSignature);
 			VISTA_HOOK(Device, CreateGraphicsPipelineState);
 			VISTA_HOOK(Device, CreateComputePipelineState);
+			VISTA_HOOK(Device2, CreatePipelineState);
+			VISTA_HOOK(Device5, CreateStateObject);
+			VISTA_HOOK(Device7, AddToStateObject);
 			VISTA_HOOK(Device, CreateCommittedResource);
 			VISTA_HOOK(Device4, CreateCommittedResource1);
 			VISTA_HOOK(Device, CreatePlacedResource);
@@ -77,6 +80,7 @@ namespace vista
 			VISTA_HOOK(List, ClearUnorderedAccessViewUint);
 			VISTA_HOOK(List, ClearUnorderedAccessViewFloat);
 			VISTA_HOOK(List, SetPipelineState);
+			VISTA_HOOK(List4, SetPipelineState1);
 			VISTA_HOOK(List, SetGraphicsRootSignature);
 			VISTA_HOOK(List, SetComputeRootSignature);
 			VISTA_HOOK(List, IASetPrimitiveTopology);
@@ -389,6 +393,448 @@ namespace vista
 		return hr;
 	}
 
+	HRESULT Vista::OnCreatePipelineState(ID3D12Device2* pDevice, const D3D12_PIPELINE_STATE_STREAM_DESC* pDesc, REFIID riid, void** ppPipelineState)
+	{
+		if (g_isInsideVistaRender || GUI.IsFreezed())
+		{
+			return d3d12PFNs.CreatePipelineState(pDevice, pDesc, riid, ppPipelineState);
+		}
+
+		CommandRecorder& queueRecorder = recorderManager.GetOrCreateRecorder(pDevice);
+		CreatePipelineStateCommand& cmd = queueRecorder.AddCommand<CreatePipelineStateCommand>();
+		HRESULT hr = d3d12PFNs.CreatePipelineState(pDevice, pDesc, riid, ppPipelineState);
+		cmd.hr = hr;
+		if (SUCCEEDED(hr) && ppPipelineState && *ppPipelineState)
+		{
+			StreamPSODescStorage gfxPSODescStorage(*pDesc, objectTracker);
+			PSODesc psoDesc = gfxPSODescStorage;
+			cmd.psoId = objectTracker.TrackObject<ID3D12PipelineState>(*ppPipelineState, psoDesc);
+		}
+		return hr;
+	}
+	HRESULT Vista::OnCreateStateObject(ID3D12Device5* pDevice, D3D12_STATE_OBJECT_DESC const* pDesc, REFIID riid, void** ppStateObject)
+	{
+		if (g_isInsideVistaRender || GUI.IsFreezed())
+		{
+			return d3d12PFNs.CreateStateObject(pDevice, pDesc, riid, ppStateObject);
+		}
+
+		CommandRecorder& queueRecorder = recorderManager.GetOrCreateRecorder(pDevice);
+		CreateStateObjectCommand& cmd = queueRecorder.AddCommand<CreateStateObjectCommand>();
+		HRESULT const hr = d3d12PFNs.CreateStateObject(pDevice, pDesc, riid, ppStateObject);
+		cmd.hr = hr;
+
+		if (SUCCEEDED(hr) && ppStateObject && *ppStateObject)
+		{
+			StateObjectDesc stateObjectDesc{};
+
+			auto GetSubobjectDescSize = [](D3D12_STATE_SUBOBJECT_TYPE const type) -> Uint64
+				{
+					switch (type)
+					{
+					case D3D12_STATE_SUBOBJECT_TYPE_STATE_OBJECT_CONFIG:
+						return sizeof(D3D12_STATE_OBJECT_CONFIG);
+					case D3D12_STATE_SUBOBJECT_TYPE_GLOBAL_ROOT_SIGNATURE:
+					case D3D12_STATE_SUBOBJECT_TYPE_LOCAL_ROOT_SIGNATURE:
+						return 0;
+					case D3D12_STATE_SUBOBJECT_TYPE_DXIL_LIBRARY:
+						return sizeof(D3D12_DXIL_LIBRARY_DESC);
+					case D3D12_STATE_SUBOBJECT_TYPE_EXISTING_COLLECTION:
+						return sizeof(D3D12_EXISTING_COLLECTION_DESC);
+					case D3D12_STATE_SUBOBJECT_TYPE_SUBOBJECT_TO_EXPORTS_ASSOCIATION:
+						return sizeof(D3D12_SUBOBJECT_TO_EXPORTS_ASSOCIATION);
+					case D3D12_STATE_SUBOBJECT_TYPE_DXIL_SUBOBJECT_TO_EXPORTS_ASSOCIATION:
+						return sizeof(D3D12_DXIL_SUBOBJECT_TO_EXPORTS_ASSOCIATION);
+					case D3D12_STATE_SUBOBJECT_TYPE_RAYTRACING_SHADER_CONFIG:
+						return sizeof(D3D12_RAYTRACING_SHADER_CONFIG);
+					case D3D12_STATE_SUBOBJECT_TYPE_RAYTRACING_PIPELINE_CONFIG:
+						return sizeof(D3D12_RAYTRACING_PIPELINE_CONFIG);
+					case D3D12_STATE_SUBOBJECT_TYPE_RAYTRACING_PIPELINE_CONFIG1:
+						return sizeof(D3D12_RAYTRACING_PIPELINE_CONFIG1);
+					case D3D12_STATE_SUBOBJECT_TYPE_HIT_GROUP:
+						return sizeof(D3D12_HIT_GROUP_DESC);
+					case D3D12_STATE_SUBOBJECT_TYPE_NODE_MASK:
+						return sizeof(UINT);
+					default:
+						return 0;
+					}
+				};
+
+			stateObjectDesc.type = pDesc->Type;
+			stateObjectDesc.subobjects.reserve(pDesc->NumSubobjects);
+
+			for (Uint32 i = 0; i < pDesc->NumSubobjects; ++i)
+			{
+				D3D12_STATE_SUBOBJECT const& src = pDesc->pSubobjects[i];
+				StateObjectDesc::Subobject dst;
+				dst.type = src.Type;
+
+				switch (src.Type)
+				{
+				case D3D12_STATE_SUBOBJECT_TYPE_LOCAL_ROOT_SIGNATURE:
+				case D3D12_STATE_SUBOBJECT_TYPE_GLOBAL_ROOT_SIGNATURE:
+				{
+					ID3D12RootSignature* const* ppRootSig = static_cast<ID3D12RootSignature* const*>(src.pDesc);
+					if (ppRootSig && *ppRootSig)
+					{
+						dst.interfaceRef = *ppRootSig;
+					}
+					break;
+				}
+				case D3D12_STATE_SUBOBJECT_TYPE_HIT_GROUP:
+				{
+					D3D12_HIT_GROUP_DESC const* desc = static_cast<D3D12_HIT_GROUP_DESC const*>(src.pDesc);
+					dst.hitGroupType = desc->Type;
+					if (desc->HitGroupExport) dst.hitGroupName = desc->HitGroupExport;
+					if (desc->AnyHitShaderImport) dst.anyHitShader = desc->AnyHitShaderImport;
+					if (desc->ClosestHitShaderImport) dst.closestHitShader = desc->ClosestHitShaderImport;
+					if (desc->IntersectionShaderImport) dst.intersectionShader = desc->IntersectionShaderImport;
+					break;
+				}
+				case D3D12_STATE_SUBOBJECT_TYPE_SUBOBJECT_TO_EXPORTS_ASSOCIATION:
+				{
+					D3D12_SUBOBJECT_TO_EXPORTS_ASSOCIATION const* desc = static_cast<D3D12_SUBOBJECT_TO_EXPORTS_ASSOCIATION const*>(src.pDesc);
+					dst.ownedAssociationExportNames.reserve(desc->NumExports);
+					dst.ownedAssociationExportPointers.resize(desc->NumExports);
+					for (Uint32 j = 0; j < desc->NumExports; ++j)
+					{
+						dst.ownedAssociationExportNames.push_back(desc->pExports[j] ? desc->pExports[j] : L"");
+					}
+					dst.associatedSubobjectIndex = -1;
+					dst.originalAssociationExportsPtr = desc->pExports;
+					dst.originalAssociatedSubobjectPtr = desc->pSubobjectToAssociate;
+					break;
+				}
+				case D3D12_STATE_SUBOBJECT_TYPE_DXIL_SUBOBJECT_TO_EXPORTS_ASSOCIATION:
+				{
+					D3D12_DXIL_SUBOBJECT_TO_EXPORTS_ASSOCIATION const* desc = static_cast<D3D12_DXIL_SUBOBJECT_TO_EXPORTS_ASSOCIATION const*>(src.pDesc);
+					dst.ownedAssociationExportNames.reserve(desc->NumExports);
+					dst.ownedAssociationExportPointers.resize(desc->NumExports);
+					for (Uint32 j = 0; j < desc->NumExports; ++j)
+					{
+						dst.ownedAssociationExportNames.push_back(desc->pExports[j] ? desc->pExports[j] : L"");
+					}
+					if (desc->SubobjectToAssociate) dst.associatedSubobjectName = desc->SubobjectToAssociate;
+					dst.originalAssociationExportsPtr = desc->pExports;
+					break;
+				}
+				case D3D12_STATE_SUBOBJECT_TYPE_DXIL_LIBRARY:
+				{
+					D3D12_DXIL_LIBRARY_DESC const* desc = static_cast<D3D12_DXIL_LIBRARY_DESC const*>(src.pDesc);
+					dst.ownedExportStructs.resize(desc->NumExports);
+					dst.ownedExportNames.reserve(desc->NumExports);
+					for (Uint32 j = 0; j < desc->NumExports; ++j)
+					{
+						D3D12_EXPORT_DESC const& src_exp = desc->pExports[j];
+						dst.ownedExportNames.push_back(src_exp.Name ? src_exp.Name : L"");
+						dst.ownedExportStructs[j] = src_exp;
+					}
+					break;
+				}
+				case D3D12_STATE_SUBOBJECT_TYPE_EXISTING_COLLECTION:
+				{
+					D3D12_EXISTING_COLLECTION_DESC const* desc = static_cast<D3D12_EXISTING_COLLECTION_DESC const*>(src.pDesc);
+					if (desc->pExistingCollection)
+					{
+						dst.interfaceRef = desc->pExistingCollection;
+					}
+					dst.ownedExportStructs.resize(desc->NumExports);
+					dst.ownedExportNames.reserve(desc->NumExports);
+					for (Uint32 j = 0; j < desc->NumExports; ++j)
+					{
+						D3D12_EXPORT_DESC const& src_exp = desc->pExports[j];
+						dst.ownedExportNames.push_back(src_exp.Name ? src_exp.Name : L"");
+						dst.ownedExportStructs[j] = src_exp;
+					}
+					break;
+				}
+				default:
+				{
+					Uint64 size = GetSubobjectDescSize(src.Type);
+					if (size != 0)
+					{
+						dst.data.resize(size);
+						memcpy(dst.data.data(), src.pDesc, size);
+					}
+					break;
+				}
+				}
+				stateObjectDesc.subobjects.push_back(std::move(dst));
+			}
+			for (Uint32 i = 0; i < stateObjectDesc.subobjects.size(); ++i)
+			{
+				StateObjectDesc::Subobject& dst = stateObjectDesc.subobjects[i];
+				switch (dst.type)
+				{
+				case D3D12_STATE_SUBOBJECT_TYPE_SUBOBJECT_TO_EXPORTS_ASSOCIATION:
+				{
+					for (Uint32 j = 0; j < dst.ownedAssociationExportNames.size(); ++j)
+					{
+						dst.ownedAssociationExportPointers[j] = dst.ownedAssociationExportNames[j].c_str();
+					}
+					if (dst.originalAssociatedSubobjectPtr)
+					{
+						for (Uint32 k = 0; k < pDesc->NumSubobjects; ++k)
+						{
+							if (&pDesc->pSubobjects[k] == dst.originalAssociatedSubobjectPtr)
+							{
+								dst.associatedSubobjectIndex = static_cast<Int32>(k);
+								break;
+							}
+						}
+					}
+					dst.originalAssociationExportsPtr = nullptr;
+					dst.originalAssociatedSubobjectPtr = nullptr;
+					break;
+				}
+				case D3D12_STATE_SUBOBJECT_TYPE_DXIL_SUBOBJECT_TO_EXPORTS_ASSOCIATION:
+				{
+					for (Uint32 j = 0; j < dst.ownedAssociationExportNames.size(); ++j)
+					{
+						dst.ownedAssociationExportPointers[j] = dst.ownedAssociationExportNames[j].c_str();
+					}
+					dst.originalAssociationExportsPtr = nullptr;
+					break;
+				}
+				case D3D12_STATE_SUBOBJECT_TYPE_DXIL_LIBRARY:
+				case D3D12_STATE_SUBOBJECT_TYPE_EXISTING_COLLECTION:
+				{
+					for (Uint32 j = 0; j < dst.ownedExportStructs.size(); ++j)
+					{
+						dst.ownedExportStructs[j].Name = dst.ownedExportNames[j].c_str();
+					}
+					break;
+				}
+				default:
+					break;
+				}
+			}
+			cmd.stateObjectId = objectTracker.TrackObject<ID3D12StateObject>(*ppStateObject, stateObjectDesc);
+		}
+		return hr;
+	}
+	HRESULT Vista::OnAddToStateObject(ID3D12Device7* pDevice, const D3D12_STATE_OBJECT_DESC* pAddition, ID3D12StateObject* pStateObjectToGrowFrom, REFIID riid, void** ppNewStateObject)
+	{
+		if (g_isInsideVistaRender || GUI.IsFreezed())
+		{
+			return d3d12PFNs.AddToStateObject(pDevice, pAddition, pStateObjectToGrowFrom, riid, ppNewStateObject);
+		}
+
+		CommandRecorder& queueRecorder = recorderManager.GetOrCreateRecorder(pDevice);
+		AddToStateObjectCommand& cmd = queueRecorder.AddCommand<AddToStateObjectCommand>();
+
+		HRESULT hr = d3d12PFNs.AddToStateObject(pDevice, pAddition, pStateObjectToGrowFrom, riid, ppNewStateObject);
+		cmd.hr = hr;
+		if (SUCCEEDED(hr) && ppNewStateObject && *ppNewStateObject)
+		{
+			StateObjectDesc newStateObjectDesc{};
+			Int32 baseSubobjectCount = 0;
+
+			TrackedObjectInfo const* baseInfo = objectTracker.GetObjectInfo(pStateObjectToGrowFrom);
+			if (baseInfo && std::holds_alternative<StateObjectDesc>(baseInfo->objectDesc))
+			{
+				auto const& baseDesc = std::get<StateObjectDesc>(baseInfo->objectDesc);
+				newStateObjectDesc.type = baseDesc.type; 
+				newStateObjectDesc.subobjects = baseDesc.subobjects; 
+				baseSubobjectCount = static_cast<Int32>(newStateObjectDesc.subobjects.size());
+
+				cmd.existingStateObjectId = baseInfo->objectId;
+			}
+			else
+			{
+				newStateObjectDesc.type = pAddition->Type; 
+				baseSubobjectCount = 0; 
+			}
+
+			auto GetSubobjectDescSize = [](D3D12_STATE_SUBOBJECT_TYPE const type) -> Uint64
+				{
+					switch (type)
+					{
+					case D3D12_STATE_SUBOBJECT_TYPE_STATE_OBJECT_CONFIG:
+						return sizeof(D3D12_STATE_OBJECT_CONFIG);
+					case D3D12_STATE_SUBOBJECT_TYPE_GLOBAL_ROOT_SIGNATURE:
+					case D3D12_STATE_SUBOBJECT_TYPE_LOCAL_ROOT_SIGNATURE:
+						return 0;
+					case D3D12_STATE_SUBOBJECT_TYPE_DXIL_LIBRARY:
+						return sizeof(D3D12_DXIL_LIBRARY_DESC);
+					case D3D12_STATE_SUBOBJECT_TYPE_EXISTING_COLLECTION:
+						return sizeof(D3D12_EXISTING_COLLECTION_DESC);
+					case D3D12_STATE_SUBOBJECT_TYPE_SUBOBJECT_TO_EXPORTS_ASSOCIATION:
+						return sizeof(D3D12_SUBOBJECT_TO_EXPORTS_ASSOCIATION);
+					case D3D12_STATE_SUBOBJECT_TYPE_DXIL_SUBOBJECT_TO_EXPORTS_ASSOCIATION:
+						return sizeof(D3D12_DXIL_SUBOBJECT_TO_EXPORTS_ASSOCIATION);
+					case D3D12_STATE_SUBOBJECT_TYPE_RAYTRACING_SHADER_CONFIG:
+						return sizeof(D3D12_RAYTRACING_SHADER_CONFIG);
+					case D3D12_STATE_SUBOBJECT_TYPE_RAYTRACING_PIPELINE_CONFIG:
+						return sizeof(D3D12_RAYTRACING_PIPELINE_CONFIG);
+					case D3D12_STATE_SUBOBJECT_TYPE_RAYTRACING_PIPELINE_CONFIG1:
+						return sizeof(D3D12_RAYTRACING_PIPELINE_CONFIG1);
+					case D3D12_STATE_SUBOBJECT_TYPE_HIT_GROUP:
+						return sizeof(D3D12_HIT_GROUP_DESC);
+					case D3D12_STATE_SUBOBJECT_TYPE_NODE_MASK:
+						return sizeof(UINT);
+					default:
+						return 0;
+					}
+				};
+
+			for (Uint32 i = 0; i < pAddition->NumSubobjects; ++i)
+			{
+				D3D12_STATE_SUBOBJECT const& src = pAddition->pSubobjects[i];
+				StateObjectDesc::Subobject dst;
+				dst.type = src.Type;
+
+				switch (src.Type)
+				{
+				case D3D12_STATE_SUBOBJECT_TYPE_LOCAL_ROOT_SIGNATURE:
+				case D3D12_STATE_SUBOBJECT_TYPE_GLOBAL_ROOT_SIGNATURE:
+				{
+					ID3D12RootSignature* const* ppRootSig = static_cast<ID3D12RootSignature* const*>(src.pDesc);
+					if (ppRootSig && *ppRootSig)
+					{
+						dst.interfaceRef = *ppRootSig;
+					}
+					break;
+				}
+				case D3D12_STATE_SUBOBJECT_TYPE_HIT_GROUP:
+				{
+					D3D12_HIT_GROUP_DESC const* desc = static_cast<D3D12_HIT_GROUP_DESC const*>(src.pDesc);
+					dst.hitGroupType = desc->Type;
+					if (desc->HitGroupExport) dst.hitGroupName = desc->HitGroupExport;
+					if (desc->AnyHitShaderImport) dst.anyHitShader = desc->AnyHitShaderImport;
+					if (desc->ClosestHitShaderImport) dst.closestHitShader = desc->ClosestHitShaderImport;
+					if (desc->IntersectionShaderImport) dst.intersectionShader = desc->IntersectionShaderImport;
+					break;
+				}
+				case D3D12_STATE_SUBOBJECT_TYPE_SUBOBJECT_TO_EXPORTS_ASSOCIATION:
+				{
+					D3D12_SUBOBJECT_TO_EXPORTS_ASSOCIATION const* desc = static_cast<D3D12_SUBOBJECT_TO_EXPORTS_ASSOCIATION const*>(src.pDesc);
+					dst.ownedAssociationExportNames.reserve(desc->NumExports);
+					dst.ownedAssociationExportPointers.resize(desc->NumExports);
+					for (Uint32 j = 0; j < desc->NumExports; ++j)
+					{
+						dst.ownedAssociationExportNames.push_back(desc->pExports[j] ? desc->pExports[j] : L"");
+					}
+					dst.associatedSubobjectIndex = -1;
+					dst.originalAssociatedSubobjectPtr = desc->pSubobjectToAssociate; 
+					break;
+				}
+				case D3D12_STATE_SUBOBJECT_TYPE_DXIL_SUBOBJECT_TO_EXPORTS_ASSOCIATION:
+				{
+					D3D12_DXIL_SUBOBJECT_TO_EXPORTS_ASSOCIATION const* desc = static_cast<D3D12_DXIL_SUBOBJECT_TO_EXPORTS_ASSOCIATION const*>(src.pDesc);
+					dst.ownedAssociationExportNames.reserve(desc->NumExports);
+					dst.ownedAssociationExportPointers.resize(desc->NumExports);
+					for (Uint32 j = 0; j < desc->NumExports; ++j)
+					{
+						dst.ownedAssociationExportNames.push_back(desc->pExports[j] ? desc->pExports[j] : L"");
+					}
+					if (desc->SubobjectToAssociate) dst.associatedSubobjectName = desc->SubobjectToAssociate;
+					break;
+				}
+				case D3D12_STATE_SUBOBJECT_TYPE_DXIL_LIBRARY:
+				{
+					D3D12_DXIL_LIBRARY_DESC const* desc = static_cast<D3D12_DXIL_LIBRARY_DESC const*>(src.pDesc);
+					dst.ownedExportStructs.resize(desc->NumExports);
+					dst.ownedExportNames.reserve(desc->NumExports);
+					for (Uint32 j = 0; j < desc->NumExports; ++j)
+					{
+						D3D12_EXPORT_DESC const& src_exp = desc->pExports[j];
+						dst.ownedExportNames.push_back(src_exp.Name ? src_exp.Name : L"");
+						dst.ownedExportStructs[j] = src_exp;
+					}
+					break;
+				}
+				case D3D12_STATE_SUBOBJECT_TYPE_EXISTING_COLLECTION:
+				{
+					D3D12_EXISTING_COLLECTION_DESC const* desc = static_cast<D3D12_EXISTING_COLLECTION_DESC const*>(src.pDesc);
+					if (desc->pExistingCollection)
+					{
+						dst.interfaceRef = desc->pExistingCollection;
+					}
+					dst.ownedExportStructs.resize(desc->NumExports);
+					dst.ownedExportNames.reserve(desc->NumExports);
+					for (Uint32 j = 0; j < desc->NumExports; ++j)
+					{
+						D3D12_EXPORT_DESC const& src_exp = desc->pExports[j];
+						dst.ownedExportNames.push_back(src_exp.Name ? src_exp.Name : L"");
+						dst.ownedExportStructs[j] = src_exp;
+					}
+					break;
+				}
+				default:
+				{
+					Uint64 size = GetSubobjectDescSize(src.Type);
+					if (size != 0)
+					{
+						dst.data.resize(size);
+						memcpy(dst.data.data(), src.pDesc, size);
+					}
+					break;
+				}
+				}
+				newStateObjectDesc.subobjects.push_back(std::move(dst));
+			}
+
+			for (Uint32 i = baseSubobjectCount; i < newStateObjectDesc.subobjects.size(); ++i) 
+			{
+				StateObjectDesc::Subobject& dst = newStateObjectDesc.subobjects[i];
+				const D3D12_STATE_SUBOBJECT& originalAddedSrc = pAddition->pSubobjects[i - baseSubobjectCount];
+
+				switch (dst.type)
+				{
+				case D3D12_STATE_SUBOBJECT_TYPE_SUBOBJECT_TO_EXPORTS_ASSOCIATION:
+				{
+					for (Uint32 j = 0; j < dst.ownedAssociationExportNames.size(); ++j)
+					{
+						dst.ownedAssociationExportPointers[j] = dst.ownedAssociationExportNames[j].c_str();
+					}
+
+					if (dst.originalAssociatedSubobjectPtr)
+					{
+						for (Uint32 k = 0; k < newStateObjectDesc.subobjects.size(); ++k)
+						{
+							Int32 originalAdditionIndex = -1;
+							for (Uint32 l = 0; l < pAddition->NumSubobjects; ++l)
+							{
+								if (&pAddition->pSubobjects[l] == dst.originalAssociatedSubobjectPtr)
+								{
+									originalAdditionIndex = static_cast<Int32>(l);
+									break;
+								}
+							}
+							if (originalAdditionIndex != -1)
+							{
+								dst.associatedSubobjectIndex = baseSubobjectCount + originalAdditionIndex;
+							}
+						}
+					}
+					dst.originalAssociatedSubobjectPtr = nullptr; 
+					break;
+				}
+				case D3D12_STATE_SUBOBJECT_TYPE_DXIL_SUBOBJECT_TO_EXPORTS_ASSOCIATION:
+				{
+					for (Uint32 j = 0; j < dst.ownedAssociationExportNames.size(); ++j)
+					{
+						dst.ownedAssociationExportPointers[j] = dst.ownedAssociationExportNames[j].c_str();
+					}
+					break;
+				}
+				case D3D12_STATE_SUBOBJECT_TYPE_DXIL_LIBRARY:
+				case D3D12_STATE_SUBOBJECT_TYPE_EXISTING_COLLECTION:
+				{
+					for (Uint32 j = 0; j < dst.ownedExportStructs.size(); ++j)
+					{
+						dst.ownedExportStructs[j].Name = dst.ownedExportNames[j].c_str();
+					}
+					break;
+				}
+				}
+			}
+			cmd.stateObjectId = objectTracker.TrackObject<ID3D12StateObject>(*ppNewStateObject, newStateObjectDesc);
+		}
+		return hr;
+	}
+
 	HRESULT Vista::OnCreateRootSignature(ID3D12Device* pDevice, UINT nodeMask, const void* pBlobWithRootSignature, SIZE_T blobLengthInBytes, REFIID riid, void** ppvRootSignature)
 	{
 		if (g_isInsideVistaRender || GUI.IsFreezed())
@@ -678,6 +1124,7 @@ namespace vista
 		}
 		
 		VISTA_RENDER_GUARD;
+		//d3d12PFNs.ExecuteCommandLists(pCommandQueue, commandListCount, commandLists);
 		stateTracker.OnExecuteCommandLists(pCommandQueue, commandListCount, commandLists);
 		for (Uint i = 0; i < commandListCount; ++i)
 		{
@@ -1186,6 +1633,18 @@ namespace vista
 		SetPipelineStateCommand& cmd = recorder.AddCommand<SetPipelineStateCommand>();
 		cmd.psoId = objectTracker.GetObjectID(pPipelineState);
 		return d3d12PFNs.SetPipelineState(pCommandList, pPipelineState);
+	}
+
+	void Vista::OnSetPipelineState1(ID3D12GraphicsCommandList4* pCommandList, ID3D12StateObject* pStateObject)
+	{
+		if (g_isInsideVistaRender || GUI.IsFreezed())
+		{
+			return d3d12PFNs.SetPipelineState1(pCommandList, pStateObject);
+		}
+		CommandRecorder& recorder = recorderManager.GetOrCreateRecorder(pCommandList);
+		SetPipelineState1Command& cmd = recorder.AddCommand<SetPipelineState1Command>();
+		cmd.stateObjectId = objectTracker.GetObjectID(pStateObject);
+		return d3d12PFNs.SetPipelineState1(pCommandList, pStateObject);
 	}
 
 	void Vista::OnSetGraphicsRootSignature(ID3D12GraphicsCommandList* pCommandList, ID3D12RootSignature* pRootSignature)

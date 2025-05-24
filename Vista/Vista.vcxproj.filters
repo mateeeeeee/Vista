@@ -417,5 +417,8 @@
     <ClInclude Include="Resource\ResourceCopyRequestManager.h">
       <Filter>Resource</Filter>
     </ClInclude>
+    <ClInclude Include="Tracking\Traits\StateObjectTraits.h">
+      <Filter>Tracking\Traits</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

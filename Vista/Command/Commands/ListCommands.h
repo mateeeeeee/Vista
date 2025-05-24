@@ -20,6 +20,14 @@ namespace vista
 		{
 			return GetType() == CommandType::CopyResource || GetType() == CommandType::CopyBufferRegion || GetType() == CommandType::CopyTextureRegion;
 		}
+		Bool IsMeshCommand() const
+		{
+			return GetType() == CommandType::DispatchMesh;
+		}
+		Bool IsRayTracingCommand() const
+		{
+			return GetType() == CommandType::DispatchRays;
+		}
 
 		COMMAND_CLASS_OF_RANGE(ListCommand)
 
@@ -634,6 +642,26 @@ namespace vista
 
 	public:
 		ObjectID psoId = InvalidObjectID;
+	};
+
+	class SetPipelineState1Command : public ListCommand
+	{
+	public:
+		SetPipelineState1Command() = default;
+
+		virtual std::string GetDesc() const override;
+		virtual CommandType GetType() const override { return CommandType::SetPipelineState1; }
+
+		COMMAND_ACCEPT_IMPL()
+		COMMAND_HASH_IMPL(stateObjectId)
+
+		static Bool ClassOf(Command const* C)
+		{
+			return C->GetType() == CommandType::SetPipelineState1;
+		}
+
+	public:
+		ObjectID stateObjectId = InvalidObjectID;
 	};
 
 	class SetGraphicsRootSignatureCommand : public ListCommand

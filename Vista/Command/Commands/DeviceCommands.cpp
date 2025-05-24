@@ -64,6 +64,20 @@ namespace vista
 		return std::format("CreateComputePipelineState(..., obj#{}) {{ this -> Device obj#{}, return -> {} }}", psoId, GetParentId(), HResultToString(hr));
 	}
 
+	std::string CreatePipelineStateCommand::GetDesc() const
+	{
+		return std::format("CreatePipelineState(..., obj#{}) {{ this -> Device obj#{}, return -> {} }}", psoId, GetParentId(), HResultToString(hr));
+	}
+
+	std::string CreateStateObjectCommand::GetDesc() const
+	{
+		return std::format("CreateStateObject(..., obj#{}) {{ this -> Device obj#{}, return -> {} }}", stateObjectId, GetParentId(), HResultToString(hr));
+	}
+
+	std::string AddToStateObjectCommand::GetDesc() const
+	{
+		return std::format("AddToStateObject(..., obj#{}) {{ this -> Device obj#{}, return -> {} }}", stateObjectId, GetParentId(), HResultToString(hr));
+	}
 	std::string CreateCommittedResourceCommand::GetDesc() const
 	{
 		return std::format("CreateCommittedResource(..., obj#{}) {{ this -> Device obj#{}, return -> {} }}", resourceId, GetParentId(), HResultToString(hr));
@@ -88,6 +102,7 @@ namespace vista
 	{
 		return std::format("CreateDescriptorHeap(..., obj#{}) {{ this -> Device obj#{}, return -> {} }}", descriptorHeapId, GetParentId(), HResultToString(hr));
 	}
+
 
 }
 

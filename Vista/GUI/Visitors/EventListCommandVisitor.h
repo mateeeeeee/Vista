@@ -24,6 +24,9 @@ namespace vista
 		VISIT_DECL(CreateCommandSignatureCommand);
 		VISIT_DECL(CreateGraphicsPipelineStateCommand);
 		VISIT_DECL(CreateComputePipelineStateCommand);
+		VISIT_DECL(CreatePipelineStateCommand);
+		VISIT_DECL(CreateStateObjectCommand);
+		VISIT_DECL(AddToStateObjectCommand);
 		VISIT_DECL(CreateCommittedResourceCommand);
 		VISIT_DECL(CreateCommittedResource1Command);
 		VISIT_DECL(CreatePlacedResourceCommand);
@@ -60,6 +63,7 @@ namespace vista
 		VISIT_DECL(ClearUnorderedAccessViewUintCommand);
 		VISIT_DECL(ClearUnorderedAccessViewFloatCommand);
 		VISIT_DECL(SetPipelineStateCommand);
+		VISIT_DECL(SetPipelineState1Command);
 		VISIT_DECL(SetGraphicsRootSignatureCommand);
 		VISIT_DECL(SetComputeRootSignatureCommand);
 		VISIT_DECL(IASetPrimitiveTopologyCommand);

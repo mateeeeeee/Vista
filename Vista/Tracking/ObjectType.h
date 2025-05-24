@@ -16,6 +16,7 @@ namespace vista
 		Resource,
 		DescriptorHeap,
 		Heap,
+		StateObject,
 		Count
 	};
 	static Char const* ObjectTypeNames[] =
@@ -31,7 +32,8 @@ namespace vista
 		"CommandSignature",
 		"Resource",
 		"DescriptorHeap",
-		"Heap"
+		"Heap",
+		"StateObject",
 	};
 	static_assert(std::size(ObjectTypeNames) == (Uint64)ObjectType::Count);
 }

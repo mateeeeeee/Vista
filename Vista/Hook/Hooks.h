@@ -14,6 +14,9 @@ namespace vista::hooks
 	HRESULT STDMETHODCALLTYPE CreateFence(ID3D12Device*, UINT64, D3D12_FENCE_FLAGS, REFIID, void**);
 	HRESULT STDMETHODCALLTYPE CreateGraphicsPipelineState(ID3D12Device*, const D3D12_GRAPHICS_PIPELINE_STATE_DESC*, REFIID, void**);
 	HRESULT STDMETHODCALLTYPE CreateComputePipelineState(ID3D12Device*, const D3D12_COMPUTE_PIPELINE_STATE_DESC*, REFIID, void**);
+	HRESULT STDMETHODCALLTYPE CreatePipelineState(ID3D12Device2*, const D3D12_PIPELINE_STATE_STREAM_DESC*, REFIID, void**);
+	HRESULT STDMETHODCALLTYPE CreateStateObject(ID3D12Device5*, const D3D12_STATE_OBJECT_DESC*, REFIID, void**);
+	HRESULT STDMETHODCALLTYPE AddToStateObject(ID3D12Device7*, const D3D12_STATE_OBJECT_DESC*, ID3D12StateObject*, REFIID, void**);
 	HRESULT STDMETHODCALLTYPE CreateRootSignature(ID3D12Device*, UINT, const void*, SIZE_T, REFIID, void**);
 	HRESULT STDMETHODCALLTYPE CreateCommandSignature(ID3D12Device*, const D3D12_COMMAND_SIGNATURE_DESC*, ID3D12RootSignature*, REFIID, void**);
 	HRESULT STDMETHODCALLTYPE CreateCommittedResource(ID3D12Device*, const D3D12_HEAP_PROPERTIES*, D3D12_HEAP_FLAGS, const D3D12_RESOURCE_DESC*, D3D12_RESOURCE_STATES, const D3D12_CLEAR_VALUE*, REFIID, void**);
@@ -61,6 +64,7 @@ namespace vista::hooks
 	void STDMETHODCALLTYPE ClearUnorderedAccessViewUint(ID3D12GraphicsCommandList*, D3D12_GPU_DESCRIPTOR_HANDLE, D3D12_CPU_DESCRIPTOR_HANDLE, ID3D12Resource*, const UINT*, UINT, const D3D12_RECT*);
 	void STDMETHODCALLTYPE ClearUnorderedAccessViewFloat(ID3D12GraphicsCommandList*, D3D12_GPU_DESCRIPTOR_HANDLE, D3D12_CPU_DESCRIPTOR_HANDLE, ID3D12Resource*, const FLOAT*, UINT, const D3D12_RECT*);
 	void STDMETHODCALLTYPE SetPipelineState(ID3D12GraphicsCommandList*, ID3D12PipelineState*);
+	void STDMETHODCALLTYPE SetPipelineState1(ID3D12GraphicsCommandList4*, ID3D12StateObject*);
 	void STDMETHODCALLTYPE SetGraphicsRootSignature(ID3D12GraphicsCommandList*, ID3D12RootSignature*);
 	void STDMETHODCALLTYPE SetComputeRootSignature(ID3D12GraphicsCommandList*, ID3D12RootSignature*);
 	void STDMETHODCALLTYPE IASetPrimitiveTopology(ID3D12GraphicsCommandList*, D3D12_PRIMITIVE_TOPOLOGY);

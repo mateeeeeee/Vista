@@ -11,3 +11,4 @@
 #include "RootSignatureTraits.h"
 #include "CommandSignatureTraits.h"
 #include "HeapTraits.h"
+#include "StateObjectTraits.h"

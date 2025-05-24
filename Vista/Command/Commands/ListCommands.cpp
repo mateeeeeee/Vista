@@ -150,6 +150,11 @@ namespace vista
 		return std::format("SetPipelineState(obj#{}) {{ this -> CommandList obj#{} }}", psoId, GetParentId());
 	}
 
+	std::string SetPipelineState1Command::GetDesc() const
+	{
+		return std::format("SetPipelineState1(obj#{}) {{ this -> CommandList obj#{} }}", stateObjectId, GetParentId());
+	}
+
 	std::string SetGraphicsRootSignatureCommand::GetDesc() const
 	{
 		return std::format("SetGraphicsRootSignature(obj#{}) {{ this -> CommandList obj#{} }}", rootSignatureId, GetParentId());
@@ -267,5 +272,6 @@ namespace vista
 		}
 		return std::format("Reset(nullptr) {{ this -> CommandList obj#{} }}", psoId, GetParentId());
 	}
+
 
 }

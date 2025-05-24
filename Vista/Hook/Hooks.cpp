@@ -68,6 +68,21 @@ namespace vista::hooks
 		return g_Vista.OnCreateComputePipelineState(pDevice, pDesc, riid, ppPipelineState);
 	}
 
+	HRESULT STDMETHODCALLTYPE CreatePipelineState(ID3D12Device2* pDevice, const D3D12_PIPELINE_STATE_STREAM_DESC* pDesc, REFIID riid, void** ppPipelineState)
+	{
+		return g_Vista.OnCreatePipelineState(pDevice, pDesc, riid, ppPipelineState);
+	}
+
+	HRESULT STDMETHODCALLTYPE CreateStateObject(ID3D12Device5* pDevice, const D3D12_STATE_OBJECT_DESC* pDesc, REFIID riid, void** ppStateObject)
+	{
+		return g_Vista.OnCreateStateObject(pDevice, pDesc, riid, ppStateObject);
+	}
+
+	HRESULT STDMETHODCALLTYPE AddToStateObject(ID3D12Device7* pDevice, const D3D12_STATE_OBJECT_DESC* pAddition, ID3D12StateObject* pStateObjectToGrowFrom, REFIID riid, void** ppNewStateObject)
+	{
+		return g_Vista.OnAddToStateObject(pDevice, pAddition, pStateObjectToGrowFrom, riid, ppNewStateObject);
+	}
+
 	HRESULT STDMETHODCALLTYPE CreateCommittedResource(ID3D12Device* pDevice, const D3D12_HEAP_PROPERTIES* pHeapProperties, D3D12_HEAP_FLAGS HeapFlags, 
 		const D3D12_RESOURCE_DESC* pDesc, D3D12_RESOURCE_STATES InitialResourceState, const D3D12_CLEAR_VALUE* pOptimizedClearValue, REFIID riid, void** ppvResource)
 	{
@@ -280,6 +295,11 @@ namespace vista::hooks
 	void STDMETHODCALLTYPE SetPipelineState(ID3D12GraphicsCommandList* pCommandList, ID3D12PipelineState* pPipelineState)
 	{
 		return g_Vista.OnSetPipelineState(pCommandList, pPipelineState);
+	}
+
+	void STDMETHODCALLTYPE SetPipelineState1(ID3D12GraphicsCommandList4* pCommandList, ID3D12StateObject* pStateObject)
+	{
+		return g_Vista.OnSetPipelineState1(pCommandList, pStateObject);
 	}
 
 	void STDMETHODCALLTYPE SetGraphicsRootSignature(ID3D12GraphicsCommandList* pCommandList, ID3D12RootSignature* pRootSignature)

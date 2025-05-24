@@ -34,8 +34,11 @@ namespace vista
 	void RenderRootSignatureDesc(RootSignatureDesc const& desc);
 	void RenderGraphicsPSODetails(GraphicsPSODescStorage const& desc, ObjectTracker const& objectTracker);
 	void RenderComputePSODetails(ComputePSODescStorage const& desc, ObjectTracker const& objectTracker);
+	void RenderStreamPSODetails(StreamPSODescStorage const& desc, ObjectTracker const& objectTracker);
 	void RenderCommandSignatureDesc(CommandSignatureDesc const& desc, ObjectTracker const& objectTracker);
 	void RenderHeapDesc(HeapDesc const& desc);
+	void RenderStateSubobjectDesc(StateObjectDesc const& desc, StateObjectDesc::Subobject const& subobject, ObjectTracker const& objectTracker);
+	void RenderStateObjectDesc(StateObjectDesc const& desc, ObjectTracker const& objectTracker);
 
 	void RenderVertexBufferView(Uint32 slot, D3D12_VERTEX_BUFFER_VIEW const& vbv, ObjectTracker const& objectTracker, ResourceAddressTracker const& addressTracker);
 	void RenderIndexBufferView(D3D12_INDEX_BUFFER_VIEW const& ibv, ObjectTracker const& objectTracker, ResourceAddressTracker const& addressTracker);
@@ -54,6 +57,14 @@ namespace vista
 		ResourceAddressTracker const& addressTracker,
 		SelectedItem* selectedItemInViewer = nullptr
 	);
+	void RenderRootSignatureDetails(
+		ObjectID rootSignatureId,
+		ObjectTracker const& objectTracker,
+		DescriptorTracker const& descriptorTracker,
+		ResourceAddressTracker const& addressTracker,
+		std::span<RootParameterBinding const> rootArgs,
+		Char const* rootSignatureLabel = "Root Signature Parameters");
+
 
 	TrackedObjectInfo const* RenderObjectInfoByID(ObjectID id, ObjectTracker const& tracker, Char const* label = "");
 	std::string GetResourceLabel(Char const* prefix, D3D12_GPU_VIRTUAL_ADDRESS address, ObjectTracker const& objectTracker, ResourceAddressTracker const& addressTracker);

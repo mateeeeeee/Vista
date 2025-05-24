@@ -28,6 +28,9 @@ namespace vista
 		virtual void Visit(CreateHeap1Command const&) override;
 		virtual void Visit(CreateGraphicsPipelineStateCommand const&) override;
 		virtual void Visit(CreateComputePipelineStateCommand const&) override;
+		virtual void Visit(CreatePipelineStateCommand const&) override;
+		virtual void Visit(CreateStateObjectCommand const&) override;
+		virtual void Visit(AddToStateObjectCommand const&) override;
 		virtual void Visit(CreateRootSignatureCommand const&) override;
 		virtual void Visit(CreateCommandSignatureCommand const&) override;
 		virtual void Visit(CreateCommittedResourceCommand const&) override;
@@ -66,6 +69,7 @@ namespace vista
 		virtual void Visit(ClearUnorderedAccessViewUintCommand const&) override;
 		virtual void Visit(ClearUnorderedAccessViewFloatCommand const&) override;
 		virtual void Visit(SetPipelineStateCommand const& cmd) override;
+		virtual void Visit(SetPipelineState1Command const& cmd) override;
 		virtual void Visit(SetGraphicsRootSignatureCommand const& cmd) override;
 		virtual void Visit(SetComputeRootSignatureCommand const& cmd) override;
 		virtual void Visit(IASetPrimitiveTopologyCommand const& cmd) override;

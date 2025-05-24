@@ -8,6 +8,217 @@
 
 namespace vista
 {
+	namespace details
+	{
+		template<typename PSODescT>
+		static void RenderComputePSODetails(PSODescT const& desc, ObjectTracker const& objectTracker)
+		{
+			if (desc.RootSignatureId != InvalidObjectID)
+			{
+				TrackedObjectInfo const* rsInfo = objectTracker.GetObjectInfo(desc.RootSignatureId);
+				ImGui::Text("Root Signature: %s", rsInfo ? std::format("obj#{} ({})", rsInfo->objectId, rsInfo->objectDebugName.c_str()).c_str() : std::format("obj#%llu (<Unknown>)", desc.RootSignatureId).c_str());
+			}
+			else
+			{
+				ImGui::TextUnformatted("Root Signature: NULL");
+			}
+			ImGui::Text("Compute Shader: %s", desc.CS.IsValid() ? "Set" : "NULL");
+			ImGui::Text("NodeMask: 0x%X", desc.NodeMask);
+			if (ImGui::TreeNode("Cached Pipeline State"))
+			{
+				ImGui::Text("Cached Blob: %s", desc.CachedPSO.IsValid() ? "Set" : "NULL");
+				ImGui::Text("Size: %zu bytes", desc.CachedPSO.Blob.size());
+				ImGui::TreePop();
+			}
+			ImGui::Text("Flags: %s", D3D12PipelineStateFlagsToString(desc.Flags));
+		}
+
+		template<typename PSODescT>
+		static void RenderGraphicsPSODetails(PSODescT const& desc, ObjectTracker const& objectTracker)
+		{
+			if (desc.RootSignatureId != InvalidObjectID)
+			{
+				TrackedObjectInfo const* rsInfo = objectTracker.GetObjectInfo(desc.RootSignatureId);
+				ImGui::Text("Root Signature: %s", rsInfo ? std::format("obj#{} {}", rsInfo->objectId, rsInfo->objectDebugName.c_str()).c_str() : std::format("obj#{} (<Unknown>)", desc.RootSignatureId).c_str());
+			}
+			else
+			{
+				ImGui::TextUnformatted("Root Signature: NULL");
+			}
+
+			ImGui::Text("Vertex Shader: %s", desc.VS.IsValid() ? "Set" : "NULL");
+			ImGui::Text("Pixel Shader: %s", desc.PS.IsValid() ? "Set" : "NULL");
+			ImGui::Text("Domain Shader: %s", desc.DS.IsValid() ? "Set" : "NULL");
+			ImGui::Text("Hull Shader: %s", desc.HS.IsValid() ? "Set" : "NULL");
+			ImGui::Text("Geometry Shader: %s", desc.GS.IsValid() ? "Set" : "NULL");
+
+			ImGui::Separator();
+			if (ImGui::TreeNodeEx("Stream Output", ImGuiTreeNodeFlags_None))
+			{
+				StreamOutputDescStorage const& so = desc.StreamOutput;
+				ImGui::Text("Num Entries: %u", so.SODeclaration.size());
+				ImGui::Text("Num Strides: %u", so.BufferStrides.size());
+				ImGui::Text("Rasterized Stream: %u", so.RasterizedStream);
+				ImGui::TreePop();
+			}
+
+			if (ImGui::TreeNodeEx("Blend State", ImGuiTreeNodeFlags_None))
+			{
+				D3D12_BLEND_DESC const& blend = desc.BlendState;
+				ImGui::Text("Alpha To Coverage Enable: %s", blend.AlphaToCoverageEnable ? "TRUE" : "FALSE");
+				ImGui::Text("Independent Blend Enable: %s", blend.IndependentBlendEnable ? "TRUE" : "FALSE");
+
+				if (ImGui::TreeNodeEx("Render Target Blends", ImGuiTreeNodeFlags_None))
+				{
+					for (Uint i = 0; i < D3D12_SIMULTANEOUS_RENDER_TARGET_COUNT; ++i)
+					{
+						if (!blend.IndependentBlendEnable && i >= 1) break;
+
+						ImGui::PushID(i);
+						if (ImGui::TreeNodeEx(std::format("RT[{}]", i).c_str()))
+						{
+							D3D12_RENDER_TARGET_BLEND_DESC const& rtBlend = blend.RenderTarget[i];
+							ImGui::Text("Blend Enable: %s", rtBlend.BlendEnable ? "TRUE" : "FALSE");
+							ImGui::Text("Logic Op Enable: %s", rtBlend.LogicOpEnable ? "TRUE" : "FALSE");
+							ImGui::Text("Src Blend: %s", D3D12BlendToString(rtBlend.SrcBlend));
+							ImGui::Text("Dest Blend: %s", D3D12BlendToString(rtBlend.DestBlend));
+							ImGui::Text("Blend Op: %s", D3D12BlendOpToString(rtBlend.BlendOp));
+							ImGui::Text("Src Blend Alpha: %s", D3D12BlendToString(rtBlend.SrcBlendAlpha));
+							ImGui::Text("Dest Blend Alpha: %s", D3D12BlendToString(rtBlend.DestBlendAlpha));
+							ImGui::Text("Blend Op Alpha: %s", D3D12BlendOpToString(rtBlend.BlendOpAlpha));
+							ImGui::Text("Logic Op: %s", D3D12LogicOpToString(rtBlend.LogicOp));
+							ImGui::Text("Render Target Write Mask: 0x%02X", rtBlend.RenderTargetWriteMask);
+							ImGui::TreePop();
+						}
+						ImGui::PopID();
+					}
+					ImGui::TreePop();
+				}
+				ImGui::TreePop();
+			}
+
+			ImGui::Text("SampleMask: 0x%X", desc.SampleMask);
+
+			if (ImGui::TreeNodeEx("Rasterizer State", ImGuiTreeNodeFlags_None))
+			{
+				D3D12_RASTERIZER_DESC const& rasterDesc = desc.RasterizerState;
+				ImGui::Text("Fill Mode: %s", D3D12FillModeToString(rasterDesc.FillMode));
+				ImGui::Text("Cull Mode: %s", D3D12CullModeToString(rasterDesc.CullMode));
+				ImGui::Text("Front Counter Clockwise: %s", rasterDesc.FrontCounterClockwise ? "TRUE" : "FALSE");
+				ImGui::Text("Depth Bias: %d", rasterDesc.DepthBias);
+				ImGui::Text("Depth Bias Clamp: %.2f", rasterDesc.DepthBiasClamp);
+				ImGui::Text("Slope Scaled Depth Bias: %.2f", rasterDesc.SlopeScaledDepthBias);
+				ImGui::Text("Depth Clip Enable: %s", rasterDesc.DepthClipEnable ? "TRUE" : "FALSE");
+				ImGui::Text("Multisample Enable: %s", rasterDesc.MultisampleEnable ? "TRUE" : "FALSE");
+				ImGui::Text("Antialiased Line Enable: %s", rasterDesc.AntialiasedLineEnable ? "TRUE" : "FALSE");
+				ImGui::Text("Forced Sample Count: %u", rasterDesc.ForcedSampleCount);
+				ImGui::Text("Conservative Raster: %s", D3D12ConservativeRasterizationModeToString(rasterDesc.ConservativeRaster));
+				ImGui::TreePop();
+			}
+
+			if (ImGui::TreeNodeEx("Depth Stencil State", ImGuiTreeNodeFlags_None))
+			{
+				D3D12_DEPTH_STENCIL_DESC const& ds = desc.DepthStencilState;
+				ImGui::Text("Depth Enable: %s", ds.DepthEnable ? "TRUE" : "FALSE");
+				ImGui::Text("Depth Write Mask: %s", D3D12DepthWriteMaskToString(ds.DepthWriteMask));
+				ImGui::Text("Depth Func: %s", D3D12ComparisonFuncToString(ds.DepthFunc));
+				ImGui::Separator();
+				ImGui::Text("Stencil Enable: %s", ds.StencilEnable ? "TRUE" : "FALSE");
+				ImGui::Text("Stencil Read Mask: 0x%02X", ds.StencilReadMask);
+				ImGui::Text("Stencil Write Mask: 0x%02X", ds.StencilWriteMask);
+
+				if (ImGui::TreeNode("Front Face Stencil"))
+				{
+					D3D12_DEPTH_STENCILOP_DESC const& front = ds.FrontFace;
+					ImGui::Text("Stencil Fail Op: %s", D3D12StencilOpToString(front.StencilFailOp));
+					ImGui::Text("Stencil Depth Fail Op: %s", D3D12StencilOpToString(front.StencilDepthFailOp));
+					ImGui::Text("Stencil Pass Op: %s", D3D12StencilOpToString(front.StencilPassOp));
+					ImGui::Text("Stencil Func: %s", D3D12ComparisonFuncToString(front.StencilFunc));
+					ImGui::TreePop();
+				}
+				if (ImGui::TreeNode("Back Face Stencil"))
+				{
+					D3D12_DEPTH_STENCILOP_DESC const& back = ds.BackFace;
+					ImGui::Text("Stencil Fail Op: %s", D3D12StencilOpToString(back.StencilFailOp));
+					ImGui::Text("Stencil Depth Fail Op: %s", D3D12StencilOpToString(back.StencilDepthFailOp));
+					ImGui::Text("Stencil Pass Op: %s", D3D12StencilOpToString(back.StencilPassOp));
+					ImGui::Text("Stencil Func: %s", D3D12ComparisonFuncToString(back.StencilFunc));
+					ImGui::TreePop();
+				}
+				ImGui::TreePop();
+			}
+
+			if (ImGui::TreeNodeEx("Input Layout", ImGuiTreeNodeFlags_None))
+			{
+				std::vector<InputElementDescStorage> const& inputLayoutElements = desc.InputLayoutElements;
+				ImGui::Text("Num Elements: %u", inputLayoutElements.size());
+				if (!inputLayoutElements.empty())
+				{
+					if (ImGui::TreeNodeEx("Elements", ImGuiTreeNodeFlags_None))
+					{
+						for (Uint32 i = 0; i < inputLayoutElements.size(); ++i)
+						{
+							ImGui::PushID(i);
+							InputElementDescStorage const& elem = inputLayoutElements[i];
+							if (ImGui::TreeNodeEx(std::format("[{}] {}", i, !elem.SemanticName.empty() ? elem.SemanticName : "<NULL>").c_str()))
+							{
+								ImGui::Text("Semantic Name: %s", !elem.SemanticName.empty() ? elem.SemanticName : "NULL");
+								ImGui::Text("Semantic Index: %u", elem.SemanticIndex);
+								ImGui::Text("Format: %s", DXGIFormatToString(elem.Format));
+								ImGui::Text("Input Slot: %u", elem.InputSlot);
+								ImGui::Text("Aligned Byte Offset: %u", elem.AlignedByteOffset);
+								ImGui::Text("Input Slot Class: %s", D3D12InputClassificationToString(elem.InputSlotClass));
+								ImGui::Text("Instance Data Step Rate: %u", elem.InstanceDataStepRate);
+								ImGui::TreePop();
+							}
+							ImGui::PopID();
+						}
+						ImGui::TreePop();
+					}
+				}
+				else {
+					ImGui::TextUnformatted("Elements: (None)");
+				}
+				ImGui::TreePop();
+			}
+
+			ImGui::Text("IB Strip Cut Value: %s", D3D12IndexBufferStripCutValueToString(desc.IBStripCutValue));
+			ImGui::Text("Primitive Topology Type: %s", D3D12PrimitiveTopologyTypeToString(desc.PrimitiveTopologyType));
+
+			if (ImGui::TreeNodeEx("PSO Render Target Formats", ImGuiTreeNodeFlags_None))
+			{
+				ImGui::Text("Num Render Targets: %u", desc.NumRenderTargets);
+				for (Uint32 i = 0; i < desc.NumRenderTargets; ++i)
+				{
+					ImGui::Text("  RTVFormat[%u]: %s", i, DXGIFormatToString(desc.RTVFormats[i]));
+				}
+				if (desc.NumRenderTargets == 0)
+				{
+					ImGui::TextUnformatted("  (No Render Targets)");
+				}
+				ImGui::TreePop();
+			}
+
+			ImGui::Text("DSV Format: %s", DXGIFormatToString(desc.DSVFormat));
+
+			if (ImGui::TreeNodeEx("Sample Desc", ImGuiTreeNodeFlags_None))
+			{
+				ImGui::Text("Count: %u", desc.SampleDesc.Count);
+				ImGui::Text("Quality: %u", desc.SampleDesc.Quality);
+				ImGui::TreePop();
+			}
+
+			ImGui::Text("NodeMask: 0x%X", desc.NodeMask);
+			if (ImGui::TreeNode("Cached Pipeline State"))
+			{
+				ImGui::Text("Cached Blob: %s", desc.CachedPSO.IsValid() ? "Set" : "NULL");
+				ImGui::Text("Size: %zu bytes", desc.CachedPSO.Blob.size());
+				ImGui::TreePop();
+			}
+			ImGui::Text("Flags: %s", D3D12PipelineStateFlagsToString(desc.Flags));
+		}
+	}
+
 	void RenderSamplerDesc(D3D12_SAMPLER_DESC const& samplerDesc, Char const* labelPrefix)
 	{
 		ImGui::Text("%s Details:", labelPrefix);
@@ -691,210 +902,208 @@ namespace vista
 		}
 	}
 
+
 	void RenderGraphicsPSODetails(GraphicsPSODescStorage const& desc, ObjectTracker const& objectTracker)
 	{
-		if (desc.RootSignatureId != InvalidObjectID)
+		details::RenderGraphicsPSODetails(desc, objectTracker);
+	}
+
+	void RenderComputePSODetails(ComputePSODescStorage const& desc, ObjectTracker const& objectTracker)
+	{
+		details::RenderComputePSODetails(desc, objectTracker);
+	}
+
+	void RenderStreamPSODetails(StreamPSODescStorage const& desc, ObjectTracker const& objectTracker)
+	{
+		if (desc.CS.IsValid())
 		{
-			TrackedObjectInfo const* rsInfo = objectTracker.GetObjectInfo(desc.RootSignatureId);
-			ImGui::Text("Root Signature: %s", rsInfo ? std::format("obj#{} {}", rsInfo->objectId, rsInfo->objectDebugName.c_str()).c_str() : std::format("obj#{} (<Unknown>)", desc.RootSignatureId).c_str());
+			details::RenderComputePSODetails(desc, objectTracker);
+		}
+		else if (desc.VS.IsValid())
+		{
+			details::RenderGraphicsPSODetails(desc, objectTracker);
 		}
 		else
 		{
-			ImGui::TextUnformatted("Root Signature: NULL");
-		}
-
-		ImGui::Text("Vertex Shader: %s", desc.VS.IsValid() ? "Set" : "NULL");
-		ImGui::Text("Pixel Shader: %s", desc.PS.IsValid() ? "Set" : "NULL");
-		ImGui::Text("Domain Shader: %s", desc.DS.IsValid() ? "Set" : "NULL");
-		ImGui::Text("Hull Shader: %s", desc.HS.IsValid() ? "Set" : "NULL");
-		ImGui::Text("Geometry Shader: %s", desc.GS.IsValid() ? "Set" : "NULL");
-
-		ImGui::Separator();
-		if (ImGui::TreeNodeEx("Stream Output", ImGuiTreeNodeFlags_None))
-		{
-			StreamOutputDescStorage const& so = desc.StreamOutput;
-			ImGui::Text("Num Entries: %u", so.SODeclaration.size());
-			ImGui::Text("Num Strides: %u", so.BufferStrides.size());
-			ImGui::Text("Rasterized Stream: %u", so.RasterizedStream);
-			ImGui::TreePop();
-		}
-
-		if (ImGui::TreeNodeEx("Blend State", ImGuiTreeNodeFlags_None))
-		{
-			D3D12_BLEND_DESC const& blend = desc.BlendState;
-			ImGui::Text("Alpha To Coverage Enable: %s", blend.AlphaToCoverageEnable ? "TRUE" : "FALSE");
-			ImGui::Text("Independent Blend Enable: %s", blend.IndependentBlendEnable ? "TRUE" : "FALSE");
-
-			if (ImGui::TreeNodeEx("Render Target Blends", ImGuiTreeNodeFlags_None))
+			if (desc.RootSignatureId != InvalidObjectID)
 			{
-				for (Uint i = 0; i < D3D12_SIMULTANEOUS_RENDER_TARGET_COUNT; ++i)
-				{
-					if (!blend.IndependentBlendEnable && i >= 1) break;
-
-					ImGui::PushID(i);
-					if (ImGui::TreeNodeEx(std::format("RT[{}]", i).c_str()))
-					{
-						D3D12_RENDER_TARGET_BLEND_DESC const& rtBlend = blend.RenderTarget[i];
-						ImGui::Text("Blend Enable: %s", rtBlend.BlendEnable ? "TRUE" : "FALSE");
-						ImGui::Text("Logic Op Enable: %s", rtBlend.LogicOpEnable ? "TRUE" : "FALSE");
-						ImGui::Text("Src Blend: %s", D3D12BlendToString(rtBlend.SrcBlend));
-						ImGui::Text("Dest Blend: %s", D3D12BlendToString(rtBlend.DestBlend));
-						ImGui::Text("Blend Op: %s", D3D12BlendOpToString(rtBlend.BlendOp));
-						ImGui::Text("Src Blend Alpha: %s", D3D12BlendToString(rtBlend.SrcBlendAlpha));
-						ImGui::Text("Dest Blend Alpha: %s", D3D12BlendToString(rtBlend.DestBlendAlpha));
-						ImGui::Text("Blend Op Alpha: %s", D3D12BlendOpToString(rtBlend.BlendOpAlpha));
-						ImGui::Text("Logic Op: %s", D3D12LogicOpToString(rtBlend.LogicOp));
-						ImGui::Text("Render Target Write Mask: 0x%02X", rtBlend.RenderTargetWriteMask);
-						ImGui::TreePop();
-					}
-					ImGui::PopID();
-				}
-				ImGui::TreePop();
+				TrackedObjectInfo const* rsInfo = objectTracker.GetObjectInfo(desc.RootSignatureId);
+				ImGui::Text("Root Signature: %s", rsInfo ? std::format("obj#{} {}", rsInfo->objectId, rsInfo->objectDebugName.c_str()).c_str() : std::format("obj#{} (<Unknown>)", desc.RootSignatureId).c_str());
 			}
-			ImGui::TreePop();
-		}
+			else
+			{
+				ImGui::TextUnformatted("Root Signature: NULL");
+			}
 
-		ImGui::Text("SampleMask: 0x%X", desc.SampleMask);
+			ImGui::Text("Amplification Shader: %s", desc.AS.IsValid() ? "Set" : "NULL");
+			ImGui::Text("Mesh Shader: %s", desc.MS.IsValid() ? "Set" : "NULL");
+			ImGui::Text("Pixel Shader: %s", desc.PS.IsValid() ? "Set" : "NULL");
 
-		if (ImGui::TreeNodeEx("Rasterizer State", ImGuiTreeNodeFlags_None))
-		{
-			D3D12_RASTERIZER_DESC const& rasterDesc = desc.RasterizerState;
-			ImGui::Text("Fill Mode: %s", D3D12FillModeToString(rasterDesc.FillMode));
-			ImGui::Text("Cull Mode: %s", D3D12CullModeToString(rasterDesc.CullMode));
-			ImGui::Text("Front Counter Clockwise: %s", rasterDesc.FrontCounterClockwise ? "TRUE" : "FALSE");
-			ImGui::Text("Depth Bias: %d", rasterDesc.DepthBias);
-			ImGui::Text("Depth Bias Clamp: %.2f", rasterDesc.DepthBiasClamp);
-			ImGui::Text("Slope Scaled Depth Bias: %.2f", rasterDesc.SlopeScaledDepthBias);
-			ImGui::Text("Depth Clip Enable: %s", rasterDesc.DepthClipEnable ? "TRUE" : "FALSE");
-			ImGui::Text("Multisample Enable: %s", rasterDesc.MultisampleEnable ? "TRUE" : "FALSE");
-			ImGui::Text("Antialiased Line Enable: %s", rasterDesc.AntialiasedLineEnable ? "TRUE" : "FALSE");
-			ImGui::Text("Forced Sample Count: %u", rasterDesc.ForcedSampleCount);
-			ImGui::Text("Conservative Raster: %s", D3D12ConservativeRasterizationModeToString(rasterDesc.ConservativeRaster));
-			ImGui::TreePop();
-		}
-
-		if (ImGui::TreeNodeEx("Depth Stencil State", ImGuiTreeNodeFlags_None))
-		{
-			D3D12_DEPTH_STENCIL_DESC const& ds = desc.DepthStencilState;
-			ImGui::Text("Depth Enable: %s", ds.DepthEnable ? "TRUE" : "FALSE");
-			ImGui::Text("Depth Write Mask: %s", D3D12DepthWriteMaskToString(ds.DepthWriteMask));
-			ImGui::Text("Depth Func: %s", D3D12ComparisonFuncToString(ds.DepthFunc));
 			ImGui::Separator();
-			ImGui::Text("Stencil Enable: %s", ds.StencilEnable ? "TRUE" : "FALSE");
-			ImGui::Text("Stencil Read Mask: 0x%02X", ds.StencilReadMask);
-			ImGui::Text("Stencil Write Mask: 0x%02X", ds.StencilWriteMask);
-
-			if (ImGui::TreeNode("Front Face Stencil"))
+			if (ImGui::TreeNodeEx("Stream Output", ImGuiTreeNodeFlags_None))
 			{
-				D3D12_DEPTH_STENCILOP_DESC const& front = ds.FrontFace;
-				ImGui::Text("Stencil Fail Op: %s", D3D12StencilOpToString(front.StencilFailOp));
-				ImGui::Text("Stencil Depth Fail Op: %s", D3D12StencilOpToString(front.StencilDepthFailOp));
-				ImGui::Text("Stencil Pass Op: %s", D3D12StencilOpToString(front.StencilPassOp));
-				ImGui::Text("Stencil Func: %s", D3D12ComparisonFuncToString(front.StencilFunc));
+				StreamOutputDescStorage const& so = desc.StreamOutput;
+				ImGui::Text("Num Entries: %u", so.SODeclaration.size());
+				ImGui::Text("Num Strides: %u", so.BufferStrides.size());
+				ImGui::Text("Rasterized Stream: %u", so.RasterizedStream);
 				ImGui::TreePop();
 			}
-			if (ImGui::TreeNode("Back Face Stencil"))
-			{
-				D3D12_DEPTH_STENCILOP_DESC const& back = ds.BackFace;
-				ImGui::Text("Stencil Fail Op: %s", D3D12StencilOpToString(back.StencilFailOp));
-				ImGui::Text("Stencil Depth Fail Op: %s", D3D12StencilOpToString(back.StencilDepthFailOp));
-				ImGui::Text("Stencil Pass Op: %s", D3D12StencilOpToString(back.StencilPassOp));
-				ImGui::Text("Stencil Func: %s", D3D12ComparisonFuncToString(back.StencilFunc));
-				ImGui::TreePop();
-			}
-			ImGui::TreePop();
-		}
 
-		if (ImGui::TreeNodeEx("Input Layout", ImGuiTreeNodeFlags_None))
-		{
-			std::vector<InputElementDescStorage> const& inputLayoutElements = desc.InputLayoutElements;
-			ImGui::Text("Num Elements: %u", inputLayoutElements.size());
-			if (!inputLayoutElements.empty())
+			if (ImGui::TreeNodeEx("Blend State", ImGuiTreeNodeFlags_None))
 			{
-				if (ImGui::TreeNodeEx("Elements", ImGuiTreeNodeFlags_None))
+				D3D12_BLEND_DESC const& blend = desc.BlendState;
+				ImGui::Text("Alpha To Coverage Enable: %s", blend.AlphaToCoverageEnable ? "TRUE" : "FALSE");
+				ImGui::Text("Independent Blend Enable: %s", blend.IndependentBlendEnable ? "TRUE" : "FALSE");
+
+				if (ImGui::TreeNodeEx("Render Target Blends", ImGuiTreeNodeFlags_None))
 				{
-					for (Uint32 i = 0; i < inputLayoutElements.size(); ++i)
+					for (Uint i = 0; i < D3D12_SIMULTANEOUS_RENDER_TARGET_COUNT; ++i)
 					{
+						if (!blend.IndependentBlendEnable && i >= 1) break;
+
 						ImGui::PushID(i);
-						InputElementDescStorage const& elem = inputLayoutElements[i];
-						if (ImGui::TreeNodeEx(std::format("[{}] {}", i, !elem.SemanticName.empty() ? elem.SemanticName : "<NULL>").c_str()))
+						if (ImGui::TreeNodeEx(std::format("RT[{}]", i).c_str()))
 						{
-							ImGui::Text("Semantic Name: %s", !elem.SemanticName.empty() ? elem.SemanticName : "NULL");
-							ImGui::Text("Semantic Index: %u", elem.SemanticIndex);
-							ImGui::Text("Format: %s", DXGIFormatToString(elem.Format));
-							ImGui::Text("Input Slot: %u", elem.InputSlot);
-							ImGui::Text("Aligned Byte Offset: %u", elem.AlignedByteOffset);
-							ImGui::Text("Input Slot Class: %s", D3D12InputClassificationToString(elem.InputSlotClass));
-							ImGui::Text("Instance Data Step Rate: %u", elem.InstanceDataStepRate);
+							D3D12_RENDER_TARGET_BLEND_DESC const& rtBlend = blend.RenderTarget[i];
+							ImGui::Text("Blend Enable: %s", rtBlend.BlendEnable ? "TRUE" : "FALSE");
+							ImGui::Text("Logic Op Enable: %s", rtBlend.LogicOpEnable ? "TRUE" : "FALSE");
+							ImGui::Text("Src Blend: %s", D3D12BlendToString(rtBlend.SrcBlend));
+							ImGui::Text("Dest Blend: %s", D3D12BlendToString(rtBlend.DestBlend));
+							ImGui::Text("Blend Op: %s", D3D12BlendOpToString(rtBlend.BlendOp));
+							ImGui::Text("Src Blend Alpha: %s", D3D12BlendToString(rtBlend.SrcBlendAlpha));
+							ImGui::Text("Dest Blend Alpha: %s", D3D12BlendToString(rtBlend.DestBlendAlpha));
+							ImGui::Text("Blend Op Alpha: %s", D3D12BlendOpToString(rtBlend.BlendOpAlpha));
+							ImGui::Text("Logic Op: %s", D3D12LogicOpToString(rtBlend.LogicOp));
+							ImGui::Text("Render Target Write Mask: 0x%02X", rtBlend.RenderTargetWriteMask);
 							ImGui::TreePop();
 						}
 						ImGui::PopID();
 					}
 					ImGui::TreePop();
 				}
+				ImGui::TreePop();
 			}
-			else {
-				ImGui::TextUnformatted("Elements: (None)");
-			}
-			ImGui::TreePop();
-		}
 
-		ImGui::Text("IB Strip Cut Value: %s", D3D12IndexBufferStripCutValueToString(desc.IBStripCutValue));
-		ImGui::Text("Primitive Topology Type: %s", D3D12PrimitiveTopologyTypeToString(desc.PrimitiveTopologyType));
+			ImGui::Text("SampleMask: 0x%X", desc.SampleMask);
 
-		if (ImGui::TreeNodeEx("PSO Render Target Formats", ImGuiTreeNodeFlags_None))
-		{
-			ImGui::Text("Num Render Targets: %u", desc.NumRenderTargets);
-			for (Uint32 i = 0; i < desc.NumRenderTargets; ++i)
+			if (ImGui::TreeNodeEx("Rasterizer State", ImGuiTreeNodeFlags_None))
 			{
-				ImGui::Text("  RTVFormat[%u]: %s", i, DXGIFormatToString(desc.RTVFormats[i]));
+				D3D12_RASTERIZER_DESC const& rasterDesc = desc.RasterizerState;
+				ImGui::Text("Fill Mode: %s", D3D12FillModeToString(rasterDesc.FillMode));
+				ImGui::Text("Cull Mode: %s", D3D12CullModeToString(rasterDesc.CullMode));
+				ImGui::Text("Front Counter Clockwise: %s", rasterDesc.FrontCounterClockwise ? "TRUE" : "FALSE");
+				ImGui::Text("Depth Bias: %d", rasterDesc.DepthBias);
+				ImGui::Text("Depth Bias Clamp: %.2f", rasterDesc.DepthBiasClamp);
+				ImGui::Text("Slope Scaled Depth Bias: %.2f", rasterDesc.SlopeScaledDepthBias);
+				ImGui::Text("Depth Clip Enable: %s", rasterDesc.DepthClipEnable ? "TRUE" : "FALSE");
+				ImGui::Text("Multisample Enable: %s", rasterDesc.MultisampleEnable ? "TRUE" : "FALSE");
+				ImGui::Text("Antialiased Line Enable: %s", rasterDesc.AntialiasedLineEnable ? "TRUE" : "FALSE");
+				ImGui::Text("Forced Sample Count: %u", rasterDesc.ForcedSampleCount);
+				ImGui::Text("Conservative Raster: %s", D3D12ConservativeRasterizationModeToString(rasterDesc.ConservativeRaster));
+				ImGui::TreePop();
 			}
-			if (desc.NumRenderTargets == 0)
+
+			if (ImGui::TreeNodeEx("Depth Stencil State", ImGuiTreeNodeFlags_None))
 			{
-				ImGui::TextUnformatted("  (No Render Targets)");
+				D3D12_DEPTH_STENCIL_DESC const& ds = desc.DepthStencilState;
+				ImGui::Text("Depth Enable: %s", ds.DepthEnable ? "TRUE" : "FALSE");
+				ImGui::Text("Depth Write Mask: %s", D3D12DepthWriteMaskToString(ds.DepthWriteMask));
+				ImGui::Text("Depth Func: %s", D3D12ComparisonFuncToString(ds.DepthFunc));
+				ImGui::Separator();
+				ImGui::Text("Stencil Enable: %s", ds.StencilEnable ? "TRUE" : "FALSE");
+				ImGui::Text("Stencil Read Mask: 0x%02X", ds.StencilReadMask);
+				ImGui::Text("Stencil Write Mask: 0x%02X", ds.StencilWriteMask);
+
+				if (ImGui::TreeNode("Front Face Stencil"))
+				{
+					D3D12_DEPTH_STENCILOP_DESC const& front = ds.FrontFace;
+					ImGui::Text("Stencil Fail Op: %s", D3D12StencilOpToString(front.StencilFailOp));
+					ImGui::Text("Stencil Depth Fail Op: %s", D3D12StencilOpToString(front.StencilDepthFailOp));
+					ImGui::Text("Stencil Pass Op: %s", D3D12StencilOpToString(front.StencilPassOp));
+					ImGui::Text("Stencil Func: %s", D3D12ComparisonFuncToString(front.StencilFunc));
+					ImGui::TreePop();
+				}
+				if (ImGui::TreeNode("Back Face Stencil"))
+				{
+					D3D12_DEPTH_STENCILOP_DESC const& back = ds.BackFace;
+					ImGui::Text("Stencil Fail Op: %s", D3D12StencilOpToString(back.StencilFailOp));
+					ImGui::Text("Stencil Depth Fail Op: %s", D3D12StencilOpToString(back.StencilDepthFailOp));
+					ImGui::Text("Stencil Pass Op: %s", D3D12StencilOpToString(back.StencilPassOp));
+					ImGui::Text("Stencil Func: %s", D3D12ComparisonFuncToString(back.StencilFunc));
+					ImGui::TreePop();
+				}
+				ImGui::TreePop();
 			}
-			ImGui::TreePop();
-		}
 
-		ImGui::Text("DSV Format: %s", DXGIFormatToString(desc.DSVFormat));
+			if (ImGui::TreeNodeEx("Input Layout", ImGuiTreeNodeFlags_None))
+			{
+				std::vector<InputElementDescStorage> const& inputLayoutElements = desc.InputLayoutElements;
+				ImGui::Text("Num Elements: %u", inputLayoutElements.size());
+				if (!inputLayoutElements.empty())
+				{
+					if (ImGui::TreeNodeEx("Elements", ImGuiTreeNodeFlags_None))
+					{
+						for (Uint32 i = 0; i < inputLayoutElements.size(); ++i)
+						{
+							ImGui::PushID(i);
+							InputElementDescStorage const& elem = inputLayoutElements[i];
+							if (ImGui::TreeNodeEx(std::format("[{}] {}", i, !elem.SemanticName.empty() ? elem.SemanticName : "<NULL>").c_str()))
+							{
+								ImGui::Text("Semantic Name: %s", !elem.SemanticName.empty() ? elem.SemanticName : "NULL");
+								ImGui::Text("Semantic Index: %u", elem.SemanticIndex);
+								ImGui::Text("Format: %s", DXGIFormatToString(elem.Format));
+								ImGui::Text("Input Slot: %u", elem.InputSlot);
+								ImGui::Text("Aligned Byte Offset: %u", elem.AlignedByteOffset);
+								ImGui::Text("Input Slot Class: %s", D3D12InputClassificationToString(elem.InputSlotClass));
+								ImGui::Text("Instance Data Step Rate: %u", elem.InstanceDataStepRate);
+								ImGui::TreePop();
+							}
+							ImGui::PopID();
+						}
+						ImGui::TreePop();
+					}
+				}
+				else {
+					ImGui::TextUnformatted("Elements: (None)");
+				}
+				ImGui::TreePop();
+			}
 
-		if (ImGui::TreeNodeEx("Sample Desc", ImGuiTreeNodeFlags_None))
-		{
-			ImGui::Text("Count: %u", desc.SampleDesc.Count);
-			ImGui::Text("Quality: %u", desc.SampleDesc.Quality);
-			ImGui::TreePop();
-		}
+			ImGui::Text("IB Strip Cut Value: %s", D3D12IndexBufferStripCutValueToString(desc.IBStripCutValue));
+			ImGui::Text("Primitive Topology Type: %s", D3D12PrimitiveTopologyTypeToString(desc.PrimitiveTopologyType));
 
-		ImGui::Text("NodeMask: 0x%X", desc.NodeMask);
-		if (ImGui::TreeNode("Cached Pipeline State"))
-		{
-			ImGui::Text("Cached Blob: %s", desc.CachedPSO.IsValid() ? "Set" : "NULL");
-			ImGui::Text("Size: %zu bytes", desc.CachedPSO.Blob.size());
-			ImGui::TreePop();
-		}
-		ImGui::Text("Flags: %s", D3D12PipelineStateFlagsToString(desc.Flags));
-	}
+			if (ImGui::TreeNodeEx("PSO Render Target Formats", ImGuiTreeNodeFlags_None))
+			{
+				ImGui::Text("Num Render Targets: %u", desc.NumRenderTargets);
+				for (Uint32 i = 0; i < desc.NumRenderTargets; ++i)
+				{
+					ImGui::Text("  RTVFormat[%u]: %s", i, DXGIFormatToString(desc.RTVFormats[i]));
+				}
+				if (desc.NumRenderTargets == 0)
+				{
+					ImGui::TextUnformatted("  (No Render Targets)");
+				}
+				ImGui::TreePop();
+			}
 
-	void RenderComputePSODetails(ComputePSODescStorage const& desc, ObjectTracker const& objectTracker)
-	{
-		if (desc.RootSignatureId != InvalidObjectID)
-		{
-			TrackedObjectInfo const* rsInfo = objectTracker.GetObjectInfo(desc.RootSignatureId);
-			ImGui::Text("Root Signature: %s", rsInfo ? std::format("obj#{} ({})", rsInfo->objectId, rsInfo->objectDebugName.c_str()).c_str() : std::format("obj#%llu (<Unknown>)", desc.RootSignatureId).c_str());
+			ImGui::Text("DSV Format: %s", DXGIFormatToString(desc.DSVFormat));
+
+			if (ImGui::TreeNodeEx("Sample Desc", ImGuiTreeNodeFlags_None))
+			{
+				ImGui::Text("Count: %u", desc.SampleDesc.Count);
+				ImGui::Text("Quality: %u", desc.SampleDesc.Quality);
+				ImGui::TreePop();
+			}
+
+			ImGui::Text("NodeMask: 0x%X", desc.NodeMask);
+			if (ImGui::TreeNode("Cached Pipeline State"))
+			{
+				ImGui::Text("Cached Blob: %s", desc.CachedPSO.IsValid() ? "Set" : "NULL");
+				ImGui::Text("Size: %zu bytes", desc.CachedPSO.Blob.size());
+				ImGui::TreePop();
+			}
+			ImGui::Text("Flags: %s", D3D12PipelineStateFlagsToString(desc.Flags));
 		}
-		else
-		{
-			ImGui::TextUnformatted("Root Signature: NULL");
-		}
-		ImGui::Text("Compute Shader: %s", desc.CS.IsValid() ? "Set" : "NULL");
-		ImGui::Text("NodeMask: 0x%X", desc.NodeMask);
-		if (ImGui::TreeNode("Cached Pipeline State"))
-		{
-			ImGui::Text("Cached Blob: %s", desc.CachedPSO.IsValid() ? "Set" : "NULL");
-			ImGui::Text("Size: %zu bytes", desc.CachedPSO.Blob.size());
-			ImGui::TreePop();
-		}
-		ImGui::Text("Flags: %s", D3D12PipelineStateFlagsToString(desc.Flags));
 	}
 
 	void RenderCommandSignatureDesc(CommandSignatureDesc const& desc, ObjectTracker const& objectTracker)
@@ -963,6 +1172,154 @@ namespace vista
 		ImGui::Text("Alignment: %llu", desc.heapDesc.Alignment);
 		ImGui::Text("Flags: %s", D3D12HeapFlagsToString(desc.heapDesc.Flags).c_str());
 		ImGui::Text("Heap Type: %s", D3D12HeapTypeToString(desc.heapDesc.Properties.Type));
+	}
+	
+	void RenderStateSubobjectDesc(StateObjectDesc const& desc, StateObjectDesc::Subobject const& subobject, ObjectTracker const& objectTracker)
+	{
+		switch (subobject.type)
+		{
+		case D3D12_STATE_SUBOBJECT_TYPE_STATE_OBJECT_CONFIG:
+		{
+			auto* config = reinterpret_cast<D3D12_STATE_OBJECT_CONFIG const*>(subobject.data.data());
+			ImGui::Text("Flags: 0x%X", config->Flags);
+			break;
+		}
+		case D3D12_STATE_SUBOBJECT_TYPE_GLOBAL_ROOT_SIGNATURE:
+		case D3D12_STATE_SUBOBJECT_TYPE_LOCAL_ROOT_SIGNATURE:
+		{
+			IUnknown* rootSigUnk = subobject.interfaceRef.Get();
+			TrackedObjectInfo const* info = objectTracker.GetObjectInfo(rootSigUnk);
+			if (info)
+			{
+				ImGui::Text("Root Signature: obj#%llu (%s)", info->objectId, info->objectDebugName.c_str());
+			}
+			else
+			{
+				ImGui::Text("Root Signature: %p <Unknown/Untracked>", rootSigUnk);
+			}
+			break;
+		}
+		case D3D12_STATE_SUBOBJECT_TYPE_NODE_MASK:
+		{
+			auto* nodeMask = reinterpret_cast<UINT const*>(subobject.data.data());
+			ImGui::Text("Node Mask: 0x%X", *nodeMask);
+			break;
+		}
+		case D3D12_STATE_SUBOBJECT_TYPE_DXIL_LIBRARY:
+		{
+			ImGui::Text("Num Exports: %zu", subobject.ownedExportStructs.size());
+			for (Uint32 i = 0; i < subobject.ownedExportStructs.size(); ++i)
+			{
+				auto const& exp = subobject.ownedExportStructs[i];
+				ImGui::Text("Export[%u]: %s", i, ToString(exp.Name).c_str());
+			}
+			break;
+		}
+		case D3D12_STATE_SUBOBJECT_TYPE_EXISTING_COLLECTION:
+		{
+			IUnknown* collUnk = subobject.interfaceRef.Get();
+			ImGui::Text("Existing Collection: %p", collUnk);
+			ImGui::Text("Num Exports: %zu", subobject.ownedExportStructs.size());
+			for (Uint32 i = 0; i < subobject.ownedExportStructs.size(); ++i)
+			{
+				auto const& exp = subobject.ownedExportStructs[i];
+				ImGui::Text("Export[%u]: %s", i, ToString(exp.Name).c_str());
+			}
+			break;
+		}
+		case D3D12_STATE_SUBOBJECT_TYPE_SUBOBJECT_TO_EXPORTS_ASSOCIATION:
+		{
+			if (subobject.associatedSubobjectIndex != -1 && subobject.associatedSubobjectIndex < desc.subobjects.size())
+			{
+				const auto& associatedSubobject = desc.subobjects[subobject.associatedSubobjectIndex];
+				ImGui::Text("Subobject Association (Index %d): Type %s",
+					subobject.associatedSubobjectIndex,
+					D3D12StateSubobjectTypeToString(associatedSubobject.type));
+			}
+			else
+			{
+				ImGui::Text("Subobject Association: <None or Invalid>");
+			}
+
+			ImGui::Text("Num Exports: %zu", subobject.ownedAssociationExportPointers.size());
+			for (Uint32 i = 0; i < subobject.ownedAssociationExportPointers.size(); ++i)
+			{
+				ImGui::Text("Export[%u]: %s", i, ToString(subobject.ownedAssociationExportPointers[i]).c_str());
+			}
+			break;
+		}
+		case D3D12_STATE_SUBOBJECT_TYPE_DXIL_SUBOBJECT_TO_EXPORTS_ASSOCIATION:
+		{
+			ImGui::Text("Subobject Association (Name): %s", ToString(subobject.associatedSubobjectName.c_str()).c_str());
+
+			ImGui::Text("Num Exports: %zu", subobject.ownedAssociationExportPointers.size());
+			for (Uint32 i = 0; i < subobject.ownedAssociationExportPointers.size(); ++i)
+			{
+				ImGui::Text("Export[%u]: %s", i, ToString(subobject.ownedAssociationExportPointers[i]).c_str());
+			}
+			break;
+		}
+		case D3D12_STATE_SUBOBJECT_TYPE_RAYTRACING_SHADER_CONFIG:
+		{
+			auto* config = reinterpret_cast<D3D12_RAYTRACING_SHADER_CONFIG const*>(subobject.data.data());
+			ImGui::Text("Max Payload Size: %u", config->MaxPayloadSizeInBytes);
+			ImGui::Text("Max Attribute Size: %u", config->MaxAttributeSizeInBytes);
+			break;
+		}
+		case D3D12_STATE_SUBOBJECT_TYPE_RAYTRACING_PIPELINE_CONFIG:
+		{
+			auto* config = reinterpret_cast<D3D12_RAYTRACING_PIPELINE_CONFIG const*>(subobject.data.data());
+			ImGui::Text("Max Trace Recursion Depth: %u", config->MaxTraceRecursionDepth);
+			break;
+		}
+		case D3D12_STATE_SUBOBJECT_TYPE_HIT_GROUP:
+		{
+			ImGui::Text("Hit Group Type: %s", subobject.hitGroupType == D3D12_HIT_GROUP_TYPE_TRIANGLES ? "Triangles" : "Procedural");
+			ImGui::Text("Hit Group Name: %s", ToString(subobject.hitGroupName.c_str()).c_str());
+			ImGui::Text("AnyHit Shader: %s", subobject.anyHitShader.empty() ? "NULL" : ToString(subobject.anyHitShader.c_str()).c_str());
+			ImGui::Text("ClosestHit Shader: %s", subobject.closestHitShader.empty() ? "NULL" : ToString(subobject.closestHitShader.c_str()).c_str());
+			ImGui::Text("Intersection Shader: %s", subobject.intersectionShader.empty() ? "NULL" : ToString(subobject.intersectionShader.c_str()).c_str());
+			break;
+		}
+		case D3D12_STATE_SUBOBJECT_TYPE_RAYTRACING_PIPELINE_CONFIG1:
+		{
+			auto* config1 = reinterpret_cast<D3D12_RAYTRACING_PIPELINE_CONFIG1 const*>(subobject.data.data());
+			ImGui::Text("Max Trace Recursion Depth: %u", config1->MaxTraceRecursionDepth);
+			ImGui::Text("Flags: 0x%X", config1->Flags);
+			break;
+		}
+		default:
+			ImGui::TextUnformatted("Unhandled subobject type.");
+			if (!subobject.data.empty())
+			{
+				ImGui::SameLine(); ImGui::Text("(Data size: %zu bytes)", subobject.data.size());
+			}
+			break;
+		}
+	}
+
+	void RenderStateObjectDesc(StateObjectDesc const& desc, ObjectTracker const& objectTracker)
+	{
+		ImGui::SeparatorText("State Object Details");
+
+		ImGui::Text("Type: %s", D3D12StateObjectTypeToString(desc.type));
+		ImGui::Text("Number of Subobjects: %zu", desc.subobjects.size());
+
+		if (ImGui::TreeNodeEx("Subobjects", ImGuiTreeNodeFlags_DefaultOpen))
+		{
+			for (Uint32 i = 0; i < desc.subobjects.size(); ++i)
+			{
+				StateObjectDesc::Subobject const& subobject = desc.subobjects[i];
+				ImGui::PushID(static_cast<Int>(i));
+				if (ImGui::TreeNodeEx(std::format("[{}] {}", i, D3D12StateSubobjectTypeToString(subobject.type)).c_str()))
+				{
+					RenderStateSubobjectDesc(desc, subobject, objectTracker);
+					ImGui::TreePop();
+				}
+				ImGui::PopID();
+			}
+			ImGui::TreePop();
+		}
 	}
 
 	void RenderVertexBufferView(Uint32 slot, D3D12_VERTEX_BUFFER_VIEW const& vbv, ObjectTracker const& objectTracker, ResourceAddressTracker const& addressTracker)
@@ -1288,7 +1645,6 @@ namespace vista
 					}
 					else if constexpr (std::is_same_v<T, D3D12_GPU_VIRTUAL_ADDRESS>)
 					{
-						paramLabel += std::format("GPU VA: {}", argValue);
 						resource = addressTracker.QueryResource(argValue);
 						if (resource)
 						{
@@ -1356,6 +1712,110 @@ namespace vista
 		}
 
 		ImGui::PopID();
+	}
+
+	void RenderRootSignatureDetails(ObjectID rootSignatureId, ObjectTracker const& objectTracker, DescriptorTracker const& descriptorTracker, ResourceAddressTracker const& addressTracker, std::span<RootParameterBinding const> rootArgs, Char const* rootSignatureLabel /*= "Root Signature Parameters"*/)
+	{
+		if (rootSignatureId == InvalidObjectID)
+			return;
+
+		TrackedObjectInfo const* rsInfo = objectTracker.GetObjectInfo(rootSignatureId);
+		if (!rsInfo || !std::holds_alternative<RootSignatureDesc>(rsInfo->objectDesc))
+			return;
+
+		RootSignatureDesc const& rsDesc = std::get<RootSignatureDesc>(rsInfo->objectDesc);
+
+		if (ImGui::TreeNode(rootSignatureLabel))
+		{
+			Bool anySet = false;
+			for (Uint32 i = 0; i < rsDesc.Parameters.size(); ++i)
+			{
+				RootParameterBinding const& binding =
+					(i < rootArgs.size() && rootArgs[i].isSet) ? rootArgs[i] : RootParameterBinding{};
+
+				if (!binding.isSet)
+					continue;
+
+				anySet = true;
+				ImGui::PushID(i);
+				std::string paramLabel = std::format("{:02d} - {}", i, D3D12RootParameterTypeToString(rsDesc.Parameters[i].ParameterType));
+				if (ImGui::TreeNode(paramLabel.c_str()))
+				{
+					ImGui::Text("ShaderVisibility: %s", D3D12ShaderVisibilityToString(rsDesc.Parameters[i].ShaderVisibility));
+
+					if (rsDesc.Parameters[i].ParameterType == D3D12_ROOT_PARAMETER_TYPE_32BIT_CONSTANTS)
+					{
+						auto const& constants = rsDesc.Parameters[i].Constants;
+						ImGui::Text("ShaderRegister: %u (0x%X)", constants.ShaderRegister, constants.ShaderRegister);
+						ImGui::Text("RegisterSpace: %u (0x%X)", constants.RegisterSpace, constants.RegisterSpace);
+						ImGui::Text("Num32BitValues: %u (0x%X)", constants.Num32BitValues, constants.Num32BitValues);
+
+						if (std::holds_alternative<RootParameterBinding::RootConstants>(binding.value))
+						{
+							auto const& values = std::get<RootParameterBinding::RootConstants>(binding.value);
+							if (ImGui::TreeNode("SrcData"))
+							{
+								for (Uint32 j = 0; j < constants.Num32BitValues && j < values.size(); ++j)
+								{
+									std::string constNodeLabel = std::format("{:02d} - Constant", j);
+									ImGui::PushID(j);
+									if (ImGui::TreeNode(constNodeLabel.c_str()))
+									{
+										union { Uint32 u; Float f; } data;
+										data.u = values[j];
+										if (values[j] != 0)
+										{
+											ImGui::Text("%.6f (%u) (0x%08X)", data.f, data.u, data.u);
+										}
+										else
+										{
+											ImGui::Text("<Not set>");
+										}
+										ImGui::TreePop();
+									}
+									ImGui::PopID();
+								}
+								ImGui::TreePop();
+							}
+						}
+					}
+					else
+					{
+						RenderRootParameterBinding(i, binding, rsDesc.Parameters[i].ShaderVisibility, objectTracker, descriptorTracker, addressTracker, nullptr);
+					}
+					ImGui::TreePop();
+				}
+				ImGui::PopID();
+			}
+			if (!anySet)
+			{
+				ImGui::Text("<None set>");
+			}
+			ImGui::TreePop();
+		}
+
+		if (!rsDesc.StaticSamplers.empty())
+		{
+			if (ImGui::TreeNode("Static Samplers"))
+			{
+				for (Uint32 i = 0; i < rsDesc.StaticSamplers.size(); ++i)
+				{
+					ImGui::PushID(i);
+					StaticSamplerDesc const& sampler = rsDesc.StaticSamplers[i];
+					if (ImGui::TreeNode(std::format("{:02d} - Static Sampler", i).c_str()))
+					{
+						ImGui::Text("Shader Register: %u", sampler.Desc.ShaderRegister);
+						ImGui::Text("Register Space: %u", sampler.Desc.RegisterSpace);
+						ImGui::Text("Shader Visibility: %s", D3D12ShaderVisibilityToString(sampler.Desc.ShaderVisibility));
+						ImGui::Separator();
+						RenderSamplerDesc(sampler.Desc, "Static Sampler");
+						ImGui::TreePop();
+					}
+					ImGui::PopID();
+				}
+				ImGui::TreePop();
+			}
+		}
 	}
 
 	std::string GetResourceLabel(Char const* prefix, D3D12_GPU_VIRTUAL_ADDRESS address, ObjectTracker const& objectTracker, ResourceAddressTracker const& addressTracker)

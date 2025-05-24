@@ -124,7 +124,7 @@ namespace vista
 	void EventDetailsCommandVisitor::Visit(CreateGraphicsPipelineStateCommand const& cmd)
 	{
 		ImGui::Text("Command: %s", cmd.GetDesc().c_str());
-		ImGui::SeparatorText("Graphics Pipeline State Info");
+		ImGui::SeparatorText("GraphicsPipelineState Info");
 
 		if (TrackedObjectInfo const* info = objectTracker.GetObjectInfo(cmd.psoId))
 		{
@@ -138,7 +138,7 @@ namespace vista
 	void EventDetailsCommandVisitor::Visit(CreateComputePipelineStateCommand const& cmd)
 	{
 		ImGui::Text("Command: %s", cmd.GetDesc().c_str());
-		ImGui::SeparatorText("Compute Pipeline State Info");
+		ImGui::SeparatorText("ComputePipelineState Info");
 
 		if (TrackedObjectInfo const* info = objectTracker.GetObjectInfo(cmd.psoId))
 		{
@@ -147,6 +147,46 @@ namespace vista
 		else
 		{
 			ImGui::TextUnformatted("Pipeline State not found");
+		}
+	}
+	void EventDetailsCommandVisitor::Visit(CreatePipelineStateCommand const& cmd)
+	{
+		ImGui::Text("Command: %s", cmd.GetDesc().c_str());
+		ImGui::SeparatorText("PipelineState Info");
+		if (TrackedObjectInfo const* info = objectTracker.GetObjectInfo(cmd.psoId))
+		{
+			ImGui::Text("Pipeline State ID: obj#%llu", info->objectId);
+		}
+		else
+		{
+			ImGui::TextUnformatted("Pipeline State not found");
+		}
+	}
+	void EventDetailsCommandVisitor::Visit(CreateStateObjectCommand const& cmd)
+	{
+		ImGui::Text("Command: %s", cmd.GetDesc().c_str());
+		ImGui::SeparatorText("StateObject Info");
+		if (TrackedObjectInfo const* info = objectTracker.GetObjectInfo(cmd.stateObjectId))
+		{
+			ImGui::Text("State Object ID: obj#%llu", info->objectId);
+		}
+		else
+		{
+			ImGui::TextUnformatted("State Object not found");
+		}
+	}
+	void EventDetailsCommandVisitor::Visit(AddToStateObjectCommand const& cmd)
+	{
+		ImGui::Text("Command: %s", cmd.GetDesc().c_str());
+		ImGui::SeparatorText("StateObject Info");
+		if (TrackedObjectInfo const* info = objectTracker.GetObjectInfo(cmd.stateObjectId))
+		{
+			ImGui::Text("State Object ID: obj#%llu", info->objectId);
+			ImGui::Text("Base State Object ID: obj#%llu", cmd.existingStateObjectId);
+		}
+		else
+		{
+			ImGui::TextUnformatted("State Object not found");
 		}
 	}
 	void EventDetailsCommandVisitor::Visit(CreateRootSignatureCommand const& cmd)
@@ -1235,6 +1275,16 @@ namespace vista
 		ImGui::Text("PipelineState:");
 		ImGui::SameLine();
 		RenderObjectInfoByID(cmd.psoId, objectTracker); 
+	}
+	void EventDetailsCommandVisitor::Visit(SetPipelineState1Command const& cmd)
+	{
+		ImGui::Text("Command: %s", cmd.GetDesc().c_str());
+		ImGui::Text("this:");
+		ImGui::SameLine();
+		ImGui::Text("obj#%llu", cmd.GetParentId());
+		ImGui::Text("StateObject:");
+		ImGui::SameLine();
+		RenderObjectInfoByID(cmd.stateObjectId, objectTracker);
 	}
 	void EventDetailsCommandVisitor::Visit(SetGraphicsRootSignatureCommand const& cmd)
 	{

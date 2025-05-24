@@ -281,6 +281,7 @@ xcopy /Y /D "%INI_SRC%" "%INI_DST%\"</Command>
     <ClInclude Include="Tracking\ResourceAddressTracker.h" />
     <ClInclude Include="Tracking\Traits\CommandSignatureTraits.h" />
     <ClInclude Include="Tracking\Traits\HeapTraits.h" />
+    <ClInclude Include="Tracking\Traits\StateObjectTraits.h" />
     <ClInclude Include="Vista_API.h" />
     <ClInclude Include="GUI\ImGuiManager.h" />
     <ClInclude Include="pch.h" />

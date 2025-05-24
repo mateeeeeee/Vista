@@ -21,6 +21,9 @@ namespace vista
 		d3d12::PFN_D3D12Device_CreateCommandSignature CreateCommandSignature;
 		d3d12::PFN_D3D12Device_CreateGraphicsPipelineState CreateGraphicsPipelineState;
 		d3d12::PFN_D3D12Device_CreateComputePipelineState CreateComputePipelineState;
+		d3d12::PFN_D3D12Device2_CreatePipelineState CreatePipelineState;
+		d3d12::PFN_D3D12Device5_CreateStateObject CreateStateObject;
+		d3d12::PFN_D3D12Device7_AddToStateObject AddToStateObject;
 		d3d12::PFN_D3D12Device_CreateCommittedResource CreateCommittedResource;
 		d3d12::PFN_D3D12Device4_CreateCommittedResource1 CreateCommittedResource1;
 		d3d12::PFN_D3D12Device_CreatePlacedResource CreatePlacedResource;
@@ -65,6 +68,7 @@ namespace vista
 		d3d12::PFN_D3D12CommandList_ClearUnorderedAccessViewUint ClearUnorderedAccessViewUint;
 		d3d12::PFN_D3D12CommandList_ClearUnorderedAccessViewFloat ClearUnorderedAccessViewFloat;
 		d3d12::PFN_D3D12CommandList_SetPipelineState SetPipelineState;
+		d3d12::PFN_D3D12CommandList4_SetPipelineState1 SetPipelineState1;
 		d3d12::PFN_D3D12CommandList_SetGraphicsRootSignature SetGraphicsRootSignature;
 		d3d12::PFN_D3D12CommandList_SetComputeRootSignature SetComputeRootSignature;
 		d3d12::PFN_D3D12CommandList_IASetPrimitiveTopology IASetPrimitiveTopology;

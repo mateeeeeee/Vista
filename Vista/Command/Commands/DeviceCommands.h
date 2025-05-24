@@ -233,6 +233,73 @@ namespace vista
 		HRESULT hr = S_OK;
 	};
 
+	class CreatePipelineStateCommand : public DeviceCommand
+	{
+	public:
+		CreatePipelineStateCommand() = default;
+
+		virtual std::string GetDesc() const override;
+		virtual CommandType GetType() const override { return CommandType::CreatePipelineState; }
+
+		COMMAND_ACCEPT_IMPL()
+		COMMAND_HASH_IMPL_WITH_PARENT_ID(psoId)
+
+		static Bool ClassOf(Command const* C)
+		{
+			using enum CommandType;
+			return C->GetType() == CreatePipelineState;
+		}
+
+	public:
+		ObjectID psoId = InvalidObjectID;
+		HRESULT hr = S_OK;
+	};
+
+	class CreateStateObjectCommand : public DeviceCommand
+	{
+	public:
+		CreateStateObjectCommand() = default;
+
+		virtual std::string GetDesc() const override;
+		virtual CommandType GetType() const override { return CommandType::CreateStateObject; }
+
+		COMMAND_ACCEPT_IMPL()
+		COMMAND_HASH_IMPL_WITH_PARENT_ID(stateObjectId)
+
+		static Bool ClassOf(Command const* C)
+		{
+			using enum CommandType;
+			return C->GetType() == CreateStateObject;
+		}
+
+	public:
+		ObjectID stateObjectId = InvalidObjectID;
+		HRESULT hr = S_OK;
+	};
+
+	class AddToStateObjectCommand : public DeviceCommand
+	{
+	public:
+		AddToStateObjectCommand() = default;
+
+		virtual std::string GetDesc() const override;
+		virtual CommandType GetType() const override { return CommandType::AddToStateObject; }
+
+		COMMAND_ACCEPT_IMPL()
+		COMMAND_HASH_IMPL_WITH_PARENT_ID(stateObjectId)
+
+		static Bool ClassOf(Command const* C)
+		{
+			using enum CommandType;
+			return C->GetType() == AddToStateObject;
+		}
+
+	public:
+		ObjectID stateObjectId = InvalidObjectID;
+		ObjectID existingStateObjectId = InvalidObjectID;
+		HRESULT hr = S_OK;
+	};
+
 	class CreateRootSignatureCommand : public DeviceCommand
 	{
 	public:

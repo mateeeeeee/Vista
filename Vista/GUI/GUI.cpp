@@ -204,8 +204,7 @@ namespace vista
 				ImGui::TextUnformatted("Bound Resources");
 				ImGui::Separator();
 
-				Bool isListCommand = selectedCommand && isa<ListCommand>(selectedCommand);
-
+				Bool const isListCommand = selectedCommand && isa<ListCommand>(selectedCommand);
 				if (isListCommand)
 				{
 					ListCommand const* listCommand = cast<ListCommand>(selectedCommand);
@@ -356,32 +355,28 @@ namespace vista
 					}
 					else if (listCommand->IsDispatchCommand())
 					{
-						if (ImGui::TreeNode("CS"))
+						if (currentState.pipelineStateId != InvalidObjectID)
 						{
-							if (currentState.pipelineStateId != InvalidObjectID)
+							TrackedObjectInfo const* psoInfo = objectTracker.GetObjectInfo(currentState.pipelineStateId);
+							if (psoInfo && std::holds_alternative<PSODesc>(psoInfo->objectDesc))
 							{
-								TrackedObjectInfo const* psoInfo = objectTracker.GetObjectInfo(currentState.pipelineStateId);
-								if (psoInfo && std::holds_alternative<PSODesc>(psoInfo->objectDesc))
+								PSODesc const& psoDesc = std::get<PSODesc>(psoInfo->objectDesc);
+								if (std::holds_alternative<ComputePSODescStorage>(psoDesc))
 								{
-									PSODesc const& psoDesc = std::get<PSODesc>(psoInfo->objectDesc);
-									if (std::holds_alternative<ComputePSODescStorage>(psoDesc))
+									ComputePSODescStorage const& desc = std::get<ComputePSODescStorage>(psoDesc);
+									if (ImGui::TreeNode("Compute Pipeline State"))
 									{
-										ComputePSODescStorage const& desc = std::get<ComputePSODescStorage>(psoDesc);
-										if (ImGui::TreeNode("Compute Pipeline State"))
-										{
-											RenderComputePSODetails(desc, objectTracker);
-											ImGui::TreePop();
-										}
+										RenderComputePSODetails(desc, objectTracker);
+										ImGui::TreePop();
 									}
 								}
 							}
-							if (ImGui::TreeNode("CS"))
+						}
+						if (ImGui::TreeNode("CS"))
+						{
+							for (Uint32 i = 0; i < currentState.computeRootArguments.size(); ++i)
 							{
-								for (Uint32 i = 0; i < currentState.computeRootArguments.size(); ++i)
-								{
-									RenderRootParameterBinding(i, currentState.computeRootArguments[i], D3D12_SHADER_VISIBILITY_ALL, objectTracker, descriptorTracker, addressTracker, &selectedItemInViewer);
-								}
-								ImGui::TreePop();
+								RenderRootParameterBinding(i, currentState.computeRootArguments[i], D3D12_SHADER_VISIBILITY_ALL, objectTracker, descriptorTracker, addressTracker, &selectedItemInViewer);
 							}
 							ImGui::TreePop();
 						}
@@ -460,6 +455,137 @@ namespace vista
 
 								ImGui::TreePop();
 							}
+						}
+					}
+					else if (listCommand->IsMeshCommand())
+					{
+						if (ImGui::TreeNode("AS"))
+						{
+							for (Uint32 i = 0; i < currentState.graphicsRootArguments.size(); ++i)
+							{
+								RenderRootParameterBinding(i, currentState.graphicsRootArguments[i], D3D12_SHADER_VISIBILITY_AMPLIFICATION, objectTracker, descriptorTracker, addressTracker, &selectedItemInViewer);
+							}
+							ImGui::TreePop();
+						}
+
+						if (ImGui::TreeNode("MS"))
+						{
+							for (Uint32 i = 0; i < currentState.graphicsRootArguments.size(); ++i)
+							{
+								RenderRootParameterBinding(i, currentState.graphicsRootArguments[i], D3D12_SHADER_VISIBILITY_MESH, objectTracker, descriptorTracker, addressTracker, &selectedItemInViewer);
+							}
+							ImGui::TreePop();
+						}
+
+						if (ImGui::TreeNode("PS"))
+						{
+							for (Uint32 i = 0; i < currentState.graphicsRootArguments.size(); ++i)
+							{
+								RenderRootParameterBinding(i, currentState.graphicsRootArguments[i], D3D12_SHADER_VISIBILITY_PIXEL, objectTracker, descriptorTracker, addressTracker, &selectedItemInViewer);
+							}
+							ImGui::TreePop();
+						}
+
+						if (ImGui::TreeNode("OM"))
+						{
+							if (ImGui::TreeNode("Render Targets"))
+							{
+								if (currentState.numRenderTargetsSet == 0)
+								{
+									ImGui::Text("<None set>");
+								}
+								else
+								{
+									for (Uint32 i = 0; i < currentState.numRenderTargetsSet; ++i)
+									{
+										D3D12_CPU_DESCRIPTOR_HANDLE rtvHandle = currentState.renderTargetViews[i];
+										if (rtvHandle.ptr == NULL) continue;
+
+										auto const& [descHeapInfo, index] = descriptorTracker.FindDescriptorByCpuHandle(rtvHandle);
+										if (index < 0 || !descHeapInfo) continue;
+
+										DescriptorInfo const& descInfo = descHeapInfo->descriptors[index];
+										if (std::holds_alternative<D3D12_RENDER_TARGET_VIEW_DESC>(descInfo.desc))
+										{
+											std::string rtvLabel = std::format("RTV {} :", i);
+											TrackedObjectInfo const* resourceInfo = objectTracker.GetObjectInfo(descInfo.resourceId);
+											ID3D12Resource* resource = resourceInfo ? reinterpret_cast<ID3D12Resource*>(resourceInfo->objectPtr) : nullptr;
+											if (resourceInfo)
+											{
+												rtvLabel += std::format(" obj#{} ({})", resourceInfo->objectId, resourceInfo->objectDebugName);
+											}
+											else
+											{
+												rtvLabel += std::format(" obj#{} (<Unknown>)", descInfo.resourceId);
+											}
+											RenderSelectableResource(rtvLabel, resource, descInfo, selectedItemInViewer, resource);
+										}
+									}
+								}
+								ImGui::TreePop();
+							}
+
+							if (ImGui::TreeNode("Depth Stencil"))
+							{
+								if (!currentState.depthStencilView)
+								{
+									ImGui::Text("<None set>");
+								}
+								else
+								{
+									D3D12_CPU_DESCRIPTOR_HANDLE dsvHandle = *currentState.depthStencilView;
+									auto const& [descHeapInfo, index] = descriptorTracker.FindDescriptorByCpuHandle(dsvHandle);
+									if (index >= 0 && descHeapInfo)
+									{
+										DescriptorInfo const& descInfo = descHeapInfo->descriptors[index];
+										if (std::holds_alternative<D3D12_DEPTH_STENCIL_VIEW_DESC>(descInfo.desc))
+										{
+											std::string dsvLabel = "DSV :";
+											TrackedObjectInfo const* resourceInfo = objectTracker.GetObjectInfo(descInfo.resourceId);
+											ID3D12Resource* resource = resourceInfo ? reinterpret_cast<ID3D12Resource*>(resourceInfo->objectPtr) : nullptr;
+											if (resourceInfo)
+											{
+												dsvLabel += std::format(" obj#{} ({})", resourceInfo->objectId, resourceInfo->objectDebugName);
+											}
+											else
+											{
+												dsvLabel += std::format(" obj#{} (<Unknown>)", descInfo.resourceId);
+											}
+											RenderSelectableResource(dsvLabel, resource, descInfo, selectedItemInViewer, resource);
+										}
+									}
+									else
+									{
+										ImGui::Text("DSV: <Invalid or Missing Descriptor>");
+									}
+								}
+								ImGui::TreePop();
+							}
+							ImGui::TreePop();
+						}
+					}
+					else if (listCommand->IsRayTracingCommand())
+					{
+						if (currentState.pipelineStateId != InvalidObjectID)
+						{
+							TrackedObjectInfo const* psoInfo = objectTracker.GetObjectInfo(currentState.pipelineStateId);
+							if (psoInfo && std::holds_alternative<StateObjectDesc>(psoInfo->objectDesc))
+							{
+								StateObjectDesc const& stateObjectDesc = std::get<StateObjectDesc>(psoInfo->objectDesc);
+								if (ImGui::TreeNode("State Object"))
+								{
+									RenderStateObjectDesc(stateObjectDesc, objectTracker);
+									ImGui::TreePop();
+								}
+							}
+						}
+						if (ImGui::TreeNode("Ray Tracing"))
+						{
+							for (Uint32 i = 0; i < currentState.computeRootArguments.size(); ++i)
+							{
+								RenderRootParameterBinding(i, currentState.computeRootArguments[i], D3D12_SHADER_VISIBILITY_ALL, objectTracker, descriptorTracker, addressTracker, &selectedItemInViewer);
+							}
+							ImGui::TreePop();
 						}
 					}
 					else
@@ -714,13 +840,15 @@ namespace vista
 		objectFilterOptions.clear();
 		objectFilterOptions.push_back("All Objects");
 
-		static std::array<ObjectType, (Uint64)ObjectType::Count> objectFilterTypes =
+		static std::array objectFilterTypes =
 		{
 			ObjectType::Device, ObjectType::Queue, ObjectType::List, ObjectType::Allocator,
 			ObjectType::Fence, ObjectType::PSO, ObjectType::RootSignature, ObjectType::CommandSignature,
-			ObjectType::Resource, ObjectType::DescriptorHeap, ObjectType::Heap
+			ObjectType::Resource, ObjectType::DescriptorHeap, ObjectType::Heap, ObjectType::StateObject
 		};
-		for (Uint32 i = 1; i < objectFilterTypes.size(); ++i)
+		static_assert(std::size(objectFilterTypes) == (Uint64)ObjectType::Count - 1);
+
+		for (Uint32 i = 1; i < std::size(ObjectTypeNames); ++i)
 		{
 			objectFilterOptions.push_back(ObjectTypeNames[i]);
 		}
@@ -849,6 +977,9 @@ namespace vista
 						break;
 					case ObjectType::Heap:
 						if (std::holds_alternative<HeapDesc>(info->objectDesc)) RenderHeapDesc(std::get<HeapDesc>(info->objectDesc));
+						break;
+					case ObjectType::StateObject:
+						if (std::holds_alternative<StateObjectDesc>(info->objectDesc)) RenderStateObjectDesc(std::get<StateObjectDesc>(info->objectDesc), objectTracker);
 						break;
 					default:
 						ImGui::TextUnformatted("Unknown object type or details not implemented.");
@@ -1054,159 +1185,102 @@ namespace vista
 				PSODesc const& psoDesc = std::get<PSODesc>(psoInfo->objectDesc);
 				if (std::holds_alternative<GraphicsPSODescStorage>(psoDesc))
 				{
-					GraphicsPSODescStorage const& desc = std::get<GraphicsPSODescStorage>(psoDesc);
+					auto const& desc = std::get<GraphicsPSODescStorage>(psoDesc);
 
 					if (ImGui::TreeNode("PSO Details"))
 					{
-						RenderGraphicsPSODetails(desc, objectTracker); 
+						RenderGraphicsPSODetails(desc, objectTracker);
 						ImGui::TreePop();
 					}
 
-					if (desc.RootSignatureId != InvalidObjectID)
-					{
-						TrackedObjectInfo const* rsInfo = objectTracker.GetObjectInfo(desc.RootSignatureId);
-						if (rsInfo && std::holds_alternative<RootSignatureDesc>(rsInfo->objectDesc))
-						{
-							RootSignatureDesc const& rsDesc = std::get<RootSignatureDesc>(rsInfo->objectDesc);
-							if (ImGui::TreeNode("Root Signature Parameters"))
-							{
-								Bool anySet = false;
-								for (Uint32 i = 0; i < rsDesc.Parameters.size(); ++i)
-								{
-									RootParameterBinding const& binding = (i < currentState.graphicsRootArguments.size() && currentState.graphicsRootArguments[i].isSet) ? currentState.graphicsRootArguments[i] : RootParameterBinding{};
-									if (!binding.isSet) continue;
-
-									anySet = true;
-									ImGui::PushID(i);
-									std::string paramLabel = std::format("{:02d} - {}", i, D3D12RootParameterTypeToString(rsDesc.Parameters[i].ParameterType));
-									if (ImGui::TreeNode(paramLabel.c_str()))
-									{
-										ImGui::Text("ShaderVisibility: %s", D3D12ShaderVisibilityToString(rsDesc.Parameters[i].ShaderVisibility));
-										if (rsDesc.Parameters[i].ParameterType == D3D12_ROOT_PARAMETER_TYPE_32BIT_CONSTANTS)
-										{
-											auto const& constants = rsDesc.Parameters[i].Constants;
-											ImGui::Text("ShaderRegister: %u (0x%X)", constants.ShaderRegister, constants.ShaderRegister);
-											ImGui::Text("RegisterSpace: %u (0x%X)", constants.RegisterSpace, constants.RegisterSpace);
-											ImGui::Text("Num32BitValues: %u (0x%X)", constants.Num32BitValues, constants.Num32BitValues);
-
-											if (std::holds_alternative<RootParameterBinding::RootConstants>(binding.value))
-											{
-												auto const& values = std::get<RootParameterBinding::RootConstants>(binding.value);
-												if (ImGui::TreeNode("SrcData"))
-												{
-													for (Uint32 j = 0; j < constants.Num32BitValues && j < values.size(); ++j)
-													{
-														std::string constNodeLabel = std::format("{:02d} - Constant", j);
-														ImGui::PushID(j);
-														if (ImGui::TreeNode(constNodeLabel.c_str()))
-														{
-															union { Uint32 u; Float f; } data;
-															data.u = values[j];
-															if (values[j] != 0)
-															{
-																ImGui::Text("%.6f (%u) (0x%08X)", data.f, data.u, data.u);
-															}
-															else
-															{
-																ImGui::Text("<Not set>");
-															}
-															ImGui::TreePop();
-														}
-														ImGui::PopID();
-													}
-													ImGui::TreePop();
-												}
-											}
-										}
-										else
-										{
-											RenderRootParameterBinding(i, binding, rsDesc.Parameters[i].ShaderVisibility, objectTracker, descriptorTracker, addressTracker, nullptr);
-										}
-										ImGui::TreePop();
-									}
-									ImGui::PopID();
-								}
-								if (!anySet)
-								{
-									ImGui::Text("<None set>");
-								}
-								ImGui::TreePop();
-							}
-
-							if (!rsDesc.StaticSamplers.empty())
-							{
-								if (ImGui::TreeNode("Static Samplers"))
-								{
-									for (Uint32 i = 0; i < rsDesc.StaticSamplers.size(); ++i)
-									{
-										ImGui::PushID(i);
-										StaticSamplerDesc const& sampler = rsDesc.StaticSamplers[i];
-										if (ImGui::TreeNode(std::format("{:02d} - Static Sampler", i).c_str()))
-										{
-											ImGui::Text("Shader Register: %u", sampler.Desc.ShaderRegister);
-											ImGui::Text("Register Space: %u", sampler.Desc.RegisterSpace);
-											ImGui::Text("Shader Visibility: %s", D3D12ShaderVisibilityToString(sampler.Desc.ShaderVisibility));
-											ImGui::Separator();
-											RenderSamplerDesc(sampler.Desc, "Static Sampler"); 
-											ImGui::TreePop();
-										}
-										ImGui::PopID();
-									}
-									ImGui::TreePop();
-								}
-							}
-						}
-					}
-
+					RenderRootSignatureDetails(
+						desc.RootSignatureId,
+						objectTracker,
+						descriptorTracker,
+						addressTracker,
+						currentState.graphicsRootArguments
+					);
 				}
 				else if (std::holds_alternative<ComputePSODescStorage>(psoDesc))
 				{
-					ComputePSODescStorage const& desc = std::get<ComputePSODescStorage>(psoDesc);
+					auto const& desc = std::get<ComputePSODescStorage>(psoDesc);
+
 					if (ImGui::TreeNode("PSO Details"))
 					{
-						RenderComputePSODetails(desc, objectTracker); 
+						RenderComputePSODetails(desc, objectTracker);
 						ImGui::TreePop();
 					}
 
-					if (desc.RootSignatureId != InvalidObjectID)
+					RenderRootSignatureDetails(
+						desc.RootSignatureId,
+						objectTracker,
+						descriptorTracker,
+						addressTracker,
+						currentState.computeRootArguments
+					);
+				}
+				else if (std::holds_alternative<StreamPSODescStorage>(psoDesc))
+				{
+					auto const& desc = std::get<StreamPSODescStorage>(psoDesc);
+					if (ImGui::TreeNode("Stream PSO Details"))
 					{
-						TrackedObjectInfo const* rsInfo = objectTracker.GetObjectInfo(desc.RootSignatureId);
-						if (rsInfo && std::holds_alternative<RootSignatureDesc>(rsInfo->objectDesc))
-						{
-							RootSignatureDesc const& rsDesc = std::get<RootSignatureDesc>(rsInfo->objectDesc);
-							if (ImGui::TreeNode("Root Signature Parameters"))
-							{
-								for (Uint32 i = 0; i < rsDesc.Parameters.size(); ++i)
-								{
-									RootParameterBinding const& binding = (i < currentState.computeRootArguments.size() && currentState.computeRootArguments[i].isSet) ? currentState.computeRootArguments[i] : RootParameterBinding{};
-									RenderRootParameterBinding(i, binding, D3D12_SHADER_VISIBILITY_ALL, objectTracker, descriptorTracker, addressTracker, nullptr);
-								}
-								ImGui::TreePop();
-							}
+						RenderStreamPSODetails(desc, objectTracker);
+						ImGui::TreePop();
+					}
 
-							if (!rsDesc.StaticSamplers.empty())
-							{
-								if (ImGui::TreeNode("Static Samplers"))
-								{
-									for (Uint32 i = 0; i < rsDesc.StaticSamplers.size(); ++i)
-									{
-										ImGui::PushID(i);
-										StaticSamplerDesc const& sampler = rsDesc.StaticSamplers[i];
-										if (ImGui::TreeNode(std::format("{:02d} - Static Sampler", i).c_str()))
-										{
-											ImGui::Text("Shader Register: %u", sampler.Desc.ShaderRegister);
-											ImGui::Text("Register Space: %u", sampler.Desc.RegisterSpace);
-											ImGui::Text("Shader Visibility: %s", D3D12ShaderVisibilityToString(sampler.Desc.ShaderVisibility));
-											ImGui::Separator();
-											RenderSamplerDesc(sampler.Desc, "Static Sampler"); 
-											ImGui::TreePop();
-										}
-										ImGui::PopID();
-									}
-									ImGui::TreePop();
-								}
-							}
+					auto HasShader = [&desc](D3D12_PIPELINE_STATE_SUBOBJECT_TYPE type) -> Bool 
+						{
+						switch (type)
+						{
+						case D3D12_PIPELINE_STATE_SUBOBJECT_TYPE_VS:
+							return desc.VS.IsValid();
+						case D3D12_PIPELINE_STATE_SUBOBJECT_TYPE_CS:
+							return desc.CS.IsValid();
+						case D3D12_PIPELINE_STATE_SUBOBJECT_TYPE_MS:
+							return desc.MS.IsValid();
+						default:
+							return false;
 						}
+						};
+
+					Bool const isGraphics = HasShader(D3D12_PIPELINE_STATE_SUBOBJECT_TYPE_VS);
+					Bool const isCompute = HasShader(D3D12_PIPELINE_STATE_SUBOBJECT_TYPE_CS);
+					Bool const isMesh = HasShader(D3D12_PIPELINE_STATE_SUBOBJECT_TYPE_MS);
+
+					ObjectID rootSigId = desc.RootSignatureId;
+					if (isGraphics)
+					{
+						RenderRootSignatureDetails(
+							rootSigId,
+							objectTracker,
+							descriptorTracker,
+							addressTracker,
+							currentState.graphicsRootArguments
+						);
+					}
+					else if (isCompute)
+					{
+						RenderRootSignatureDetails(
+							rootSigId,
+							objectTracker,
+							descriptorTracker,
+							addressTracker,
+							currentState.computeRootArguments
+						);
+					}
+					else if (isMesh)
+					{
+						RenderRootSignatureDetails(
+							rootSigId,
+							objectTracker,
+							descriptorTracker,
+							addressTracker,
+							currentState.graphicsRootArguments
+						);
+					}
+					else
+					{
+						ImGui::Text("<Invalid stream - no entry-point shader found>");
 					}
 				}
 			}
@@ -1293,7 +1367,6 @@ namespace vista
 				ImGui::Text("Bound DSV: <None set>");
 			}
 
-
 			if (ImGui::TreeNode("Command List State"))
 			{
 				if (currentState.stencilRef.has_value())
@@ -1304,7 +1377,6 @@ namespace vista
 				{
 					ImGui::Text("Stencil Ref: <Not set>");
 				}
-				ImGui::TreePop();
 
 				if (ImGui::TreeNode("Depth Bounds"))
 				{
@@ -1312,6 +1384,7 @@ namespace vista
 					ImGui::Text("Depth Max: %f", currentState.depthMax);
 					ImGui::TreePop();
 				}
+				ImGui::TreePop();
 			}
 
 			ImGui::TreePop();

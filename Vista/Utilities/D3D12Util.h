@@ -773,7 +773,6 @@ namespace vista
 		default: return "Unknown";
 		}
 	}
-
 	inline Char const* D3D12ShadingRateCombinerToString(D3D12_SHADING_RATE_COMBINER combiner)
 	{
 		switch (combiner)
@@ -784,6 +783,36 @@ namespace vista
 		case D3D12_SHADING_RATE_COMBINER_MAX: return "Max";
 		case D3D12_SHADING_RATE_COMBINER_SUM: return "Sum";
 		default: return "Unknown";
+		}
+	}
+
+	inline Char const* D3D12StateObjectTypeToString(D3D12_STATE_OBJECT_TYPE type)
+	{
+		switch (type)
+		{
+		case D3D12_STATE_OBJECT_TYPE_COLLECTION: return "Collection";
+		case D3D12_STATE_OBJECT_TYPE_RAYTRACING_PIPELINE: return "Raytracing Pipeline";
+		case D3D12_STATE_OBJECT_TYPE_EXECUTABLE: return "Executable";
+		default: return "<Unknown>";
+		}
+	}
+	inline Char const* D3D12StateSubobjectTypeToString(D3D12_STATE_SUBOBJECT_TYPE type)
+	{
+		switch (type)
+		{
+		case D3D12_STATE_SUBOBJECT_TYPE_STATE_OBJECT_CONFIG: return "State Object Config";
+		case D3D12_STATE_SUBOBJECT_TYPE_GLOBAL_ROOT_SIGNATURE: return "Global Root Signature";
+		case D3D12_STATE_SUBOBJECT_TYPE_LOCAL_ROOT_SIGNATURE: return "Local Root Signature";
+		case D3D12_STATE_SUBOBJECT_TYPE_NODE_MASK: return "Node Mask";
+		case D3D12_STATE_SUBOBJECT_TYPE_DXIL_LIBRARY: return "DXIL Library";
+		case D3D12_STATE_SUBOBJECT_TYPE_EXISTING_COLLECTION: return "Existing Collection";
+		case D3D12_STATE_SUBOBJECT_TYPE_SUBOBJECT_TO_EXPORTS_ASSOCIATION: return "Subobject to Exports Association";
+		case D3D12_STATE_SUBOBJECT_TYPE_DXIL_SUBOBJECT_TO_EXPORTS_ASSOCIATION: return "DXIL Subobject to Exports Association";
+		case D3D12_STATE_SUBOBJECT_TYPE_RAYTRACING_SHADER_CONFIG: return "Shader Config";
+		case D3D12_STATE_SUBOBJECT_TYPE_RAYTRACING_PIPELINE_CONFIG: return "Pipeline Config";
+		case D3D12_STATE_SUBOBJECT_TYPE_HIT_GROUP: return "Hit Group";
+		case D3D12_STATE_SUBOBJECT_TYPE_RAYTRACING_PIPELINE_CONFIG1: return "Pipeline Config 1";
+		default: return "<Unknown>";
 		}
 	}
 

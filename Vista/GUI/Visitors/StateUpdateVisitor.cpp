@@ -88,6 +88,11 @@ namespace vista
 		state.pipelineStateId = cmd.psoId;
 	}
 
+	void StateUpdateVisitor::Visit(SetPipelineState1Command const& cmd)
+	{
+		state.pipelineStateId = cmd.stateObjectId;
+	}
+
 	void StateUpdateVisitor::Visit(IASetPrimitiveTopologyCommand const& cmd)
 	{
 		state.primitiveTopology = cmd.topology; 
@@ -116,12 +121,14 @@ namespace vista
 
 	void StateUpdateVisitor::Visit(RSSetShadingRateCommand const& cmd)
 	{
-
+		state.shadingRate = cmd.shadingRate;
+		state.shadingRateCombiners[0] = cmd.shadingRateCombiners[0];
+		state.shadingRateCombiners[1] = cmd.shadingRateCombiners[1];
 	}
 
 	void StateUpdateVisitor::Visit(RSSetShadingRateImageCommand const& cmd)
 	{
-
+		state.shadingRateImageId = cmd.shadingRateImageId;
 	}
 
 	void StateUpdateVisitor::Visit(OMSetRenderTargetsCommand const& cmd)

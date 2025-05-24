@@ -16,6 +16,9 @@ namespace vista
 	class CreateCommandSignatureCommand;
 	class CreateGraphicsPipelineStateCommand;
 	class CreateComputePipelineStateCommand;
+	class CreatePipelineStateCommand;
+	class CreateStateObjectCommand;
+	class AddToStateObjectCommand;
 	class CreateCommittedResourceCommand;
 	class CreateCommittedResource1Command;
 	class CreatePlacedResourceCommand;
@@ -52,6 +55,7 @@ namespace vista
 	class ClearUnorderedAccessViewUintCommand;
 	class ClearUnorderedAccessViewFloatCommand;
 	class SetPipelineStateCommand;
+	class SetPipelineState1Command;
 	class SetGraphicsRootSignatureCommand;
 	class SetComputeRootSignatureCommand;
 	class IASetPrimitiveTopologyCommand;
@@ -101,6 +105,9 @@ namespace vista
 		virtual void Visit(CreateCommandSignatureCommand const&) = 0;
 		virtual void Visit(CreateGraphicsPipelineStateCommand const&) = 0;
 		virtual void Visit(CreateComputePipelineStateCommand const&) = 0;
+		virtual void Visit(CreatePipelineStateCommand const&) = 0;
+		virtual void Visit(CreateStateObjectCommand const&) = 0;
+		virtual void Visit(AddToStateObjectCommand const&) = 0;
 		virtual void Visit(CreateCommittedResourceCommand const&) = 0;
 		virtual void Visit(CreateCommittedResource1Command const&) = 0;
 		virtual void Visit(CreatePlacedResourceCommand const&) = 0;
@@ -137,6 +144,7 @@ namespace vista
 		virtual void Visit(ClearUnorderedAccessViewUintCommand const&) = 0;
 		virtual void Visit(ClearUnorderedAccessViewFloatCommand const&) = 0;
 		virtual void Visit(SetPipelineStateCommand const&) = 0;
+		virtual void Visit(SetPipelineState1Command const&) = 0;
 		virtual void Visit(SetGraphicsRootSignatureCommand const&) = 0;
 		virtual void Visit(SetComputeRootSignatureCommand const&) = 0;
 		virtual void Visit(IASetPrimitiveTopologyCommand const&) = 0;
@@ -188,6 +196,9 @@ namespace vista
 		virtual void Visit(CreateCommandSignatureCommand const&) {}
 		virtual void Visit(CreateGraphicsPipelineStateCommand const&) {}
 		virtual void Visit(CreateComputePipelineStateCommand const&) {}
+		virtual void Visit(CreatePipelineStateCommand const&) {}
+		virtual void Visit(CreateStateObjectCommand const&) {}
+		virtual void Visit(AddToStateObjectCommand const&) {}
 		virtual void Visit(CreateCommittedResourceCommand const&) {}
 		virtual void Visit(CreateCommittedResource1Command const&) {}
 		virtual void Visit(CreatePlacedResourceCommand const&) {}
@@ -224,6 +235,7 @@ namespace vista
 		virtual void Visit(ClearUnorderedAccessViewUintCommand const&) {}
 		virtual void Visit(ClearUnorderedAccessViewFloatCommand const&) {}
 		virtual void Visit(SetPipelineStateCommand const&) {}
+		virtual void Visit(SetPipelineState1Command const&) {}
 		virtual void Visit(SetGraphicsRootSignatureCommand const&) {}
 		virtual void Visit(SetComputeRootSignatureCommand const&) {}
 		virtual void Visit(IASetPrimitiveTopologyCommand const&) {}

@@ -31,6 +31,9 @@ namespace vista
 		HRESULT OnCreateFence(ID3D12Device* pDevice, UINT64 intialValue, D3D12_FENCE_FLAGS flags, REFIID riid, void** ppFence);
 		HRESULT OnCreateGraphicsPipelineState(ID3D12Device* pDevice, const D3D12_GRAPHICS_PIPELINE_STATE_DESC* pDesc, REFIID riid, void** ppPipelineState);
 		HRESULT OnCreateComputePipelineState(ID3D12Device* pDevice, const D3D12_COMPUTE_PIPELINE_STATE_DESC* pDesc, REFIID riid, void** ppPipelineState);
+		HRESULT OnCreatePipelineState(ID3D12Device2* pDevice, const D3D12_PIPELINE_STATE_STREAM_DESC* pDesc, REFIID riid, void** ppPipelineState);
+		HRESULT OnCreateStateObject(ID3D12Device5* pDevice, const D3D12_STATE_OBJECT_DESC* pDesc, REFIID riid, void** ppStateObject);
+		HRESULT OnAddToStateObject(ID3D12Device7* pDevice, const D3D12_STATE_OBJECT_DESC* pAddition, ID3D12StateObject* pStateObjectToGrowFrom, REFIID riid, void** ppNewStateObject);
 		HRESULT OnCreateRootSignature(ID3D12Device* pDevice, UINT nodeMask, const void* pBlobWithRootSignature, SIZE_T blobLengthInBytes, REFIID riid, void** ppvRootSignature);
 		HRESULT OnCreateCommandSignature(ID3D12Device* pDevice, const D3D12_COMMAND_SIGNATURE_DESC* pDesc, ID3D12RootSignature* pRootSignature, REFIID riid, void** ppvCommandSignature);
 		HRESULT OnCreateCommittedResource(ID3D12Device* pDevice, const D3D12_HEAP_PROPERTIES* pHeapProperties, D3D12_HEAP_FLAGS heapFlags, const D3D12_RESOURCE_DESC* pDesc, D3D12_RESOURCE_STATES initialResourceState, const D3D12_CLEAR_VALUE* pOptimizedClearValue, REFIID riid, void** ppvResource);
@@ -79,6 +82,7 @@ namespace vista
 		void    OnClearUnorderedAccessViewUint(ID3D12GraphicsCommandList* pCommandList, D3D12_GPU_DESCRIPTOR_HANDLE viewGPUHandleInCurrentHeap, D3D12_CPU_DESCRIPTOR_HANDLE viewCPUHandle, ID3D12Resource* pResource, const UINT* values, UINT numRects, const D3D12_RECT* pRects);
 		void    OnClearUnorderedAccessViewFloat(ID3D12GraphicsCommandList* pCommandList, D3D12_GPU_DESCRIPTOR_HANDLE viewGPUHandleInCurrentHeap, D3D12_CPU_DESCRIPTOR_HANDLE viewCPUHandle, ID3D12Resource* pResource, const FLOAT* values, UINT numRects, const D3D12_RECT* pRects);
 		void    OnSetPipelineState(ID3D12GraphicsCommandList* pCommandList, ID3D12PipelineState* pPipelineState);
+		void    OnSetPipelineState1(ID3D12GraphicsCommandList4* pCommandList, ID3D12StateObject* pStateObject);
 		void    OnSetGraphicsRootSignature(ID3D12GraphicsCommandList* pCommandList, ID3D12RootSignature* pRootSignature);
 		void    OnSetComputeRootSignature(ID3D12GraphicsCommandList* pCommandList, ID3D12RootSignature* pRootSignature);
 		void    OnIASetPrimitiveTopology(ID3D12GraphicsCommandList* pCommandList, D3D12_PRIMITIVE_TOPOLOGY topology);

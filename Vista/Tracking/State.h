@@ -86,5 +86,6 @@ namespace vista
 
 		std::optional<D3D12_SHADING_RATE> shadingRate = std::nullopt;
 		D3D12_SHADING_RATE_COMBINER shadingRateCombiners[2] = { D3D12_SHADING_RATE_COMBINER_PASSTHROUGH, D3D12_SHADING_RATE_COMBINER_PASSTHROUGH };
+		ObjectID shadingRateImageId = InvalidObjectID;
 	};
 }

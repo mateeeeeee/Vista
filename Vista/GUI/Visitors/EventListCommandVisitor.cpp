@@ -135,6 +135,8 @@ namespace vista
 
 			if (isMatchingTimeline)
 			{
+				Bool renderNow = IsRenderingEnabled(); 
+
 				ImGui::PushID(&cmd);
 				Bool isSelected = IsSelected(cmd);
 				ImGui::Indent(indentLevel * 10.0f);
@@ -143,7 +145,9 @@ namespace vista
 				Float g = ((cmd.eventColor >> 8) & 0xFF) / 255.0f;
 				Float b = (cmd.eventColor & 0xFF) / 255.0f;
 				ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(r, g, b, 1.0f));
-				Bool treeNodeOpened = ImGui::TreeNodeEx(cmd.eventName.c_str(), ImGuiTreeNodeFlags_DefaultOpen | (isSelected ? ImGuiTreeNodeFlags_Selected : 0));
+
+				Bool treeNodeOpened = renderNow ? ImGui::TreeNodeEx(cmd.eventName.c_str(), ImGuiTreeNodeFlags_DefaultOpen | (isSelected ? ImGuiTreeNodeFlags_Selected : 0)) : false;
+
 				ImGui::PopStyleColor();
 
 				if (ImGui::IsItemClicked(0))
@@ -151,11 +155,12 @@ namespace vista
 					FillSelectedCommandInfo(cmd);
 				}
 
-				openTreeNodes.push_back(treeNodeOpened);
+				openTreeNodes.push_back(treeNodeOpened && renderNow);
+
 				ImGui::Unindent(indentLevel * 10.0f);
 				ImGui::PopID();
 
-				if (treeNodeOpened)
+				if (treeNodeOpened && renderNow)
 				{
 					indentLevel++;
 				}
@@ -216,7 +221,7 @@ namespace vista
 				Bool wasOpen = openTreeNodes.back();
 				openTreeNodes.pop_back();
 
-				if (wasOpen && IsRenderingEnabled())
+				if (wasOpen)
 				{
 					indentLevel--;
 					ImGui::TreePop();
@@ -266,6 +271,9 @@ namespace vista
 	VISIT_IMPL(CreateCommandSignatureCommand)
 	VISIT_IMPL(CreateGraphicsPipelineStateCommand)
 	VISIT_IMPL(CreateComputePipelineStateCommand)
+	VISIT_IMPL(CreatePipelineStateCommand)
+	VISIT_IMPL(CreateStateObjectCommand)
+	VISIT_IMPL(AddToStateObjectCommand)
 	VISIT_IMPL(CreateCommittedResourceCommand)
 	VISIT_IMPL(CreateCommittedResource1Command)
 	VISIT_IMPL(CreatePlacedResourceCommand)
@@ -299,6 +307,7 @@ namespace vista
 	VISIT_IMPL(ClearUnorderedAccessViewUintCommand)
 	VISIT_IMPL(ClearUnorderedAccessViewFloatCommand)
 	VISIT_IMPL(SetPipelineStateCommand)
+	VISIT_IMPL(SetPipelineState1Command)
 	VISIT_IMPL(SetGraphicsRootSignatureCommand)
 	VISIT_IMPL(SetComputeRootSignatureCommand)
 	VISIT_IMPL(IASetPrimitiveTopologyCommand)

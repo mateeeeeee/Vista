@@ -15,7 +15,8 @@ namespace vista
 		CommandSignatureDesc,
 		ResourceDesc,
 		DescriptorHeapDesc,
-		HeapDesc
+		HeapDesc,
+		StateObjectDesc
 	>;
 
 	struct TrackedObjectInfo
@@ -112,6 +113,7 @@ namespace vista
 			}
 			return InvalidObjectID;
 		}
+
 		VISTA_NODISCARD TrackedObjectInfo const* GetObjectInfo(void* objectPtr) const
 		{
 			if (!objectPtr)

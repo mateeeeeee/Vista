@@ -13,6 +13,7 @@ namespace vista
 		virtual void Visit(SetGraphicsRootSignatureCommand const& cmd) override;
 		virtual void Visit(SetComputeRootSignatureCommand const& cmd) override;
 		virtual void Visit(SetPipelineStateCommand const& cmd) override;
+		virtual void Visit(SetPipelineState1Command const& cmd) override;
 		virtual void Visit(IASetPrimitiveTopologyCommand const& cmd) override;
 		virtual void Visit(IASetVertexBuffersCommand const& cmd) override;
 		virtual void Visit(IASetIndexBufferCommand const& cmd) override;

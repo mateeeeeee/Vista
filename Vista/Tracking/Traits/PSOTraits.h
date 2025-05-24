@@ -165,19 +165,93 @@ namespace vista
 	struct StreamPSODescStorage
 	{
 		StreamPSODescStorage() = default;
-		StreamPSODescStorage(D3D12_PIPELINE_STATE_STREAM_DESC const& desc, ObjectTracker&)
+
+		StreamPSODescStorage(D3D12_PIPELINE_STATE_STREAM_DESC const& desc, ObjectTracker& tracker);
+
+		void ParseStream(ObjectTracker& tracker);
+
+		static Uint64 GetSubobjectSize(D3D12_PIPELINE_STATE_SUBOBJECT_TYPE type)
 		{
-			if (desc.pPipelineStateSubobjectStream && desc.SizeInBytes > 0) 
+			switch (type)
 			{
-				StreamBlob.assign(
-					static_cast<BYTE const*>(desc.pPipelineStateSubobjectStream),
-					static_cast<BYTE const*>(desc.pPipelineStateSubobjectStream) + desc.SizeInBytes
-				);
+			case D3D12_PIPELINE_STATE_SUBOBJECT_TYPE_ROOT_SIGNATURE:
+				return sizeof(ID3D12RootSignature*);
+
+			case D3D12_PIPELINE_STATE_SUBOBJECT_TYPE_VS:
+			case D3D12_PIPELINE_STATE_SUBOBJECT_TYPE_PS:
+			case D3D12_PIPELINE_STATE_SUBOBJECT_TYPE_DS:
+			case D3D12_PIPELINE_STATE_SUBOBJECT_TYPE_HS:
+			case D3D12_PIPELINE_STATE_SUBOBJECT_TYPE_GS:
+			case D3D12_PIPELINE_STATE_SUBOBJECT_TYPE_CS:
+			case D3D12_PIPELINE_STATE_SUBOBJECT_TYPE_AS:  
+			case D3D12_PIPELINE_STATE_SUBOBJECT_TYPE_MS:  
+				return sizeof(D3D12_SHADER_BYTECODE);
+
+			case D3D12_PIPELINE_STATE_SUBOBJECT_TYPE_STREAM_OUTPUT:
+				return sizeof(D3D12_STREAM_OUTPUT_DESC);
+
+			case D3D12_PIPELINE_STATE_SUBOBJECT_TYPE_BLEND:
+				return sizeof(D3D12_BLEND_DESC);
+
+			case D3D12_PIPELINE_STATE_SUBOBJECT_TYPE_SAMPLE_MASK:
+				return sizeof(UINT);
+
+			case D3D12_PIPELINE_STATE_SUBOBJECT_TYPE_RASTERIZER:
+				return sizeof(D3D12_RASTERIZER_DESC);
+
+			case D3D12_PIPELINE_STATE_SUBOBJECT_TYPE_DEPTH_STENCIL:
+				return sizeof(D3D12_DEPTH_STENCIL_DESC);
+
+			case D3D12_PIPELINE_STATE_SUBOBJECT_TYPE_INPUT_LAYOUT:
+				return sizeof(D3D12_INPUT_LAYOUT_DESC);
+
+			case D3D12_PIPELINE_STATE_SUBOBJECT_TYPE_IB_STRIP_CUT_VALUE:
+				return sizeof(D3D12_INDEX_BUFFER_STRIP_CUT_VALUE);
+
+			case D3D12_PIPELINE_STATE_SUBOBJECT_TYPE_PRIMITIVE_TOPOLOGY:
+				return sizeof(D3D12_PRIMITIVE_TOPOLOGY_TYPE);
+
+			case D3D12_PIPELINE_STATE_SUBOBJECT_TYPE_RENDER_TARGET_FORMATS:
+				return sizeof(D3D12_RT_FORMAT_ARRAY);
+
+			case D3D12_PIPELINE_STATE_SUBOBJECT_TYPE_DEPTH_STENCIL_FORMAT:
+				return sizeof(DXGI_FORMAT);
+
+			case D3D12_PIPELINE_STATE_SUBOBJECT_TYPE_SAMPLE_DESC:
+				return sizeof(DXGI_SAMPLE_DESC);
+
+			case D3D12_PIPELINE_STATE_SUBOBJECT_TYPE_NODE_MASK:
+				return sizeof(UINT);
+
+			case D3D12_PIPELINE_STATE_SUBOBJECT_TYPE_CACHED_PSO:
+				return sizeof(D3D12_CACHED_PIPELINE_STATE);
+
+			case D3D12_PIPELINE_STATE_SUBOBJECT_TYPE_FLAGS:
+				return sizeof(D3D12_PIPELINE_STATE_FLAGS);
 			}
+			return 0;
 		}
 
 		std::vector<BYTE> StreamBlob;
+		ObjectID RootSignatureId = InvalidObjectID;
+		ShaderBytecodeStorage VS, PS, CS, DS, HS, GS, AS, MS;
+		StreamOutputDescStorage StreamOutput;
+		D3D12_BLEND_DESC BlendState{};
+		D3D12_RASTERIZER_DESC RasterizerState{};
+		D3D12_DEPTH_STENCIL_DESC DepthStencilState{};
+		std::vector<InputElementDescStorage> InputLayoutElements;
+		D3D12_INDEX_BUFFER_STRIP_CUT_VALUE IBStripCutValue = D3D12_INDEX_BUFFER_STRIP_CUT_VALUE_DISABLED;
+		D3D12_PRIMITIVE_TOPOLOGY_TYPE PrimitiveTopologyType = D3D12_PRIMITIVE_TOPOLOGY_TYPE_UNDEFINED;
+		UINT NumRenderTargets = 0;
+		DXGI_FORMAT RTVFormats[D3D12_SIMULTANEOUS_RENDER_TARGET_COUNT]{};
+		DXGI_FORMAT DSVFormat = DXGI_FORMAT_UNKNOWN;
+		DXGI_SAMPLE_DESC SampleDesc{};
+		UINT SampleMask = 0xFFFFFFFF;
+		UINT NodeMask = 0;
+		CachedPSOStorage CachedPSO;
+		D3D12_PIPELINE_STATE_FLAGS Flags = D3D12_PIPELINE_STATE_FLAG_NONE;
 	};
+
 
 	using PSODesc = std::variant<GraphicsPSODescStorage, ComputePSODescStorage, StreamPSODescStorage>;
 	template<>
