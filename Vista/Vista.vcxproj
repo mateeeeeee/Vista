@@ -1,0 +1,323 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Debug|Win32">
+      <Configuration>Debug</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|Win32">
+      <Configuration>Release</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Debug|x64">
+      <Configuration>Debug</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|x64">
+      <Configuration>Release</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+  </ItemGroup>
+  <PropertyGroup Label="Globals">
+    <VCProjectVersion>17.0</VCProjectVersion>
+    <Keyword>Win32Proj</Keyword>
+    <ProjectGuid>{fa62fa12-622d-400d-9793-2d4672e47253}</ProjectGuid>
+    <RootNamespace>DX12Inspector</RootNamespace>
+    <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
+    <ProjectName>Vista</ProjectName>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
+    <ConfigurationType>DynamicLibrary</ConfigurationType>
+    <UseDebugLibraries>true</UseDebugLibraries>
+    <PlatformToolset>v143</PlatformToolset>
+    <CharacterSet>Unicode</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
+    <ConfigurationType>DynamicLibrary</ConfigurationType>
+    <UseDebugLibraries>false</UseDebugLibraries>
+    <PlatformToolset>v143</PlatformToolset>
+    <WholeProgramOptimization>true</WholeProgramOptimization>
+    <CharacterSet>Unicode</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
+    <ConfigurationType>DynamicLibrary</ConfigurationType>
+    <UseDebugLibraries>true</UseDebugLibraries>
+    <PlatformToolset>v143</PlatformToolset>
+    <CharacterSet>Unicode</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
+    <ConfigurationType>DynamicLibrary</ConfigurationType>
+    <UseDebugLibraries>false</UseDebugLibraries>
+    <PlatformToolset>v143</PlatformToolset>
+    <WholeProgramOptimization>true</WholeProgramOptimization>
+    <CharacterSet>Unicode</CharacterSet>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+  <ImportGroup Label="ExtensionSettings">
+  </ImportGroup>
+  <ImportGroup Label="Shared">
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <PropertyGroup Label="UserMacros" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <OutDir>$(SolutionDir)build\bin\$(Platform)\$(Configuration)\</OutDir>
+    <IntDir>$(SolutionDir)build\intermediate\$(Platform)\$(Configuration)\$(ProjectName)\</IntDir>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <OutDir>$(SolutionDir)build\bin\$(Platform)\$(Configuration)\</OutDir>
+    <IntDir>$(SolutionDir)build\intermediate\$(Platform)\$(Configuration)\$(ProjectName)\</IntDir>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <OutDir>$(SolutionDir)build\bin\$(Platform)\$(Configuration)\</OutDir>
+    <IntDir>$(SolutionDir)build\intermediate\$(Platform)\$(Configuration)\$(ProjectName)\</IntDir>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <OutDir>$(SolutionDir)build\bin\$(Platform)\$(Configuration)\</OutDir>
+    <IntDir>$(SolutionDir)build\intermediate\$(Platform)\$(Configuration)\$(ProjectName)\</IntDir>
+  </PropertyGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <ClCompile>
+      <WarningLevel>Level3</WarningLevel>
+      <SDLCheck>true</SDLCheck>
+      <PreprocessorDefinitions>WIN32;_DEBUG;DX12INSPECTOR_EXPORTS;_WINDOWS;_USRDLL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <ConformanceMode>true</ConformanceMode>
+      <PrecompiledHeader>Use</PrecompiledHeader>
+      <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
+    </ClCompile>
+    <Link>
+      <SubSystem>Windows</SubSystem>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <EnableUAC>false</EnableUAC>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <ClCompile>
+      <WarningLevel>Level3</WarningLevel>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
+      <SDLCheck>true</SDLCheck>
+      <PreprocessorDefinitions>WIN32;NDEBUG;IRIS_EXPORTS;_WINDOWS;_USRDLL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <ConformanceMode>true</ConformanceMode>
+      <PrecompiledHeader>Use</PrecompiledHeader>
+      <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
+    </ClCompile>
+    <Link>
+      <SubSystem>Windows</SubSystem>
+      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <OptimizeReferences>true</OptimizeReferences>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <EnableUAC>false</EnableUAC>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <ClCompile>
+      <WarningLevel>Level3</WarningLevel>
+      <SDLCheck>true</SDLCheck>
+      <PreprocessorDefinitions>_DEBUG;VISTA_EXPORTS;_WINDOWS;_USRDLL;%(PreprocessorDefinitions);DH_USE_D3D12;_CRT_SECURE_NO_WARNINGS</PreprocessorDefinitions>
+      <ConformanceMode>true</ConformanceMode>
+      <PrecompiledHeader>Use</PrecompiledHeader>
+      <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
+      <AdditionalIncludeDirectories>$(SolutionDir)External;$(ProjectDir);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <LanguageStandard>stdcpp20</LanguageStandard>
+      <ForcedIncludeFiles>pch.h</ForcedIncludeFiles>
+      <MultiProcessorCompilation>true</MultiProcessorCompilation>
+    </ClCompile>
+    <Link>
+      <SubSystem>Windows</SubSystem>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <EnableUAC>false</EnableUAC>
+      <AdditionalLibraryDirectories>$(SolutionDir)External\DirectHook\MinHook\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>minhook.x64.lib;dxgi.lib;dxguid.lib;d3d12.lib;%(AdditionalDependencies)</AdditionalDependencies>
+    </Link>
+    <PostBuildEvent>
+      <Command>set "ICON_SRC=$(SolutionDir)Data\Logos\Vista.ico"
+set "ICON_DST=$(OutDir)"
+xcopy /Y /D "%ICON_SRC%" "%ICON_DST%\"
+
+set "INI_SRC=$(ProjectDir)vista.ini"
+set "INI_DST=$(OutDir)"
+xcopy /Y /D "%INI_SRC%" "%INI_DST%\"</Command>
+    </PostBuildEvent>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <ClCompile>
+      <WarningLevel>Level3</WarningLevel>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
+      <SDLCheck>true</SDLCheck>
+      <PreprocessorDefinitions>NDEBUG;VISTA_EXPORTS;_WINDOWS;_USRDLL;%(PreprocessorDefinitions);DH_USE_D3D12;_CRT_SECURE_NO_WARNINGS</PreprocessorDefinitions>
+      <ConformanceMode>true</ConformanceMode>
+      <PrecompiledHeader>Use</PrecompiledHeader>
+      <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
+      <AdditionalIncludeDirectories>$(SolutionDir)External;$(ProjectDir);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <LanguageStandard>stdcpp20</LanguageStandard>
+      <ForcedIncludeFiles>pch.h</ForcedIncludeFiles>
+      <MultiProcessorCompilation>true</MultiProcessorCompilation>
+    </ClCompile>
+    <Link>
+      <SubSystem>Windows</SubSystem>
+      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <OptimizeReferences>true</OptimizeReferences>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <EnableUAC>false</EnableUAC>
+      <AdditionalLibraryDirectories>$(SolutionDir)External\DirectHook\MinHook\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>minhook.x64.lib;dxgi.lib;dxguid.lib;d3d12.lib;%(AdditionalDependencies)</AdditionalDependencies>
+    </Link>
+    <PostBuildEvent>
+      <Command>set "ICON_SRC=$(SolutionDir)Data\Logos\Vista.ico"
+set "ICON_DST=$(OutDir)"
+xcopy /Y /D "%ICON_SRC%" "%ICON_DST%\"
+
+set "INI_SRC=$(ProjectDir)vista.ini"
+set "INI_DST=$(OutDir)"
+xcopy /Y /D "%INI_SRC%" "%INI_DST%\"</Command>
+    </PostBuildEvent>
+  </ItemDefinitionGroup>
+  <ItemGroup>
+    <ClCompile Include="..\External\DirectHook\D3D12\d3d12hook.cpp" />
+    <ClCompile Include="..\External\DirectHook\directhook.cpp" />
+    <ClCompile Include="..\External\ImGui\imgui.cpp" />
+    <ClCompile Include="..\External\ImGui\imgui_demo.cpp" />
+    <ClCompile Include="..\External\ImGui\imgui_draw.cpp" />
+    <ClCompile Include="..\External\ImGui\imgui_impl_dx12.cpp" />
+    <ClCompile Include="..\External\ImGui\imgui_impl_win32.cpp" />
+    <ClCompile Include="..\External\ImGui\imgui_tables.cpp" />
+    <ClCompile Include="..\External\ImGui\imgui_widgets.cpp" />
+    <ClCompile Include="Command\CommandRecorder.cpp" />
+    <ClCompile Include="Command\Commands\DeviceCommands.cpp" />
+    <ClCompile Include="Command\Commands\FenceCommands.cpp" />
+    <ClCompile Include="Command\Commands\ListCommands.cpp" />
+    <ClCompile Include="Command\Commands\QueueCommands.cpp" />
+    <ClCompile Include="Command\Commands\ResourceCommands.cpp" />
+    <ClCompile Include="Command\RecorderManager.cpp" />
+    <ClCompile Include="Core\Logging\LogSinks\PipeSink.cpp" />
+    <ClCompile Include="Core\Vista.cpp" />
+    <ClCompile Include="Core\Logging\Log.cpp" />
+    <ClCompile Include="Core\Logging\LogSinks\CallbackSink.cpp" />
+    <ClCompile Include="Core\Logging\LogSinks\ConsoleSink.cpp" />
+    <ClCompile Include="Core\Logging\LogSinks\DebuggerSink.cpp" />
+    <ClCompile Include="Core\Logging\LogSinks\FileSink.cpp" />
+    <ClCompile Include="dllmain.cpp" />
+    <ClCompile Include="GUI\BufferFormatParser.cpp" />
+    <ClCompile Include="GUI\Fonts\roboto_compressed.cpp" />
+    <ClCompile Include="GUI\GUIRenderUtil.cpp" />
+    <ClCompile Include="GUI\ImGuiManager.cpp" />
+    <ClCompile Include="GUI\GUI.cpp" />
+    <ClCompile Include="GUI\Visitors\EventDetailsCommandVisitor.cpp" />
+    <ClCompile Include="GUI\Visitors\EventListCommandVisitor.cpp" />
+    <ClCompile Include="GUI\Visitors\StateUpdateVisitor.cpp" />
+    <ClCompile Include="Hook\GlobalHooks.cpp" />
+    <ClCompile Include="Hook\Hooks.cpp" />
+    <ClCompile Include="pch.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Create</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Create</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="Resource\ResourceAllocator.cpp" />
+    <ClCompile Include="Resource\ResourceCopyRequest.cpp" />
+    <ClCompile Include="Tracking\DescriptorTracker.cpp" />
+    <ClCompile Include="Tracking\ResourceAddressTracker.cpp" />
+    <ClCompile Include="Tracking\ResourceStateTracker.cpp" />
+    <ClCompile Include="Tracking\Traits\PSOTraits.cpp" />
+    <ClCompile Include="Utilities\StringUtil.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\External\DirectHook\D3D12\d3d12hook.h" />
+    <ClInclude Include="..\External\DirectHook\D3D12\d3d12hook_aliases.h" />
+    <ClInclude Include="..\External\DirectHook\D3D12\d3d12hook_indices.h" />
+    <ClInclude Include="..\External\DirectHook\directhook.h" />
+    <ClInclude Include="..\External\DirectHook\method_table.h" />
+    <ClInclude Include="..\External\DirectHook\MinHook\include\MinHook.h" />
+    <ClInclude Include="..\External\ImGui\imconfig.h" />
+    <ClInclude Include="..\External\ImGui\imgui.h" />
+    <ClInclude Include="..\External\ImGui\imgui_impl_dx12.h" />
+    <ClInclude Include="..\External\ImGui\imgui_impl_win32.h" />
+    <ClInclude Include="..\External\ImGui\imgui_internal.h" />
+    <ClInclude Include="..\External\ImGui\imstb_rectpack.h" />
+    <ClInclude Include="..\External\ImGui\imstb_textedit.h" />
+    <ClInclude Include="..\External\ImGui\imstb_truetype.h" />
+    <ClInclude Include="Command\Command.h" />
+    <ClInclude Include="Command\CommandRecorder.h" />
+    <ClInclude Include="Command\Commands.h" />
+    <ClInclude Include="Command\Commands\DeviceCommands.h" />
+    <ClInclude Include="Command\Commands\FenceCommands.h" />
+    <ClInclude Include="Command\Commands\ListCommands.h" />
+    <ClInclude Include="Command\Commands\QueueCommands.h" />
+    <ClInclude Include="Command\Commands\ResourceCommands.h" />
+    <ClInclude Include="Command\CommandVisitor.h" />
+    <ClInclude Include="Command\RecorderManager.h" />
+    <ClInclude Include="Command\RTTI.h" />
+    <ClInclude Include="Core\Logging\LogSinks\PipeSink.h" />
+    <ClInclude Include="Core\Vista.h" />
+    <ClInclude Include="Core\Logging\Log.h" />
+    <ClInclude Include="Core\Logging\LogSinks\CallbackSink.h" />
+    <ClInclude Include="Core\Logging\LogSinks\ConsoleSink.h" />
+    <ClInclude Include="Core\Logging\LogSinks\DebuggerSink.h" />
+    <ClInclude Include="Core\Logging\LogSinks\FileSink.h" />
+    <ClInclude Include="Core\Macros.h" />
+    <ClInclude Include="Core\Types.h" />
+    <ClInclude Include="GUI\BufferFormatParser.h" />
+    <ClInclude Include="GUI\GUI.h" />
+    <ClInclude Include="GUI\GUIRenderUtil.h" />
+    <ClInclude Include="GUI\SelectedItem.h" />
+    <ClInclude Include="GUI\Visitors\EventDetailsCommandVisitor.h" />
+    <ClInclude Include="GUI\Visitors\EventListCommandVisitor.h" />
+    <ClInclude Include="GUI\Visitors\StateUpdateVisitor.h" />
+    <ClInclude Include="Hook\Hooks.h" />
+    <ClInclude Include="Hook\GlobalHooks.h" />
+    <ClInclude Include="Hook\PFNs.h" />
+    <ClInclude Include="Resource\ResourceAllocator.h" />
+    <ClInclude Include="Resource\ResourceCopyRequest.h" />
+    <ClInclude Include="Resource\ResourceCopyRequestManager.h" />
+    <ClInclude Include="Tracking\ResourceAddressTracker.h" />
+    <ClInclude Include="Tracking\Traits\CommandSignatureTraits.h" />
+    <ClInclude Include="Tracking\Traits\HeapTraits.h" />
+    <ClInclude Include="Tracking\Traits\StateObjectTraits.h" />
+    <ClInclude Include="Vista_API.h" />
+    <ClInclude Include="GUI\ImGuiManager.h" />
+    <ClInclude Include="pch.h" />
+    <ClInclude Include="Tracking\DescriptorTracker.h" />
+    <ClInclude Include="Tracking\ObjectID.h" />
+    <ClInclude Include="Tracking\ObjectTracker.h" />
+    <ClInclude Include="Tracking\ObjectTraits.h" />
+    <ClInclude Include="Tracking\ObjectType.h" />
+    <ClInclude Include="Tracking\ResourceStateTracker.h" />
+    <ClInclude Include="Tracking\State.h" />
+    <ClInclude Include="Tracking\Traits\AllObjectTraits.h" />
+    <ClInclude Include="Tracking\Traits\AllocatorTraits.h" />
+    <ClInclude Include="Tracking\Traits\DescriptorHeapTraits.h" />
+    <ClInclude Include="Tracking\Traits\DeviceTraits.h" />
+    <ClInclude Include="Tracking\Traits\FenceTraits.h" />
+    <ClInclude Include="Tracking\Traits\ListTraits.h" />
+    <ClInclude Include="Tracking\Traits\PSOTraits.h" />
+    <ClInclude Include="Tracking\Traits\QueueTraits.h" />
+    <ClInclude Include="Tracking\Traits\ResourceTraits.h" />
+    <ClInclude Include="Tracking\Traits\RootSignatureTraits.h" />
+    <ClInclude Include="Utilities\AllocatorUtil.h" />
+    <ClInclude Include="Utilities\ConcurrentQueue.h" />
+    <ClInclude Include="Utilities\D3D12Util.h" />
+    <ClInclude Include="Utilities\Delegate.h" />
+    <ClInclude Include="Utilities\EnumUtil.h" />
+    <ClInclude Include="Utilities\HashUtil.h" />
+    <ClInclude Include="Utilities\IntrusiveList.h" />
+    <ClInclude Include="Utilities\LinearAllocator.h" />
+    <ClInclude Include="Utilities\Ref.h" />
+    <ClInclude Include="Utilities\Singleton.h" />
+    <ClInclude Include="Utilities\StringUtil.h" />
+    <ClInclude Include="Utilities\Tree.h" />
+  </ItemGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+  <ImportGroup Label="ExtensionTargets">
+  </ImportGroup>
+</Project>

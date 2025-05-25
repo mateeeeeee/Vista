@@ -1,0 +1,6 @@
+<RCC>
+    <qresource prefix="/QVista"/>
+    <qresource prefix="icons">
+        <file>../Data/Logos/Vista.ico</file>
+    </qresource>
+</RCC>

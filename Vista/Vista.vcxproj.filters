@@ -1,0 +1,430 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <ClCompile Include="dllmain.cpp" />
+    <ClCompile Include="..\External\ImGui\imgui.cpp">
+      <Filter>External\ImGui</Filter>
+    </ClCompile>
+    <ClCompile Include="..\External\ImGui\imgui_demo.cpp">
+      <Filter>External\ImGui</Filter>
+    </ClCompile>
+    <ClCompile Include="..\External\ImGui\imgui_draw.cpp">
+      <Filter>External\ImGui</Filter>
+    </ClCompile>
+    <ClCompile Include="..\External\ImGui\imgui_impl_dx12.cpp">
+      <Filter>External\ImGui</Filter>
+    </ClCompile>
+    <ClCompile Include="..\External\ImGui\imgui_impl_win32.cpp">
+      <Filter>External\ImGui</Filter>
+    </ClCompile>
+    <ClCompile Include="..\External\ImGui\imgui_tables.cpp">
+      <Filter>External\ImGui</Filter>
+    </ClCompile>
+    <ClCompile Include="..\External\ImGui\imgui_widgets.cpp">
+      <Filter>External\ImGui</Filter>
+    </ClCompile>
+    <ClCompile Include="..\External\DirectHook\directhook.cpp">
+      <Filter>External\directhook</Filter>
+    </ClCompile>
+    <ClCompile Include="..\External\DirectHook\D3D12\d3d12hook.cpp">
+      <Filter>External\directhook\d3d12</Filter>
+    </ClCompile>
+    <ClCompile Include="Core\Vista.cpp">
+      <Filter>Core</Filter>
+    </ClCompile>
+    <ClCompile Include="GUI\ImGuiManager.cpp">
+      <Filter>GUI</Filter>
+    </ClCompile>
+    <ClCompile Include="Core\Logging\Log.cpp">
+      <Filter>Core\Logging</Filter>
+    </ClCompile>
+    <ClCompile Include="Core\Logging\LogSinks\CallbackSink.cpp">
+      <Filter>Core\Logging\LogSinks</Filter>
+    </ClCompile>
+    <ClCompile Include="Core\Logging\LogSinks\ConsoleSink.cpp">
+      <Filter>Core\Logging\LogSinks</Filter>
+    </ClCompile>
+    <ClCompile Include="Core\Logging\LogSinks\DebuggerSink.cpp">
+      <Filter>Core\Logging\LogSinks</Filter>
+    </ClCompile>
+    <ClCompile Include="Core\Logging\LogSinks\FileSink.cpp">
+      <Filter>Core\Logging\LogSinks</Filter>
+    </ClCompile>
+    <ClCompile Include="pch.cpp" />
+    <ClCompile Include="Command\CommandRecorder.cpp">
+      <Filter>Command</Filter>
+    </ClCompile>
+    <ClCompile Include="Command\RecorderManager.cpp">
+      <Filter>Command</Filter>
+    </ClCompile>
+    <ClCompile Include="GUI\GUI.cpp">
+      <Filter>GUI</Filter>
+    </ClCompile>
+    <ClCompile Include="Hook\Hooks.cpp">
+      <Filter>Hook</Filter>
+    </ClCompile>
+    <ClCompile Include="GUI\Visitors\EventDetailsCommandVisitor.cpp">
+      <Filter>GUI\Visitors</Filter>
+    </ClCompile>
+    <ClCompile Include="GUI\Visitors\EventListCommandVisitor.cpp">
+      <Filter>GUI\Visitors</Filter>
+    </ClCompile>
+    <ClCompile Include="Utilities\StringUtil.cpp">
+      <Filter>Utilities</Filter>
+    </ClCompile>
+    <ClCompile Include="Command\Commands\DeviceCommands.cpp">
+      <Filter>Command\Commands</Filter>
+    </ClCompile>
+    <ClCompile Include="Command\Commands\ListCommands.cpp">
+      <Filter>Command\Commands</Filter>
+    </ClCompile>
+    <ClCompile Include="Command\Commands\QueueCommands.cpp">
+      <Filter>Command\Commands</Filter>
+    </ClCompile>
+    <ClCompile Include="Command\Commands\ResourceCommands.cpp">
+      <Filter>Command\Commands</Filter>
+    </ClCompile>
+    <ClCompile Include="Command\Commands\FenceCommands.cpp">
+      <Filter>Command\Commands</Filter>
+    </ClCompile>
+    <ClCompile Include="Tracking\DescriptorTracker.cpp">
+      <Filter>Tracking</Filter>
+    </ClCompile>
+    <ClCompile Include="Tracking\Traits\PSOTraits.cpp">
+      <Filter>Tracking\Traits</Filter>
+    </ClCompile>
+    <ClCompile Include="GUI\Visitors\StateUpdateVisitor.cpp">
+      <Filter>GUI\Visitors</Filter>
+    </ClCompile>
+    <ClCompile Include="Hook\GlobalHooks.cpp">
+      <Filter>Hook</Filter>
+    </ClCompile>
+    <ClCompile Include="Core\Logging\LogSinks\PipeSink.cpp">
+      <Filter>Core\Logging\LogSinks</Filter>
+    </ClCompile>
+    <ClCompile Include="Tracking\ResourceStateTracker.cpp">
+      <Filter>Tracking</Filter>
+    </ClCompile>
+    <ClCompile Include="Tracking\ResourceAddressTracker.cpp">
+      <Filter>Tracking</Filter>
+    </ClCompile>
+    <ClCompile Include="GUI\Fonts\roboto_compressed.cpp">
+      <Filter>GUI\Fonts</Filter>
+    </ClCompile>
+    <ClCompile Include="GUI\GUIRenderUtil.cpp">
+      <Filter>GUI</Filter>
+    </ClCompile>
+    <ClCompile Include="Resource\ResourceAllocator.cpp">
+      <Filter>Resource</Filter>
+    </ClCompile>
+    <ClCompile Include="Resource\ResourceCopyRequest.cpp">
+      <Filter>Resource</Filter>
+    </ClCompile>
+    <ClCompile Include="GUI\BufferFormatParser.cpp">
+      <Filter>GUI</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <Filter Include="External">
+      <UniqueIdentifier>{78e3aafb-5136-4395-9426-4d8314b03b6b}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="External\ImGui">
+      <UniqueIdentifier>{4670e3ee-2808-4a53-b8c8-9c5edc968217}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="External\directhook">
+      <UniqueIdentifier>{aa9f515e-967d-47df-90d7-caad07fdde37}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="External\directhook\d3d12">
+      <UniqueIdentifier>{82850bd7-1954-493d-87b4-7ed1d978503c}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Core">
+      <UniqueIdentifier>{cfdfb28c-8555-47e0-9bb8-3cd912b78183}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Utilities">
+      <UniqueIdentifier>{428dbc76-ae8c-4bb0-a82b-389143f7c039}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="GUI">
+      <UniqueIdentifier>{e28af72e-aeec-41ac-ad97-b17fe71a7e65}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Core\Logging">
+      <UniqueIdentifier>{a46b338c-e562-4605-8925-997914c45e6a}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Core\Logging\LogSinks">
+      <UniqueIdentifier>{fb838c10-bb37-49c2-ace3-8587bc27a19a}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Command">
+      <UniqueIdentifier>{274ddc3e-0c68-439b-ad48-02acadce5b9a}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Hook">
+      <UniqueIdentifier>{0d379903-24f6-43fe-9e23-efac45e16f5c}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="External\directhook\MinHook">
+      <UniqueIdentifier>{4132d4f3-5eaf-4c7d-9906-ef9e8ba39d97}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="GUI\Visitors">
+      <UniqueIdentifier>{48497fe3-6c1c-4d21-887a-6e5dbfb0b361}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Command\Commands">
+      <UniqueIdentifier>{49fd3960-a02c-461f-807c-4e5da07f2202}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Tracking">
+      <UniqueIdentifier>{9c7ae0e7-c29b-4a62-9eba-f9384fda0dba}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Tracking\Traits">
+      <UniqueIdentifier>{8c5a902a-7c14-47f9-9488-6a3554389c77}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="GUI\Fonts">
+      <UniqueIdentifier>{37e7e336-cc69-4c89-bd8c-1d5c9d1eca03}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Resource">
+      <UniqueIdentifier>{645c88ae-05dd-4cac-8065-cde40eb641f1}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\External\ImGui\imconfig.h">
+      <Filter>External\ImGui</Filter>
+    </ClInclude>
+    <ClInclude Include="..\External\ImGui\imgui.h">
+      <Filter>External\ImGui</Filter>
+    </ClInclude>
+    <ClInclude Include="..\External\ImGui\imgui_impl_dx12.h">
+      <Filter>External\ImGui</Filter>
+    </ClInclude>
+    <ClInclude Include="..\External\ImGui\imgui_impl_win32.h">
+      <Filter>External\ImGui</Filter>
+    </ClInclude>
+    <ClInclude Include="..\External\ImGui\imgui_internal.h">
+      <Filter>External\ImGui</Filter>
+    </ClInclude>
+    <ClInclude Include="..\External\ImGui\imstb_rectpack.h">
+      <Filter>External\ImGui</Filter>
+    </ClInclude>
+    <ClInclude Include="..\External\ImGui\imstb_textedit.h">
+      <Filter>External\ImGui</Filter>
+    </ClInclude>
+    <ClInclude Include="..\External\ImGui\imstb_truetype.h">
+      <Filter>External\ImGui</Filter>
+    </ClInclude>
+    <ClInclude Include="..\External\DirectHook\directhook.h">
+      <Filter>External\directhook</Filter>
+    </ClInclude>
+    <ClInclude Include="..\External\DirectHook\method_table.h">
+      <Filter>External\directhook</Filter>
+    </ClInclude>
+    <ClInclude Include="..\External\DirectHook\D3D12\d3d12hook.h">
+      <Filter>External\directhook\d3d12</Filter>
+    </ClInclude>
+    <ClInclude Include="..\External\DirectHook\D3D12\d3d12hook_aliases.h">
+      <Filter>External\directhook\d3d12</Filter>
+    </ClInclude>
+    <ClInclude Include="..\External\DirectHook\D3D12\d3d12hook_indices.h">
+      <Filter>External\directhook\d3d12</Filter>
+    </ClInclude>
+    <ClInclude Include="Core\Types.h">
+      <Filter>Core</Filter>
+    </ClInclude>
+    <ClInclude Include="Core\Macros.h">
+      <Filter>Core</Filter>
+    </ClInclude>
+    <ClInclude Include="Utilities\ConcurrentQueue.h">
+      <Filter>Utilities</Filter>
+    </ClInclude>
+    <ClInclude Include="Utilities\Delegate.h">
+      <Filter>Utilities</Filter>
+    </ClInclude>
+    <ClInclude Include="Utilities\EnumUtil.h">
+      <Filter>Utilities</Filter>
+    </ClInclude>
+    <ClInclude Include="Utilities\Ref.h">
+      <Filter>Utilities</Filter>
+    </ClInclude>
+    <ClInclude Include="Utilities\Singleton.h">
+      <Filter>Utilities</Filter>
+    </ClInclude>
+    <ClInclude Include="Vista_API.h" />
+    <ClInclude Include="Core\Vista.h">
+      <Filter>Core</Filter>
+    </ClInclude>
+    <ClInclude Include="GUI\ImGuiManager.h">
+      <Filter>GUI</Filter>
+    </ClInclude>
+    <ClInclude Include="Core\Logging\Log.h">
+      <Filter>Core\Logging</Filter>
+    </ClInclude>
+    <ClInclude Include="Core\Logging\LogSinks\CallbackSink.h">
+      <Filter>Core\Logging\LogSinks</Filter>
+    </ClInclude>
+    <ClInclude Include="Core\Logging\LogSinks\ConsoleSink.h">
+      <Filter>Core\Logging\LogSinks</Filter>
+    </ClInclude>
+    <ClInclude Include="Core\Logging\LogSinks\DebuggerSink.h">
+      <Filter>Core\Logging\LogSinks</Filter>
+    </ClInclude>
+    <ClInclude Include="Core\Logging\LogSinks\FileSink.h">
+      <Filter>Core\Logging\LogSinks</Filter>
+    </ClInclude>
+    <ClInclude Include="pch.h" />
+    <ClInclude Include="Command\Command.h">
+      <Filter>Command</Filter>
+    </ClInclude>
+    <ClInclude Include="Utilities\Tree.h">
+      <Filter>Utilities</Filter>
+    </ClInclude>
+    <ClInclude Include="Command\CommandVisitor.h">
+      <Filter>Command</Filter>
+    </ClInclude>
+    <ClInclude Include="Command\CommandRecorder.h">
+      <Filter>Command</Filter>
+    </ClInclude>
+    <ClInclude Include="Utilities\AllocatorUtil.h">
+      <Filter>Utilities</Filter>
+    </ClInclude>
+    <ClInclude Include="Utilities\IntrusiveList.h">
+      <Filter>Utilities</Filter>
+    </ClInclude>
+    <ClInclude Include="Utilities\LinearAllocator.h">
+      <Filter>Utilities</Filter>
+    </ClInclude>
+    <ClInclude Include="Command\RecorderManager.h">
+      <Filter>Command</Filter>
+    </ClInclude>
+    <ClInclude Include="GUI\GUI.h">
+      <Filter>GUI</Filter>
+    </ClInclude>
+    <ClInclude Include="Command\Commands.h">
+      <Filter>Command</Filter>
+    </ClInclude>
+    <ClInclude Include="Hook\Hooks.h">
+      <Filter>Hook</Filter>
+    </ClInclude>
+    <ClInclude Include="Hook\PFNs.h">
+      <Filter>Hook</Filter>
+    </ClInclude>
+    <ClInclude Include="..\External\DirectHook\MinHook\include\MinHook.h">
+      <Filter>External\directhook\MinHook</Filter>
+    </ClInclude>
+    <ClInclude Include="GUI\Visitors\EventDetailsCommandVisitor.h">
+      <Filter>GUI\Visitors</Filter>
+    </ClInclude>
+    <ClInclude Include="GUI\Visitors\EventListCommandVisitor.h">
+      <Filter>GUI\Visitors</Filter>
+    </ClInclude>
+    <ClInclude Include="Utilities\D3D12Util.h">
+      <Filter>Utilities</Filter>
+    </ClInclude>
+    <ClInclude Include="Utilities\StringUtil.h">
+      <Filter>Utilities</Filter>
+    </ClInclude>
+    <ClInclude Include="Command\Commands\DeviceCommands.h">
+      <Filter>Command\Commands</Filter>
+    </ClInclude>
+    <ClInclude Include="Command\Commands\ListCommands.h">
+      <Filter>Command\Commands</Filter>
+    </ClInclude>
+    <ClInclude Include="Command\Commands\QueueCommands.h">
+      <Filter>Command\Commands</Filter>
+    </ClInclude>
+    <ClInclude Include="Command\Commands\ResourceCommands.h">
+      <Filter>Command\Commands</Filter>
+    </ClInclude>
+    <ClInclude Include="Command\Commands\FenceCommands.h">
+      <Filter>Command\Commands</Filter>
+    </ClInclude>
+    <ClInclude Include="Utilities\HashUtil.h">
+      <Filter>Utilities</Filter>
+    </ClInclude>
+    <ClInclude Include="GUI\SelectedItem.h">
+      <Filter>GUI</Filter>
+    </ClInclude>
+    <ClInclude Include="Tracking\DescriptorTracker.h">
+      <Filter>Tracking</Filter>
+    </ClInclude>
+    <ClInclude Include="Tracking\ObjectID.h">
+      <Filter>Tracking</Filter>
+    </ClInclude>
+    <ClInclude Include="Tracking\ObjectTracker.h">
+      <Filter>Tracking</Filter>
+    </ClInclude>
+    <ClInclude Include="Tracking\ObjectTraits.h">
+      <Filter>Tracking</Filter>
+    </ClInclude>
+    <ClInclude Include="Tracking\ObjectType.h">
+      <Filter>Tracking</Filter>
+    </ClInclude>
+    <ClInclude Include="Tracking\State.h">
+      <Filter>Tracking</Filter>
+    </ClInclude>
+    <ClInclude Include="Tracking\Traits\AllObjectTraits.h">
+      <Filter>Tracking\Traits</Filter>
+    </ClInclude>
+    <ClInclude Include="Tracking\Traits\AllocatorTraits.h">
+      <Filter>Tracking\Traits</Filter>
+    </ClInclude>
+    <ClInclude Include="Tracking\Traits\DescriptorHeapTraits.h">
+      <Filter>Tracking\Traits</Filter>
+    </ClInclude>
+    <ClInclude Include="Tracking\Traits\DeviceTraits.h">
+      <Filter>Tracking\Traits</Filter>
+    </ClInclude>
+    <ClInclude Include="Tracking\Traits\FenceTraits.h">
+      <Filter>Tracking\Traits</Filter>
+    </ClInclude>
+    <ClInclude Include="Tracking\Traits\ListTraits.h">
+      <Filter>Tracking\Traits</Filter>
+    </ClInclude>
+    <ClInclude Include="Tracking\Traits\PSOTraits.h">
+      <Filter>Tracking\Traits</Filter>
+    </ClInclude>
+    <ClInclude Include="Tracking\Traits\QueueTraits.h">
+      <Filter>Tracking\Traits</Filter>
+    </ClInclude>
+    <ClInclude Include="Tracking\Traits\ResourceTraits.h">
+      <Filter>Tracking\Traits</Filter>
+    </ClInclude>
+    <ClInclude Include="Tracking\Traits\RootSignatureTraits.h">
+      <Filter>Tracking\Traits</Filter>
+    </ClInclude>
+    <ClInclude Include="GUI\Visitors\StateUpdateVisitor.h">
+      <Filter>GUI\Visitors</Filter>
+    </ClInclude>
+    <ClInclude Include="Tracking\ResourceStateTracker.h">
+      <Filter>Tracking</Filter>
+    </ClInclude>
+    <ClInclude Include="Hook\GlobalHooks.h">
+      <Filter>Hook</Filter>
+    </ClInclude>
+    <ClInclude Include="Core\Logging\LogSinks\PipeSink.h">
+      <Filter>Core\Logging\LogSinks</Filter>
+    </ClInclude>
+    <ClInclude Include="Tracking\ResourceAddressTracker.h">
+      <Filter>Tracking</Filter>
+    </ClInclude>
+    <ClInclude Include="Tracking\Traits\CommandSignatureTraits.h">
+      <Filter>Tracking\Traits</Filter>
+    </ClInclude>
+    <ClInclude Include="GUI\GUIRenderUtil.h">
+      <Filter>GUI</Filter>
+    </ClInclude>
+    <ClInclude Include="Tracking\Traits\HeapTraits.h">
+      <Filter>Tracking\Traits</Filter>
+    </ClInclude>
+    <ClInclude Include="Resource\ResourceAllocator.h">
+      <Filter>Resource</Filter>
+    </ClInclude>
+    <ClInclude Include="Resource\ResourceCopyRequest.h">
+      <Filter>Resource</Filter>
+    </ClInclude>
+    <ClInclude Include="Resource\ResourceCopyRequestManager.h">
+      <Filter>Resource</Filter>
+    </ClInclude>
+    <ClInclude Include="Tracking\Traits\StateObjectTraits.h">
+      <Filter>Tracking\Traits</Filter>
+    </ClInclude>
+    <ClInclude Include="GUI\BufferFormatParser.h">
+      <Filter>GUI</Filter>
+    </ClInclude>
+    <ClInclude Include="Command\RTTI.h">
+      <Filter>Command</Filter>
+    </ClInclude>
+  </ItemGroup>
+</Project>
