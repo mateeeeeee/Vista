@@ -1124,8 +1124,8 @@ namespace vista
 		}
 		
 		VISTA_RENDER_GUARD;
-		//d3d12PFNs.ExecuteCommandLists(pCommandQueue, commandListCount, commandLists);
-		stateTracker.OnExecuteCommandLists(pCommandQueue, commandListCount, commandLists);
+		d3d12PFNs.ExecuteCommandLists(pCommandQueue, commandListCount, commandLists);
+		VISTA_TODO(stateTracker.OnExecuteCommandLists(pCommandQueue, commandListCount, commandLists););
 		for (Uint i = 0; i < commandListCount; ++i)
 		{
 			if (commandLists[i] == pRequestCommandList)

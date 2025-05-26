@@ -7,5 +7,4 @@ namespace vista
 	{
 		return commandIndex == cmd.GetCommandIndex() && commandType == (Uint32)cmd.GetType();
 	}
-
 }

@@ -181,6 +181,7 @@ namespace vista
 			device->CreateRenderTargetView(backBuffers[i].Get(), nullptr, rtvHandle);
 			backBufferDescriptors[i] = rtvHandle;
 			rtvHandle.ptr += rtvSize;
+			backBuffers[i]->SetName(L"VistaBackbuffer");
 		}
 
 		commandAllocators.resize(bufferCount);
@@ -244,6 +245,7 @@ namespace vista
 			device->CreateRenderTargetView(backBuffers[i].Get(), nullptr, rtvHandle);
 			backBufferDescriptors[i] = rtvHandle;
 			rtvHandle.ptr += rtvSize;
+			backBuffers[i]->SetName(L"VistaBackbuffer");
 		}
 		bufferIndex = swapChain->GetCurrentBackBufferIndex(); 
 
@@ -417,6 +419,16 @@ namespace vista
 		commandAllocators[bufferIndex]->Reset();
 		commandList->Reset(commandAllocators[bufferIndex].Get(), nullptr);
 
+		// Transition back buffer to RENDER_TARGET state
+		D3D12_RESOURCE_BARRIER barrierToRT = {};
+		barrierToRT.Type = D3D12_RESOURCE_BARRIER_TYPE_TRANSITION;
+		barrierToRT.Flags = D3D12_RESOURCE_BARRIER_FLAG_NONE;
+		barrierToRT.Transition.pResource = backBuffers[bufferIndex].Get();
+		barrierToRT.Transition.StateBefore = D3D12_RESOURCE_STATE_PRESENT;
+		barrierToRT.Transition.StateAfter = D3D12_RESOURCE_STATE_RENDER_TARGET;
+		barrierToRT.Transition.Subresource = D3D12_RESOURCE_BARRIER_ALL_SUBRESOURCES;
+		commandList->ResourceBarrier(1, &barrierToRT);
+
 		FLOAT Black[] = { 0.0f, 0.0f, 0.0f, 0.0f };
 		commandList->ClearRenderTargetView(backBufferDescriptors[bufferIndex], Black, 0, nullptr);
 
@@ -441,24 +453,20 @@ namespace vista
 			ImGui::RenderPlatformWindowsDefault();
 		}
 
-		D3D12_RESOURCE_BARRIER barrier = {};
-		barrier.Type = D3D12_RESOURCE_BARRIER_TYPE_TRANSITION;
-		barrier.Flags = D3D12_RESOURCE_BARRIER_FLAG_NONE;
-		barrier.Transition.pResource = backBuffers[bufferIndex].Get();
-		barrier.Transition.Subresource = D3D12_RESOURCE_BARRIER_FLAG_NONE;
-		barrier.Transition.StateBefore = D3D12_RESOURCE_STATE_PRESENT;
-		barrier.Transition.StateAfter = D3D12_RESOURCE_STATE_RENDER_TARGET;
-		barrier.Transition.Subresource = D3D12_RESOURCE_BARRIER_ALL_SUBRESOURCES;
-		commandList->ResourceBarrier(1, &barrier);
-
 		commandList->OMSetRenderTargets(1, &backBufferDescriptors[bufferIndex], FALSE, nullptr);
 		ID3D12DescriptorHeap* heaps[] = { gpuVisibleHeap.Get() };
-		commandList->SetDescriptorHeaps(_countof(heaps), heaps); 
+		commandList->SetDescriptorHeaps(_countof(heaps), heaps);
+
 		ImGui_ImplDX12_RenderDrawData(ImGui::GetDrawData(), commandList.Get());
 
-		barrier.Transition.StateBefore = D3D12_RESOURCE_STATE_RENDER_TARGET;
-		barrier.Transition.StateAfter = D3D12_RESOURCE_STATE_PRESENT;
-		commandList->ResourceBarrier(1, &barrier);
+		D3D12_RESOURCE_BARRIER barrierToPresent = {};
+		barrierToPresent.Type = D3D12_RESOURCE_BARRIER_TYPE_TRANSITION;
+		barrierToPresent.Flags = D3D12_RESOURCE_BARRIER_FLAG_NONE;
+		barrierToPresent.Transition.pResource = backBuffers[bufferIndex].Get();
+		barrierToPresent.Transition.StateBefore = D3D12_RESOURCE_STATE_RENDER_TARGET;
+		barrierToPresent.Transition.StateAfter = D3D12_RESOURCE_STATE_PRESENT;
+		barrierToPresent.Transition.Subresource = D3D12_RESOURCE_BARRIER_ALL_SUBRESOURCES;
+		commandList->ResourceBarrier(1, &barrierToPresent);
 
 		commandList->Close();
 		ID3D12CommandList* cmdLists[] = { commandList.Get() };
