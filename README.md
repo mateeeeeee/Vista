@@ -32,6 +32,7 @@ quickly identifying problematic command patterns, or generally observing GPU beh
   - Preview bound resources such as `Buffer, Texture2D` at the selected command
   - Resource information and descriptor view metadata shown side-by-side
   - Buffer format window for specifying custom buffer formats
+  - Channel selection for `Texture2D` preview
 
 ## Current State
 <img align="center" padding="2" src="Data/UI.png"/>

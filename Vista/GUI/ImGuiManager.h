@@ -4,6 +4,7 @@ namespace vista
 {
 	class ImGuiManager
 	{
+		static constexpr Uint32 MaxFramesInFlight = 3;
 	public:
 		Bool Initialize(ID3D12Device*);
 		void Shutdown();
@@ -35,7 +36,6 @@ namespace vista
 		std::vector<Ref<ID3D12Resource>> backBuffers;
 		std::vector<D3D12_CPU_DESCRIPTOR_HANDLE> backBufferDescriptors;
 
-		static constexpr Uint32 MaxFramesInFlight = 3;
 		Uint32 bufferIndex = 0;
 		Uint32 bufferCount = MaxFramesInFlight;
 

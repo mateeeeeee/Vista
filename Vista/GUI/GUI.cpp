@@ -1463,7 +1463,18 @@ namespace vista
 
 	void GUI::RenderTexture2DPreview(ID3D12Resource* resource, Float zoomFactor)
 	{
-		D3D12_RESOURCE_DESC resDesc = resource->GetDesc();
+		static Bool showR = true, showG = true, showB = true, showA = false;
+		ImGui::Text("Select Channels:");
+		ImGui::SameLine();
+		ImGui::Checkbox("R##ChannelR", &showR);
+		ImGui::SameLine();
+		ImGui::Checkbox("G##ChannelG", &showG);
+		ImGui::SameLine();
+		ImGui::Checkbox("B##ChannelB", &showB);
+		ImGui::SameLine();
+		ImGui::Checkbox("A##ChannelA", &showA);
+
+		D3D12_RESOURCE_DESC const& resDesc = resource->GetDesc();
 		Float aspectRatio = (Float)resDesc.Height / resDesc.Width;
 		Float availableWidth = ImGui::GetContentRegionAvail().x;
 		Float availableHeight = ImGui::GetContentRegionAvail().y;
@@ -1475,7 +1486,6 @@ namespace vista
 			defaultHeight = availableHeight;
 			defaultWidth = defaultHeight / aspectRatio;
 		}
-
 		Float zoomedWidth = defaultWidth * zoomFactor;
 		Float zoomedHeight = defaultHeight * zoomFactor;
 
@@ -1483,8 +1493,14 @@ namespace vista
 		srvDesc.Texture2D.MostDetailedMip = 0;
 		srvDesc.Texture2D.MipLevels = 1;
 		srvDesc.ViewDimension = D3D12_SRV_DIMENSION_TEXTURE2D;
-		srvDesc.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;
 		srvDesc.Format = resDesc.Format;
+		srvDesc.Shader4ComponentMapping = D3D12_ENCODE_SHADER_4_COMPONENT_MAPPING(
+			showR ? D3D12_SHADER_COMPONENT_MAPPING_FROM_MEMORY_COMPONENT_0 : D3D12_SHADER_COMPONENT_MAPPING_FORCE_VALUE_0,
+			showG ? D3D12_SHADER_COMPONENT_MAPPING_FROM_MEMORY_COMPONENT_1 : D3D12_SHADER_COMPONENT_MAPPING_FORCE_VALUE_0,
+			showB ? D3D12_SHADER_COMPONENT_MAPPING_FROM_MEMORY_COMPONENT_2 : D3D12_SHADER_COMPONENT_MAPPING_FORCE_VALUE_0,
+			showA ? D3D12_SHADER_COMPONENT_MAPPING_FROM_MEMORY_COMPONENT_3 : D3D12_SHADER_COMPONENT_MAPPING_FORCE_VALUE_1
+		);
+
 		switch (resDesc.Format)
 		{
 		case DXGI_FORMAT_R16_TYPELESS:
@@ -1501,19 +1517,15 @@ namespace vista
 			srvDesc.Format = DXGI_FORMAT_R32_FLOAT_X8X24_TYPELESS;
 			break;
 		}
-
 		D3D12_CPU_DESCRIPTOR_HANDLE srvHandle = imguiManager.GetCPUDescriptor();
 		imguiManager.GetDevice()->CreateShaderResourceView(resource, &srvDesc, srvHandle);
 
 		ImGui::SetCursorPos(ImVec2(0, ImGui::GetCursorPosY()));
-
 		ImVec2 imagePos = ImGui::GetCursorScreenPos();
 		ImVec2 imageSize = ImVec2(zoomedWidth, zoomedHeight);
-		ImDrawList* drawList = ImGui::GetWindowDrawList();
 
-		drawList->AddRectFilled(imagePos,
-			ImVec2(imagePos.x + imageSize.x, imagePos.y + imageSize.y),
-			IM_COL32(0, 0, 0, 255));
+		ImDrawList* drawList = ImGui::GetWindowDrawList();
+		drawList->AddRectFilled(imagePos, ImVec2(imagePos.x + imageSize.x, imagePos.y + imageSize.y), IM_COL32(0, 0, 0, 255));
 
 		ImGui::Image((ImTextureID)imguiManager.GetGPUDescriptor().ptr, ImVec2(zoomedWidth, zoomedHeight),
 			ImVec2(0, 0), ImVec2(1, 1), ImVec4(1, 1, 1, 1), ImVec4(0, 0, 0, 1));
