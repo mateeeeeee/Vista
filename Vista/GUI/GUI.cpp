@@ -263,9 +263,6 @@ namespace vista
 
 			ImGui::BeginChild("##ResourceViewer_RightPanel", ImVec2(0, 0), true);
 			{
-				ImGui::TextUnformatted("Resource Properties");
-				ImGui::Separator();
-
 				if (selectedItemInViewer.type != SelectedItem::Type::None)
 				{
 					if (selectedItemInViewer.type == SelectedItem::Type::Resource && selectedItemInViewer.resource)
@@ -280,8 +277,6 @@ namespace vista
 
 							ImGui::BeginChild("##ImagePreview", ImVec2(imageWidth, 0), true, ImGuiWindowFlags_HorizontalScrollbar);
 							{
-								ImGui::Text("Preview");
-
 								if (ImGui::IsWindowHovered())
 								{
 									if (ImGui::GetIO().MouseWheel != 0.0f)
@@ -310,7 +305,7 @@ namespace vista
 								}
 
 								ID3D12Resource* resource = lastValidCopyRequest.GetDestinationResource();
-								Bool const isTexture2D = resource && resource->GetDesc().Dimension == D3D12_RESOURCE_DIMENSION_TEXTURE2D;
+								Bool const isTexture2D = resource && resource->GetDesc().Dimension == D3D12_RESOURCE_DIMENSION_TEXTURE2D && resource->GetDesc().DepthOrArraySize == 1;
 								Bool const isBuffer = resource && resource->GetDesc().Dimension == D3D12_RESOURCE_DIMENSION_BUFFER;
 
 								if (isTexture2D)
@@ -1482,9 +1477,9 @@ namespace vista
 
 		static Int selectedMipLevel = 0;
 		Uint32 const mipLevels = resource->GetDesc().MipLevels;
-		ImGui::SameLine();
 		ImGui::Text("Mip Level:");
 		ImGui::SameLine();
+		ImGui::SetNextItemWidth(75.0f);
 		ImGui::Combo("##MipLevelCombo", &selectedMipLevel, mipLabels, mipLevels);
 
 		D3D12_RESOURCE_DESC const& resDesc = resource->GetDesc();

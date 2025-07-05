@@ -32,15 +32,15 @@ quickly identifying problematic command patterns, or generally observing GPU beh
   - Preview bound resources such as `Buffer, Texture2D` at the selected command
   - Resource information and descriptor view metadata shown side-by-side
   - Buffer format window for specifying custom buffer formats
-  - Channel selection for `Texture2D` preview
+  - Channel and mip selection for `Texture2D` preview
 
 ## Current State
 <img align="center" padding="2" src="Data/UI.png"/>
 
 ## Current Limitations & Future Plans
-- Bindless resources are not yet supported (DXIL Reflection?)
+- Bindless resources are not yet supported
 - `Buffer` and `Texture2D` resources are previewable  
-  - Support for other resources such as `Texture2DArray`, etc., is planned
+  - Support for other resources such as `Texture1D, Texture2DArray`, etc., is planned
 - UI/UX improvements 
 - Live inspection means state can be volatile  
   - For example, the **selected command may become unselected or incorrectly reselected** between frames if the command list changes too much, Vista uses heuristics to re-identify the selected command, which may fail if the structure diverges significantly
