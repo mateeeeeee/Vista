@@ -1474,10 +1474,23 @@ namespace vista
 		ImGui::SameLine();
 		ImGui::Checkbox("A##ChannelA", &showA);
 
+		static Char const* mipLabels[] = 
+		{
+			"Mip 0", "Mip 1", "Mip 2", "Mip 3", "Mip 4", "Mip 5", "Mip 6", "Mip 7",
+			"Mip 8", "Mip 9", "Mip 10", "Mip 11", "Mip 12", "Mip 13", "Mip 14", "Mip 15"
+		};
+
+		static Int selectedMipLevel = 0;
+		Uint32 const mipLevels = resource->GetDesc().MipLevels;
+		ImGui::SameLine();
+		ImGui::Text("Mip Level:");
+		ImGui::SameLine();
+		ImGui::Combo("##MipLevelCombo", &selectedMipLevel, mipLabels, mipLevels);
+
 		D3D12_RESOURCE_DESC const& resDesc = resource->GetDesc();
-		Float aspectRatio = (Float)resDesc.Height / resDesc.Width;
-		Float availableWidth = ImGui::GetContentRegionAvail().x;
-		Float availableHeight = ImGui::GetContentRegionAvail().y;
+		Float const aspectRatio = (Float)resDesc.Height / resDesc.Width;
+		Float const availableWidth = ImGui::GetContentRegionAvail().x;
+		Float const availableHeight = ImGui::GetContentRegionAvail().y;
 		Float defaultWidth = std::min<Float>(availableWidth, (Float)resDesc.Width);
 		Float defaultHeight = defaultWidth * aspectRatio;
 
@@ -1490,7 +1503,7 @@ namespace vista
 		Float zoomedHeight = defaultHeight * zoomFactor;
 
 		D3D12_SHADER_RESOURCE_VIEW_DESC srvDesc{};
-		srvDesc.Texture2D.MostDetailedMip = 0;
+		srvDesc.Texture2D.MostDetailedMip = selectedMipLevel;
 		srvDesc.Texture2D.MipLevels = 1;
 		srvDesc.ViewDimension = D3D12_SRV_DIMENSION_TEXTURE2D;
 		srvDesc.Format = resDesc.Format;

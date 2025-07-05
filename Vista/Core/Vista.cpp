@@ -412,6 +412,7 @@ namespace vista
 		}
 		return hr;
 	}
+	
 	HRESULT Vista::OnCreateStateObject(ID3D12Device5* pDevice, D3D12_STATE_OBJECT_DESC const* pDesc, REFIID riid, void** ppStateObject)
 	{
 		if (g_isInsideVistaRender || GUI.IsFreezed())
@@ -613,6 +614,7 @@ namespace vista
 		}
 		return hr;
 	}
+	
 	HRESULT Vista::OnAddToStateObject(ID3D12Device7* pDevice, const D3D12_STATE_OBJECT_DESC* pAddition, ID3D12StateObject* pStateObjectToGrowFrom, REFIID riid, void** ppNewStateObject)
 	{
 		if (g_isInsideVistaRender || GUI.IsFreezed())
