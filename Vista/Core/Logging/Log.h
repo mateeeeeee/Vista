@@ -58,10 +58,6 @@ namespace vista
 		snprintf(buf.get(), size, __VA_ARGS__); \
 		g_Log.Log(LogLevel::LOG_##level, buf.get(), __FILE__, __LINE__);  \
 	}()
-#define VISTA_DEBUG(...)	VISTA_LOG(DEBUG, __VA_ARGS__)
-#define VISTA_INFO(...)		VISTA_LOG(INFO, __VA_ARGS__)
-#define VISTA_WARNING(...)	VISTA_LOG(WARNING, __VA_ARGS__)
-#define VISTA_ERROR(...)	VISTA_LOG(ERROR, __VA_ARGS__)
 
 #define VISTA_LOG_SYNC(level, ... ) [&]()  \
 	{ \

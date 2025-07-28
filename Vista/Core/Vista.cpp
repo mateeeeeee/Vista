@@ -135,7 +135,7 @@ namespace vista
 		InitializeD3D12Hooks();
 		if (!GUI.Initialize(pDevice))
 		{
-			VISTA_ERROR("GUI initialization failed!");
+			VISTA_LOG(ERROR, "GUI initialization failed!");
 		}
 	}
 
@@ -2110,10 +2110,6 @@ namespace vista
 				if (pCommandList4)
 				{
 					d3d12PFNs.EndRenderPass(pCommandList4.Get());
-				}
-				else
-				{
-					beginRenderPassCmd = nullptr;
 				}
 			}
 

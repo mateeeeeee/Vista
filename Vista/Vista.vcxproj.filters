@@ -123,6 +123,9 @@
     <ClCompile Include="GUI\BufferFormatParser.cpp">
       <Filter>GUI</Filter>
     </ClCompile>
+    <ClCompile Include="DXIL\test.cpp">
+      <Filter>DXIL</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="External">
@@ -178,6 +181,9 @@
     </Filter>
     <Filter Include="Resource">
       <UniqueIdentifier>{645c88ae-05dd-4cac-8065-cde40eb641f1}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="DXIL">
+      <UniqueIdentifier>{e5f213c3-4e9d-475b-b2ff-70d1db32a0a3}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
