@@ -211,6 +211,7 @@ xcopy /Y /D "%INI_SRC%" "%INI_DST%\"</Command>
     <ClCompile Include="Core\Logging\LogSinks\DebuggerSink.cpp" />
     <ClCompile Include="Core\Logging\LogSinks\FileSink.cpp" />
     <ClCompile Include="dllmain.cpp" />
+    <ClCompile Include="DXIL\DxilModule.cpp" />
     <ClCompile Include="DXIL\test.cpp" />
     <ClCompile Include="GUI\BufferFormatParser.cpp" />
     <ClCompile Include="GUI\Fonts\roboto_compressed.cpp" />
@@ -269,6 +270,7 @@ xcopy /Y /D "%INI_SRC%" "%INI_DST%\"</Command>
     <ClInclude Include="Core\Logging\LogSinks\FileSink.h" />
     <ClInclude Include="Core\Macros.h" />
     <ClInclude Include="Core\Types.h" />
+    <ClInclude Include="DXIL\DxilModule.h" />
     <ClInclude Include="GUI\BufferFormatParser.h" />
     <ClInclude Include="GUI\GUI.h" />
     <ClInclude Include="GUI\GUIRenderUtil.h" />

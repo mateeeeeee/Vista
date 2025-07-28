@@ -126,6 +126,9 @@
     <ClCompile Include="DXIL\test.cpp">
       <Filter>DXIL</Filter>
     </ClCompile>
+    <ClCompile Include="DXIL\DxilModule.cpp">
+      <Filter>DXIL</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="External">
@@ -431,6 +434,9 @@
     </ClInclude>
     <ClInclude Include="Command\RTTI.h">
       <Filter>Command</Filter>
+    </ClInclude>
+    <ClInclude Include="DXIL\DxilModule.h">
+      <Filter>DXIL</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

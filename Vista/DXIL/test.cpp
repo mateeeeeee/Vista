@@ -1,6 +1,5 @@
 #pragma warning(push)
-#pragma warning(disable: 4267) // conversion from 'size_t' to smaller type
-#pragma warning(disable: 4244) 
+#pragma warning(disable: 4267 4244)
 #include "dxc/DXIL/DxilModule.h"
 #include "dxc/DXIL/DxilOperations.h"
 #include "dxc/DXIL/DxilInstructions.h"
