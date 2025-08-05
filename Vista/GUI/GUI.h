@@ -9,19 +9,29 @@ namespace vista
 	class DescriptorTracker;
 	class ResourceAddressTracker;
 	class ResourceCopyRequestManager;
+	class BindlessAccessCache;
 	class Command;
 	class RecorderManager;
 	class ListCommand;
 	struct SelectedItem;
 
+	struct Globals
+	{
+		ObjectTracker const& objectTracker;
+		DescriptorTracker const& descriptorTracker;
+		ResourceAddressTracker const& addressTracker;
+		ResourceCopyRequestManager& copyRequestManager;
+		BindlessAccessCache& bindlessAccessCache;
+	};
+
 	class GUI
 	{
 	public:
-		GUI(ObjectTracker const& objectTracker, 
-			DescriptorTracker const& descriptorTracker, 
-			ResourceAddressTracker const& addressTracker, 
-			ResourceCopyRequestManager& copyRequestManager)
-			: objectTracker(objectTracker), descriptorTracker(descriptorTracker), addressTracker(addressTracker), copyRequestManager(copyRequestManager) {}
+		explicit GUI(Globals globals)
+			: objectTracker(globals.objectTracker), descriptorTracker(globals.descriptorTracker), 
+			  addressTracker(globals.addressTracker), copyRequestManager(globals.copyRequestManager),
+			  bindlessAccessCache(globals.bindlessAccessCache)
+		{}
 		~GUI() = default;
 
 		Bool Initialize(ID3D12Device*);
@@ -37,6 +47,8 @@ namespace vista
 		DescriptorTracker const& descriptorTracker;
 		ResourceAddressTracker const& addressTracker;
 		ResourceCopyRequestManager& copyRequestManager;
+		BindlessAccessCache& bindlessAccessCache;
+
 		ImGuiManager imguiManager;
 		Bool isFreezed = false;
 

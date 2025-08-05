@@ -7,6 +7,7 @@
 #include "Tracking/ResourceStateTracker.h"
 #include "Tracking/ResourceAddressTracker.h"
 #include "Resource/ResourceCopyRequestManager.h"
+#include "DXIL/BindlessAccessCache.h"
 #include "GUI/GUI.h"
 #include "Utilities/Singleton.h"
 
@@ -112,7 +113,7 @@ namespace vista
 		ULONG   OnRelease(ID3D12Resource* pResource);
 		HRESULT OnSetName(ID3D12Resource* pResource, LPCWSTR name);
 
-		UINT64 OnGetCompletedValue(ID3D12Fence* pFence);
+		UINT64  OnGetCompletedValue(ID3D12Fence* pFence);
 		HRESULT OnSetEventOnCompletion(ID3D12Fence* pFence, UINT64 value, HANDLE event);
 		HRESULT OnSignal(ID3D12Fence* pFence, UINT64 value);
 
@@ -124,14 +125,16 @@ namespace vista
 		ResourceStateTracker stateTracker;
 		ResourceAddressTracker addressTracker;
 		ResourceCopyRequestManager copyRequestManager;
+		BindlessAccessCache bindlessAccessCache;
 		GUI GUI;
 
 		ID3D12GraphicsCommandList* pRequestCommandList = nullptr;
 
 	private:
 		Vista() : d3d12PFNs(), objectTracker(), descriptorTracker(objectTracker), recorderManager(objectTracker), 
-				  stateTracker(), addressTracker(),
-				  GUI(objectTracker, descriptorTracker, addressTracker, copyRequestManager) {}
+				  stateTracker(), addressTracker(), bindlessAccessCache(),
+			GUI(Globals{ objectTracker, descriptorTracker, addressTracker, copyRequestManager, bindlessAccessCache }) 
+		{}
 		~Vista() = default;
 
 		void InitializeD3D12Hooks();

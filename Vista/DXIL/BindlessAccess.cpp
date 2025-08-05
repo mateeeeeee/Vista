@@ -1,4 +1,4 @@
-#include "BindlessAccessAnalyzer.h"
+#include "BindlessAccess.h"
 #include "DxilModuleWrapper.h"
 #pragma warning(push)
 #pragma warning(disable: 4267 4244)
@@ -12,15 +12,13 @@
 
 namespace vista
 {
-	ResourceHeapIndexInfo AnalyzeIndexSource(hlsl::DxilModule& module, llvm::Value* indexValue)
+	static IndexSource AnalyzeIndexSource(hlsl::DxilModule& module, llvm::Value* indexValue)
 	{
-		ResourceHeapIndexInfo info;
+		IndexSource indexSource = { IndexSourceType::Unknown, std::monostate{} };
 		if (llvm::ConstantInt* constInt = llvm::dyn_cast<llvm::ConstantInt>(indexValue))
 		{
-			info = constInt->getZExtValue();
-			return info;
+			return { IndexSourceType::ImmediateConstant, constInt->getZExtValue() };
 		}
-
 		auto GetCBufferInfo = [&](llvm::Value* handleValue) -> hlsl::DxilCBuffer const*
 		{
 			llvm::Value* currentHandle = handleValue;
@@ -84,11 +82,12 @@ namespace vista
 				{
 					if (llvm::ConstantInt* offsetConst = llvm::dyn_cast<llvm::ConstantInt>(call->getArgOperand(2)))
 					{
-						CBufferOriginInfo origin{};
-						origin.ResourceName = cbuffer->GetGlobalName();
-						origin.ResourceBinding = cbuffer->GetLowerBound();
-						origin.ByteOffset = (Uint32)offsetConst->getZExtValue();
-						return origin;
+						CBufferSourceInfo cbufferSource{};
+						cbufferSource.ResourceName = cbuffer->GetGlobalName();
+						cbufferSource.ResourceBinding = cbuffer->GetLowerBound();
+						cbufferSource.ResourceSpace = cbuffer->GetSpaceID();
+						cbufferSource.ByteOffset = (Uint32)offsetConst->getZExtValue();
+						return { IndexSourceType::ConstantBuffer, cbufferSource };
 					}
 				}
 			}
@@ -111,23 +110,25 @@ namespace vista
 						}
 
 						Uint32 const componentIndex = *extractInst->getIndices().begin();
-						CBufferOriginInfo origin{};
-						origin.ResourceName = cbuffer->GetGlobalName();
-						origin.ResourceBinding = cbuffer->GetLowerBound();
-						origin.ByteOffset = baseByteOffset * 16 + (componentIndex * 4); 
-						return origin;
+						CBufferSourceInfo cbufferSource{};
+						cbufferSource.ResourceName = cbuffer->GetGlobalName();
+						cbufferSource.ResourceBinding = cbuffer->GetLowerBound();
+						cbufferSource.ResourceSpace = cbuffer->GetSpaceID();
+						cbufferSource.ByteOffset = baseByteOffset * 16 + (componentIndex * 4); 
+						return { IndexSourceType::ConstantBuffer, cbufferSource };
 					}
 				}
 			}
 		}
-		return info; 
+		return indexSource; 
 	}
 
-	std::vector<BindlessResourceAccess> AnalyzeBindlessAccesses(const void* shaderBytecode, Uint64 bytecodeSize) {
+	std::vector<BindlessAccess> FindBindlessResourceAccesses(const void* shaderBytecode, Uint64 bytecodeSize) 
+	{
 		DxilModuleWrapper dxilModule(shaderBytecode, bytecodeSize);
 		hlsl::DxilModule& hlslModule = dxilModule.GetDxilModule();
 
-		std::vector<BindlessResourceAccess> results;
+		std::vector<BindlessAccess> results;
 		llvm::Module* module = hlslModule.GetModule();
 		hlsl::OP* dxilOp = hlslModule.GetOP();
 
@@ -149,7 +150,7 @@ namespace vista
 						continue;
 					}
 
-					BindlessResourceAccess result;
+					BindlessAccess result;
 					result.Index = AnalyzeIndexSource(hlslModule, createHandleCall->getArgOperand(1));
 					for (llvm::User* user : createHandleCall->users()) 
 					{

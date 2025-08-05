@@ -32,12 +32,13 @@ namespace vista
 		hlsl::GetDxilProgramBitcode(pProgramHeader, &pIL, &pILLength);
 
 		std::unique_ptr<llvm::MemoryBuffer> pBitcodeBuf(llvm::MemoryBuffer::getMemBuffer(llvm::StringRef(pIL, pILLength), "", false));
-		llvmContext.reset(new llvm::LLVMContext);
+		llvmContext.reset(new llvm::LLVMContext());
 
 		llvm::ErrorOr<std::unique_ptr<llvm::Module>> pModule(llvm::parseBitcodeFile(pBitcodeBuf->getMemBufferRef(), *llvmContext));
 		if (std::error_code ec = pModule.getError())
 		{
 			VISTA_ASSERT(false);
+			return;
 		}
 		llvmModule = std::move(pModule.get());
 		dxilModule = hlsl::DxilModule::TryGetDxilModule(llvmModule.get());

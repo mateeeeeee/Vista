@@ -17,8 +17,11 @@ namespace vista
 			}
 		}
 
+		void const* GetBuffer() const { return Bytecode.data(); }
+		Uint64 GetSize() const { return Bytecode.size(); }
 		Bool IsValid() const { return !Bytecode.empty(); }
-		D3D12_SHADER_BYTECODE GetBytecode() const 
+
+		D3D12_SHADER_BYTECODE GetD3D12Bytecode() const 
 		{
 			return { Bytecode.empty() ? nullptr : Bytecode.data(), Bytecode.size() };
 		}
