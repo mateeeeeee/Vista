@@ -123,10 +123,10 @@
     <ClCompile Include="GUI\BufferFormatParser.cpp">
       <Filter>GUI</Filter>
     </ClCompile>
-    <ClCompile Include="DXIL\test.cpp">
+    <ClCompile Include="DXIL\DxilModuleWrapper.cpp">
       <Filter>DXIL</Filter>
     </ClCompile>
-    <ClCompile Include="DXIL\DxilModule.cpp">
+    <ClCompile Include="DXIL\BindlessAccessAnalyzer.cpp">
       <Filter>DXIL</Filter>
     </ClCompile>
   </ItemGroup>
@@ -435,7 +435,10 @@
     <ClInclude Include="Command\RTTI.h">
       <Filter>Command</Filter>
     </ClInclude>
-    <ClInclude Include="DXIL\DxilModule.h">
+    <ClInclude Include="DXIL\DxilModuleWrapper.h">
+      <Filter>DXIL</Filter>
+    </ClInclude>
+    <ClInclude Include="DXIL\BindlessAccessAnalyzer.h">
       <Filter>DXIL</Filter>
     </ClInclude>
   </ItemGroup>

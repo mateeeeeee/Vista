@@ -140,7 +140,7 @@
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <EnableUAC>false</EnableUAC>
       <AdditionalLibraryDirectories>$(SolutionDir)External\DirectHook\MinHook\lib;$(SolutionDir)External\dxc\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
-      <AdditionalDependencies>minhook.x64.lib;dxgi.lib;dxguid.lib;d3d12.lib;dxil.lib;dxcompiler.lib;LLVMCore.lib;LLVMDXIL.lib;LLVMSupport.lib;LLVMMSSupport.lib;LLVMBitReader.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>minhook.x64.lib;dxgi.lib;dxguid.lib;d3d12.lib;dxil.lib;dxcompiler.lib;LLVMCore.lib;LLVMDXIL.lib;LLVMDxilContainer.lib;LLVMSupport.lib;LLVMMSSupport.lib;LLVMBitReader.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
     <PostBuildEvent>
       <Command>set "ICON_SRC=$(SolutionDir)Data\Logos\Vista.ico"
@@ -174,7 +174,7 @@ xcopy /Y /D "%INI_SRC%" "%INI_DST%\"</Command>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <EnableUAC>false</EnableUAC>
       <AdditionalLibraryDirectories>$(SolutionDir)External\DirectHook\MinHook\lib;$(SolutionDir)External\dxc\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
-      <AdditionalDependencies>minhook.x64.lib;dxgi.lib;dxguid.lib;d3d12.lib;dxil.lib;dxcompiler.lib;LLVMCore.lib;LLVMDXIL.lib;LLVMSupport.lib;LLVMMSSupport.lib;LLVMBitReader.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>minhook.x64.lib;dxgi.lib;dxguid.lib;d3d12.lib;dxil.lib;dxcompiler.lib;LLVMCore.lib;LLVMDXIL.lib;LLVMDxilContainer.lib;LLVMSupport.lib;LLVMMSSupport.lib;LLVMBitReader.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
     <PostBuildEvent>
       <Command>set "ICON_SRC=$(SolutionDir)Data\Logos\Vista.ico"
@@ -211,8 +211,8 @@ xcopy /Y /D "%INI_SRC%" "%INI_DST%\"</Command>
     <ClCompile Include="Core\Logging\LogSinks\DebuggerSink.cpp" />
     <ClCompile Include="Core\Logging\LogSinks\FileSink.cpp" />
     <ClCompile Include="dllmain.cpp" />
-    <ClCompile Include="DXIL\DxilModule.cpp" />
-    <ClCompile Include="DXIL\test.cpp" />
+    <ClCompile Include="DXIL\BindlessAccessAnalyzer.cpp" />
+    <ClCompile Include="DXIL\DxilModuleWrapper.cpp" />
     <ClCompile Include="GUI\BufferFormatParser.cpp" />
     <ClCompile Include="GUI\Fonts\roboto_compressed.cpp" />
     <ClCompile Include="GUI\GUIRenderUtil.cpp" />
@@ -270,7 +270,8 @@ xcopy /Y /D "%INI_SRC%" "%INI_DST%\"</Command>
     <ClInclude Include="Core\Logging\LogSinks\FileSink.h" />
     <ClInclude Include="Core\Macros.h" />
     <ClInclude Include="Core\Types.h" />
-    <ClInclude Include="DXIL\DxilModule.h" />
+    <ClInclude Include="DXIL\BindlessAccessAnalyzer.h" />
+    <ClInclude Include="DXIL\DxilModuleWrapper.h" />
     <ClInclude Include="GUI\BufferFormatParser.h" />
     <ClInclude Include="GUI\GUI.h" />
     <ClInclude Include="GUI\GUIRenderUtil.h" />
