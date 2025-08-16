@@ -132,6 +132,9 @@
     <ClCompile Include="DXIL\BindlessAccessCache.cpp">
       <Filter>DXIL</Filter>
     </ClCompile>
+    <ClCompile Include="Tracking\ResourceMirrorManager.cpp">
+      <Filter>Tracking</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="External">
@@ -446,6 +449,9 @@
     </ClInclude>
     <ClInclude Include="DXIL\BindlessAccessCache.h">
       <Filter>DXIL</Filter>
+    </ClInclude>
+    <ClInclude Include="Tracking\ResourceMirrorManager.h">
+      <Filter>Tracking</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

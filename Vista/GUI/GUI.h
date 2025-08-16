@@ -9,6 +9,7 @@ namespace vista
 	class DescriptorTracker;
 	class ResourceAddressTracker;
 	class ResourceCopyRequestManager;
+	class ResourceMirrorManager;
 	class BindlessAccessCache;
 	class Command;
 	class RecorderManager;
@@ -21,6 +22,7 @@ namespace vista
 		ObjectTracker const& objectTracker;
 		DescriptorTracker const& descriptorTracker;
 		ResourceAddressTracker const& addressTracker;
+		ResourceMirrorManager const& mirrorManager;
 		ResourceCopyRequestManager& copyRequestManager;
 		BindlessAccessCache& bindlessAccessCache;
 	};

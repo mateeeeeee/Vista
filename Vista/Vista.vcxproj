@@ -232,6 +232,7 @@ xcopy /Y /D "%INI_SRC%" "%INI_DST%\"</Command>
     <ClCompile Include="Resource\ResourceCopyRequest.cpp" />
     <ClCompile Include="Tracking\DescriptorTracker.cpp" />
     <ClCompile Include="Tracking\ResourceAddressTracker.cpp" />
+    <ClCompile Include="Tracking\ResourceMirrorManager.cpp" />
     <ClCompile Include="Tracking\ResourceStateTracker.cpp" />
     <ClCompile Include="Tracking\Traits\PSOTraits.cpp" />
     <ClCompile Include="Utilities\StringUtil.cpp" />
@@ -288,6 +289,7 @@ xcopy /Y /D "%INI_SRC%" "%INI_DST%\"</Command>
     <ClInclude Include="Resource\ResourceCopyRequest.h" />
     <ClInclude Include="Resource\ResourceCopyRequestManager.h" />
     <ClInclude Include="Tracking\ResourceAddressTracker.h" />
+    <ClInclude Include="Tracking\ResourceMirrorManager.h" />
     <ClInclude Include="Tracking\Traits\CommandSignatureTraits.h" />
     <ClInclude Include="Tracking\Traits\HeapTraits.h" />
     <ClInclude Include="Tracking\Traits\StateObjectTraits.h" />

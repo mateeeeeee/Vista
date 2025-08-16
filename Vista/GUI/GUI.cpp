@@ -22,7 +22,6 @@
 
 namespace vista
 {
-
 	template<ShaderType ST>
 	void GUI::RenderBindlessParameters(SelectedItem* selectedItemInViewer)
 	{

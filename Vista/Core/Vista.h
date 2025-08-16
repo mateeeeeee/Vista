@@ -6,6 +6,7 @@
 #include "Tracking/DescriptorTracker.h"
 #include "Tracking/ResourceStateTracker.h"
 #include "Tracking/ResourceAddressTracker.h"
+#include "Tracking/ResourceMirrorManager.h"
 #include "Resource/ResourceCopyRequestManager.h"
 #include "DXIL/BindlessAccessCache.h"
 #include "GUI/GUI.h"
@@ -112,6 +113,8 @@ namespace vista
 
 		ULONG   OnRelease(ID3D12Resource* pResource);
 		HRESULT OnSetName(ID3D12Resource* pResource, LPCWSTR name);
+		HRESULT OnMap(ID3D12Resource* pResource, UINT subresource, const D3D12_RANGE* pReadRange, void** ppData);
+		void    OnUnmap(ID3D12Resource* pResource, UINT subresource, const D3D12_RANGE* pWrittenRange);
 
 		UINT64  OnGetCompletedValue(ID3D12Fence* pFence);
 		HRESULT OnSetEventOnCompletion(ID3D12Fence* pFence, UINT64 value, HANDLE event);
@@ -124,6 +127,7 @@ namespace vista
 		RecorderManager recorderManager;
 		ResourceStateTracker stateTracker;
 		ResourceAddressTracker addressTracker;
+		ResourceMirrorManager mirrorManager;
 		ResourceCopyRequestManager copyRequestManager;
 		BindlessAccessCache bindlessAccessCache;
 		GUI GUI;
@@ -132,8 +136,8 @@ namespace vista
 
 	private:
 		Vista() : d3d12PFNs(), objectTracker(), descriptorTracker(objectTracker), recorderManager(objectTracker), 
-				  stateTracker(), addressTracker(), bindlessAccessCache(),
-			GUI(Globals{ objectTracker, descriptorTracker, addressTracker, copyRequestManager, bindlessAccessCache }) 
+				  stateTracker(), addressTracker(), mirrorManager(), bindlessAccessCache(),
+			GUI(Globals{ objectTracker, descriptorTracker, addressTracker, mirrorManager, copyRequestManager, bindlessAccessCache }) 
 		{}
 		~Vista() = default;
 
