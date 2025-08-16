@@ -15,13 +15,98 @@
 #include "Command/RTTI.h"
 #include "Command/Commands/ListCommands.h"
 #include "Resource/ResourceCopyRequestManager.h"
+#include "DXIL/BindlessAccessCache.h"
 #include "Utilities/D3D12Util.h"
 #include "Utilities/HashUtil.h"
 #include "ImGui/imgui.h"
 
 namespace vista
 {
-	
+
+	template<ShaderType ST>
+	void GUI::RenderBindlessParameters(SelectedItem* selectedItemInViewer)
+	{
+		if (currentState.pipelineStateId != InvalidObjectID)
+		{
+			TrackedObjectInfo const* psoInfo = objectTracker.GetObjectInfo(selectedCommand->GetParentId());
+			if (psoInfo && psoInfo->objectType == ObjectType::PSO)
+			{
+				PSODesc const& psoDesc = std::get<PSODesc>(psoInfo->objectDesc);
+				std::vector<BindlessAccess> bindlessAccesses;
+
+				if constexpr (ST == ShaderType::Vertex)
+				{
+					if (GraphicsPSODescStorage const* gfxPsoDesc = std::get_if<GraphicsPSODescStorage>(&psoDesc))
+					{
+						bindlessAccesses = bindlessAccessCache.GetOrAdd(gfxPsoDesc->VS.GetBuffer(), gfxPsoDesc->VS.GetSize());
+					}
+					else if (StreamPSODescStorage const* streamPsoDesc = std::get_if<StreamPSODescStorage>(&psoDesc))
+					{
+						bindlessAccesses = bindlessAccessCache.GetOrAdd(streamPsoDesc->VS.GetBuffer(), streamPsoDesc->VS.GetSize());
+					}
+				}
+				else if constexpr (ST == ShaderType::Pixel)
+				{
+					if (GraphicsPSODescStorage const* gfxPsoDesc = std::get_if<GraphicsPSODescStorage>(&psoDesc))
+					{
+						bindlessAccesses = bindlessAccessCache.GetOrAdd(gfxPsoDesc->PS.GetBuffer(), gfxPsoDesc->PS.GetSize());
+					}
+					else if (StreamPSODescStorage const* streamPsoDesc = std::get_if<StreamPSODescStorage>(&psoDesc))
+					{
+						bindlessAccesses = bindlessAccessCache.GetOrAdd(streamPsoDesc->PS.GetBuffer(), streamPsoDesc->PS.GetSize());
+					}
+				}
+				else if constexpr (ST == ShaderType::Compute)
+				{
+					if (ComputePSODescStorage const* computePsoDesc = std::get_if<ComputePSODescStorage>(&psoDesc))
+					{
+						bindlessAccesses = bindlessAccessCache.GetOrAdd(computePsoDesc->CS.GetBuffer(), computePsoDesc->CS.GetSize());
+					}
+				}
+
+				for (BindlessAccess const& bindlessAccess : bindlessAccesses)
+				{
+					Uint64 resolvedHeapIndex = -1;
+					if (bindlessAccess.Index.type == IndexSourceType::ImmediateConstant)
+					{
+						resolvedHeapIndex = std::get<Uint64>(bindlessAccess.Index.details);
+					}
+					else if (bindlessAccess.Index.type == IndexSourceType::ConstantBuffer)
+					{
+						VISTA_TODO("Resolve index from cbuffer");
+					}
+					RenderBindlessParameter(resolvedHeapIndex, objectTracker, descriptorTracker, addressTracker, selectedItemInViewer);
+				}
+
+			}
+		}
+	}
+
+	void GUI::RenderVertexBindlessParameters(SelectedItem* selectedItemInViewer)
+	{
+		RenderBindlessParameters<ShaderType::Vertex>(selectedItemInViewer);
+	}
+
+	void GUI::RenderPixelBindlessParameters(SelectedItem* selectedItemInViewer)
+	{
+		RenderBindlessParameters<ShaderType::Pixel>(selectedItemInViewer);
+	}
+
+	void GUI::RenderComputeBindlessParameters(SelectedItem* selectedItemInViewer)
+	{
+		RenderBindlessParameters<ShaderType::Compute>(selectedItemInViewer);
+	}
+
+	void GUI::RenderMeshBindlessParameters(SelectedItem* selectedItemInViewer)
+	{
+		RenderBindlessParameters<ShaderType::Mesh>(selectedItemInViewer);
+	}
+
+	void GUI::RenderAmplificationBindlessParameters(SelectedItem* selectedItemInViewer)
+	{
+		RenderBindlessParameters<ShaderType::Amplification>(selectedItemInViewer);
+	}
+
 	Bool GUI::Initialize(ID3D12Device* device)
 	{
 		return imguiManager.Initialize(device);
@@ -1098,6 +1183,7 @@ namespace vista
 			{
 				RenderRootParameterBinding(i, currentState.graphicsRootArguments[i], D3D12_SHADER_VISIBILITY_VERTEX, objectTracker, descriptorTracker, addressTracker, &selectedItemInViewer);
 			}
+			RenderVertexBindlessParameters(&selectedItemInViewer);
 			ImGui::TreePop();
 		}
 
@@ -1107,6 +1193,7 @@ namespace vista
 			{
 				RenderRootParameterBinding(i, currentState.graphicsRootArguments[i], D3D12_SHADER_VISIBILITY_PIXEL, objectTracker, descriptorTracker, addressTracker, &selectedItemInViewer);
 			}
+			RenderPixelBindlessParameters(&selectedItemInViewer);
 			ImGui::TreePop();
 		}
 
@@ -1224,6 +1311,7 @@ namespace vista
 			{
 				RenderRootParameterBinding(i, currentState.computeRootArguments[i], D3D12_SHADER_VISIBILITY_ALL, objectTracker, descriptorTracker, addressTracker, &selectedItemInViewer);
 			}
+			RenderComputeBindlessParameters(&selectedItemInViewer);
 			ImGui::TreePop();
 		}
 	}
@@ -1331,6 +1419,7 @@ namespace vista
 			{
 				RenderRootParameterBinding(i, currentState.graphicsRootArguments[i], D3D12_SHADER_VISIBILITY_AMPLIFICATION, objectTracker, descriptorTracker, addressTracker, &selectedItemInViewer);
 			}
+			RenderAmplificationBindlessParameters(&selectedItemInViewer);
 			ImGui::TreePop();
 		}
 
@@ -1340,6 +1429,7 @@ namespace vista
 			{
 				RenderRootParameterBinding(i, currentState.graphicsRootArguments[i], D3D12_SHADER_VISIBILITY_MESH, objectTracker, descriptorTracker, addressTracker, &selectedItemInViewer);
 			}
+			RenderMeshBindlessParameters(&selectedItemInViewer);
 			ImGui::TreePop();
 		}
 
@@ -1349,6 +1439,7 @@ namespace vista
 			{
 				RenderRootParameterBinding(i, currentState.graphicsRootArguments[i], D3D12_SHADER_VISIBILITY_PIXEL, objectTracker, descriptorTracker, addressTracker, &selectedItemInViewer);
 			}
+			RenderPixelBindlessParameters(&selectedItemInViewer);
 			ImGui::TreePop();
 		}
 

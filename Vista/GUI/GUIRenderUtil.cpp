@@ -1900,6 +1900,11 @@ namespace vista
 		}
 	}
 
+	void RenderBindlessParameter(Uint64 resourceDescriptorHeapIndex, ObjectTracker const& objectTracker, DescriptorTracker const& descriptorTracker, ResourceAddressTracker const& addressTracker, SelectedItem* selectedItemInViewer /*= nullptr*/)
+	{
+		VISTA_TODO("Implement this");
+	}
+
 	std::string GetResourceLabel(Char const* prefix, D3D12_GPU_VIRTUAL_ADDRESS address, ObjectTracker const& objectTracker, ResourceAddressTracker const& addressTracker)
 	{
 		ID3D12Resource* resource = addressTracker.QueryResource(address);

@@ -3,6 +3,19 @@
 
 namespace vista
 {
+	enum class ShaderType : Uint8
+	{
+		Vertex,
+		Domain,
+		Hull,
+		Geometry,
+		Pixel,
+		Compute,
+		Mesh,
+		Amplification,
+		RayTracingLibrary
+	};
+
 	struct ShaderBytecodeStorage
 	{
 		ShaderBytecodeStorage() = default;
@@ -100,7 +113,6 @@ namespace vista
 
 	struct CachedPSOStorage
 	{
-
 		CachedPSOStorage() = default;
 		CachedPSOStorage(D3D12_CACHED_PIPELINE_STATE const& desc)
 		{
@@ -168,7 +180,6 @@ namespace vista
 	struct StreamPSODescStorage
 	{
 		StreamPSODescStorage() = default;
-
 		StreamPSODescStorage(D3D12_PIPELINE_STATE_STREAM_DESC const& desc, ObjectTracker& tracker);
 
 		void ParseStream(ObjectTracker& tracker);

@@ -14,6 +14,7 @@ namespace vista
 	class RecorderManager;
 	class ListCommand;
 	struct SelectedItem;
+	enum class ShaderType : Uint8;
 
 	struct Globals
 	{
@@ -75,5 +76,15 @@ namespace vista
 
 		void RenderTexture2DPreview(ID3D12Resource*, Float);
 		void RenderBufferPreview(ID3D12Resource*);
+
+
+		template<ShaderType ST>
+		void RenderBindlessParameters(SelectedItem* selectedItemInViewer);
+
+		void RenderVertexBindlessParameters(SelectedItem* selectedItemInViewer);
+		void RenderPixelBindlessParameters(SelectedItem* selectedItemInViewer);
+		void RenderComputeBindlessParameters(SelectedItem* selectedItemInViewer);
+		void RenderMeshBindlessParameters(SelectedItem* selectedItemInViewer);
+		void RenderAmplificationBindlessParameters(SelectedItem* selectedItemInViewer);
 	};
 }
