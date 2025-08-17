@@ -118,7 +118,8 @@ namespace vista
 		std::memcpy(m.data.data() + begin,
 			static_cast<Uint8 const*>(m.lastMappedPtr) + begin,
 			n);
-		// We don’t keep the pointer after Unmap.
+
+		// We don't keep the pointer after Unmap.
 		m.lastMappedPtr = nullptr;
 	}
 
@@ -175,7 +176,7 @@ namespace vista
 		std::memcpy(md.data.data(), ms.data.data(), n);
 	}
 
-	Bool ResourceMirrorManager::ReadBytes(ID3D12Resource* resource, Uint64 offset, void* dst, Uint64 size) const
+	Bool ResourceMirrorManager::ReadBytes(ID3D12Resource* resource, Uint64 offset, void* dst, Uint64 size)
 	{
 		if (!resource || !dst || size == 0)
 		{
@@ -189,10 +190,18 @@ namespace vista
 			return false;
 		}
 
-		Mirror const& m = it->second;
+		Mirror& m = it->second;
 		if (offset + size > m.size)
 		{
 			return false;
+		}
+
+		//If persistently mapped
+		if (m.lastMappedPtr != nullptr) 
+		{
+			std::memcpy(m.data.data() + offset,
+				static_cast<Uint8 const*>(m.lastMappedPtr) + offset,
+				size);
 		}
 
 		std::memcpy(dst, m.data.data() + static_cast<Uint64>(offset), size);

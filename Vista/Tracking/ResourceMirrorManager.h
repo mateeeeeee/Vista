@@ -27,7 +27,7 @@ namespace vista
 		void OnCopyBuffer(ID3D12Resource* dst, UINT64 dstOffset, ID3D12Resource* src, UINT64 srcOffset, UINT64 numBytes);
 		void OnCopyResource(ID3D12Resource* dst, ID3D12Resource* src);
 
-		Bool ReadBytes(ID3D12Resource* resource, Uint64 offset, void* dst, Uint64 size) const;
+		Bool ReadBytes(ID3D12Resource* resource, Uint64 offset, void* dst, Uint64 size);
 
 	private:
 		std::unordered_map<ID3D12Resource*, Mirror> mirrorMap;
