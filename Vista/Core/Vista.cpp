@@ -146,7 +146,6 @@ namespace vista
 			return d3d12PFNs.Present(pSwapChain, syncInterval, flags);
 		}
 
-		VISTA_TODO("Hook DXGIFactory CreateSwapchain call");
 		static Bool backbuffersCaptured = false;
 		if (!backbuffersCaptured)
 		{
@@ -1192,7 +1191,10 @@ namespace vista
 		cmd.dstY = dstY;
 		cmd.dstZ = dstZ;
 		cmd.srcTextureId = objectTracker.GetObjectID(pSrc->pResource);
-		if(pSrcBox) cmd.srcBox = *pSrcBox;
+		if (pSrcBox)
+		{
+			cmd.srcBox = *pSrcBox;
+		}
 		return d3d12PFNs.CopyTextureRegion(pCommandList, pDst, dstX, dstY, dstZ, pSrc, pSrcBox);
 	}
 
@@ -1981,10 +1983,11 @@ namespace vista
 		}
 
 		VISTA_TODO("Include pix3.h?");
-		//D3D12_EVENT_METADATA == 2
+		static constexpr Uint32 D3D12_EVENT_METADATA = 2;
+
 		std::string name;
 		Uint64 color = 0xFFFFFFFF;
-		if (metadata == 2 && pData != nullptr && size >= (2 * sizeof(Uint64)))
+		if (metadata == D3D12_EVENT_METADATA && pData != nullptr && size >= (2 * sizeof(Uint64)))
 		{
 			Uint64 const* data64 = reinterpret_cast<Uint64 const*>(pData);
 			auto ExtractPixEventName = [](Uint64 const* buffer, Uint sizeInBytes) -> std::string

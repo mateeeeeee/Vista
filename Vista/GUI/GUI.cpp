@@ -6,6 +6,7 @@
 #include "Tracking/ObjectTracker.h"
 #include "Tracking/DescriptorTracker.h"
 #include "Tracking/ResourceAddressTracker.h"
+#include "Tracking/ResourceMirrorManager.h"
 #include "Visitors/EventListCommandVisitor.h"
 #include "Visitors/EventDetailsCommandVisitor.h"
 #include "Visitors/StateUpdateVisitor.h"
@@ -22,8 +23,7 @@
 
 namespace vista
 {
-	template<ShaderType ST>
-	void GUI::RenderBindlessParameters(SelectedItem* selectedItemInViewer)
+	void GUI::RenderBindlessParameters(ShaderType shaderType, SelectedItem* selectedItemInViewer)
 	{
 		if (currentState.pipelineStateId != InvalidObjectID)
 		{
@@ -32,78 +32,169 @@ namespace vista
 			{
 				PSODesc const& psoDesc = std::get<PSODesc>(psoInfo->objectDesc);
 				std::vector<BindlessAccess> bindlessAccesses;
+				Bool isComputePipeline = false;
+				D3D12_SHADER_VISIBILITY expectedVisibility = D3D12_SHADER_VISIBILITY_ALL;
 
-				if constexpr (ST == ShaderType::Vertex)
+				if (shaderType == ShaderType::Vertex)
 				{
 					if (GraphicsPSODescStorage const* gfxPsoDesc = std::get_if<GraphicsPSODescStorage>(&psoDesc))
 					{
 						bindlessAccesses = bindlessAccessCache.GetOrAdd(gfxPsoDesc->VS.GetBuffer(), gfxPsoDesc->VS.GetSize());
+						expectedVisibility = D3D12_SHADER_VISIBILITY_VERTEX;
 					}
 					else if (StreamPSODescStorage const* streamPsoDesc = std::get_if<StreamPSODescStorage>(&psoDesc))
 					{
 						bindlessAccesses = bindlessAccessCache.GetOrAdd(streamPsoDesc->VS.GetBuffer(), streamPsoDesc->VS.GetSize());
+						expectedVisibility = D3D12_SHADER_VISIBILITY_VERTEX;
 					}
 				}
-				else if constexpr (ST == ShaderType::Pixel)
+				else if (shaderType == ShaderType::Pixel)
 				{
 					if (GraphicsPSODescStorage const* gfxPsoDesc = std::get_if<GraphicsPSODescStorage>(&psoDesc))
 					{
 						bindlessAccesses = bindlessAccessCache.GetOrAdd(gfxPsoDesc->PS.GetBuffer(), gfxPsoDesc->PS.GetSize());
+						expectedVisibility = D3D12_SHADER_VISIBILITY_PIXEL;
 					}
 					else if (StreamPSODescStorage const* streamPsoDesc = std::get_if<StreamPSODescStorage>(&psoDesc))
 					{
 						bindlessAccesses = bindlessAccessCache.GetOrAdd(streamPsoDesc->PS.GetBuffer(), streamPsoDesc->PS.GetSize());
+						expectedVisibility = D3D12_SHADER_VISIBILITY_PIXEL;
 					}
 				}
-				else if constexpr (ST == ShaderType::Compute)
+				else if (shaderType == ShaderType::Compute)
 				{
 					if (ComputePSODescStorage const* computePsoDesc = std::get_if<ComputePSODescStorage>(&psoDesc))
 					{
 						bindlessAccesses = bindlessAccessCache.GetOrAdd(computePsoDesc->CS.GetBuffer(), computePsoDesc->CS.GetSize());
+						D3D12_SHADER_VISIBILITY expectedVisibility = D3D12_SHADER_VISIBILITY_ALL;
+						isComputePipeline = true;
 					}
 				}
 
 				for (BindlessAccess const& bindlessAccess : bindlessAccesses)
 				{
 					Uint64 resolvedHeapIndex = -1;
+					RootParameterBinding const* rootParameterBinding = nullptr;
 					if (bindlessAccess.Index.type == IndexSourceType::ImmediateConstant)
 					{
 						resolvedHeapIndex = std::get<Uint64>(bindlessAccess.Index.details);
 					}
 					else if (bindlessAccess.Index.type == IndexSourceType::ConstantBuffer)
 					{
-						VISTA_TODO("Resolve index from cbuffer");
-					}
-					RenderBindlessParameter(resolvedHeapIndex, objectTracker, descriptorTracker, addressTracker, selectedItemInViewer);
-				}
+						CBufferSourceInfo const& cbufferSourceInfo = std::get<CBufferSourceInfo>(bindlessAccess.Index.details);
+						Uint32 const cbufferSlot = cbufferSourceInfo.ResourceBinding;
+						Uint32 const cbufferSpace = cbufferSourceInfo.ResourceSpace;
+						Uint32 const cbufferOffset = cbufferSourceInfo.ByteOffset;
 
+						ObjectID rootSignatureId = isComputePipeline ? currentState.computeRootSignatureId : currentState.graphicsRootSignatureId;
+						std::vector<RootParameterBinding> const& rootArgs = isComputePipeline ? currentState.computeRootArguments : currentState.graphicsRootArguments;
+
+						TrackedObjectInfo const* rootSigInfo = objectTracker.GetObjectInfo(rootSignatureId);
+						if (rootSigInfo && rootSigInfo->objectType == ObjectType::RootSignature)
+						{
+							RootSignatureDesc const& rootSignatureDesc = std::get<RootSignatureDesc>(rootSigInfo->objectDesc);
+
+							for (Uint32 i = 0; i < rootSignatureDesc.Parameters.size(); ++i)
+							{
+								RootParameter const& param = rootSignatureDesc.Parameters[i];
+
+								Bool const matches =
+									(param.ParameterType == D3D12_ROOT_PARAMETER_TYPE_CBV &&
+										param.Descriptor.ShaderRegister == cbufferSlot &&
+										param.Descriptor.RegisterSpace == cbufferSpace)
+									||
+									(param.ParameterType == D3D12_ROOT_PARAMETER_TYPE_32BIT_CONSTANTS &&
+										param.Constants.ShaderRegister == cbufferSlot &&
+										param.Constants.RegisterSpace == cbufferSpace);
+
+								if (!matches)
+								{
+									continue;
+								}
+
+								if (i >= rootArgs.size())
+								{
+									break;
+								}
+
+								const RootParameterBinding& binding = rootArgs[i];
+								rootParameterBinding = &binding;
+								if (!binding.isSet)
+								{
+									break;
+								}
+
+								if (binding.type == D3D12_ROOT_PARAMETER_TYPE_CBV)
+								{
+									D3D12_GPU_VIRTUAL_ADDRESS gpuVA = std::get<D3D12_GPU_VIRTUAL_ADDRESS>(binding.value);
+									if (ID3D12Resource* res = addressTracker.QueryResource(gpuVA))
+									{
+										Uint64 baseVA = res->GetGPUVirtualAddress();
+										Uint32 heapIndex = 0;
+										Uint64 offset = (gpuVA - baseVA) + cbufferOffset;
+										if (mirrorManager.ReadBytes(res, offset, &heapIndex, sizeof(heapIndex)))
+										{
+											resolvedHeapIndex = heapIndex;
+										}
+									}
+								}
+								else if (binding.type == D3D12_ROOT_PARAMETER_TYPE_32BIT_CONSTANTS)
+								{
+									auto const& consts = std::get<RootParameterBinding::RootConstants>(binding.value);
+									Uint32 dwordIndex = cbufferOffset / 4;
+									if (dwordIndex < consts.size())
+									{
+										resolvedHeapIndex = consts[dwordIndex];
+									}
+								}
+								break; 
+							}
+						}
+						else
+						{
+							continue;
+						}
+					}
+					else
+					{
+						VISTA_TODO("Support other cases");
+						continue;
+					}
+
+					Uint32 const heapIndex = bindlessAccess.ResourceClass != hlsl::DXIL::ResourceClass::Sampler ? 0 : 1;
+					if (rootParameterBinding)
+					{
+						RenderBindlessParameter(currentState.descriptorHeapIds[heapIndex], resolvedHeapIndex, *rootParameterBinding, expectedVisibility,
+							objectTracker, descriptorTracker, addressTracker, selectedItemInViewer);
+					}
+				}
 			}
 		}
 	}
 
 	void GUI::RenderVertexBindlessParameters(SelectedItem* selectedItemInViewer)
 	{
-		RenderBindlessParameters<ShaderType::Vertex>(selectedItemInViewer);
+		RenderBindlessParameters(ShaderType::Vertex, selectedItemInViewer);
 	}
 
 	void GUI::RenderPixelBindlessParameters(SelectedItem* selectedItemInViewer)
 	{
-		RenderBindlessParameters<ShaderType::Pixel>(selectedItemInViewer);
+		RenderBindlessParameters(ShaderType::Pixel, selectedItemInViewer);
 	}
 
 	void GUI::RenderComputeBindlessParameters(SelectedItem* selectedItemInViewer)
 	{
-		RenderBindlessParameters<ShaderType::Compute>(selectedItemInViewer);
+		RenderBindlessParameters(ShaderType::Compute, selectedItemInViewer);
 	}
 
 	void GUI::RenderMeshBindlessParameters(SelectedItem* selectedItemInViewer)
 	{
-		RenderBindlessParameters<ShaderType::Mesh>(selectedItemInViewer);
+		RenderBindlessParameters(ShaderType::Mesh, selectedItemInViewer);
 	}
 
 	void GUI::RenderAmplificationBindlessParameters(SelectedItem* selectedItemInViewer)
 	{
-		RenderBindlessParameters<ShaderType::Amplification>(selectedItemInViewer);
+		RenderBindlessParameters(ShaderType::Amplification, selectedItemInViewer);
 	}
 
 	Bool GUI::Initialize(ID3D12Device* device)

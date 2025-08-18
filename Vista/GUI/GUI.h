@@ -32,8 +32,8 @@ namespace vista
 	public:
 		explicit GUI(Globals globals)
 			: objectTracker(globals.objectTracker), descriptorTracker(globals.descriptorTracker), 
-			  addressTracker(globals.addressTracker), copyRequestManager(globals.copyRequestManager),
-			  bindlessAccessCache(globals.bindlessAccessCache)
+			  addressTracker(globals.addressTracker), mirrorManager(globals.mirrorManager),
+			  copyRequestManager(globals.copyRequestManager), bindlessAccessCache(globals.bindlessAccessCache)
 		{}
 		~GUI() = default;
 
@@ -49,6 +49,7 @@ namespace vista
 		ObjectTracker const& objectTracker;
 		DescriptorTracker const& descriptorTracker;
 		ResourceAddressTracker const& addressTracker;
+		ResourceMirrorManager const& mirrorManager;
 		ResourceCopyRequestManager& copyRequestManager;
 		BindlessAccessCache& bindlessAccessCache;
 
@@ -80,8 +81,7 @@ namespace vista
 		void RenderBufferPreview(ID3D12Resource*);
 
 
-		template<ShaderType ST>
-		void RenderBindlessParameters(SelectedItem* selectedItemInViewer);
+		void RenderBindlessParameters(ShaderType shaderType, SelectedItem* selectedItemInViewer);
 
 		void RenderVertexBindlessParameters(SelectedItem* selectedItemInViewer);
 		void RenderPixelBindlessParameters(SelectedItem* selectedItemInViewer);

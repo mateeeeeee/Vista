@@ -310,7 +310,6 @@ namespace vista
 	}
 	std::unordered_map<ObjectID, TrackedDescriptorHeapInfo> const& DescriptorTracker::GetTrackedHeaps() const
 	{
-		VISTA_TODO("Add MT Detector");
 		return trackedHeaps;
 	}
 
