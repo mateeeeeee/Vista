@@ -1909,8 +1909,6 @@ namespace vista
 		TrackedObjectInfo const* resourceInfo = objectTracker.GetObjectInfo(descriptorInfo->resourceId);
 		ID3D12Resource* resource = resourceInfo ? reinterpret_cast<ID3D12Resource*>(resourceInfo->objectPtr) : nullptr;
 		ImGui::PushID(static_cast<Int>(heapId));
-		ImGui::PushID(static_cast<Int>(descriptorIndex));
-
 		if (selectedItemInViewer)
 		{
 			if (resource || descriptorInfo->type == DescriptorViewType::Sampler)
@@ -1951,7 +1949,6 @@ namespace vista
 		{
 			ImGui::Text("%s", paramLabel.c_str());
 		}
-		ImGui::PopID();
 		ImGui::PopID();
 	}
 
