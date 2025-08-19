@@ -68,11 +68,8 @@ namespace vista
 	void RenderBindlessParameter(
 		ObjectID heapId, 
 		Uint64 resourceDescriptorHeapIndex, 
-		RootParameterBinding const& binding, 
-		D3D12_SHADER_VISIBILITY expectedVisibility,
 		ObjectTracker const& objectTracker, 
 		DescriptorTracker const& descriptorTracker, 
-		ResourceAddressTracker const& addressTracker, 
 		SelectedItem* selectedItemInViewer = nullptr);
 
 	TrackedObjectInfo const* RenderObjectInfoByID(ObjectID id, ObjectTracker const& tracker, Char const* label = "");

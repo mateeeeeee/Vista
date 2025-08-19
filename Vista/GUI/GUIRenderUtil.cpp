@@ -1765,7 +1765,7 @@ namespace vista
 					ImGui::PushID(static_cast<int>(heapId) ^ descriptorIndex);
 				}
 
-				Bool isSelected = selectedItemInViewer->Matches(resource, heapId, descriptorIndex);
+				Bool isSelected = selectedItemInViewer->Matches(descriptorInfo.resourceId, heapId, descriptorIndex);
 				if (ImGui::Selectable(paramLabel.c_str(), &isSelected))
 				{
 					if (isSelected)
@@ -1900,40 +1900,20 @@ namespace vista
 		}
 	}
 
-	void RenderBindlessParameter(ObjectID heapId, Uint64 resourceDescriptorHeapIndex, RootParameterBinding const& binding, D3D12_SHADER_VISIBILITY expectedVisibility, 
-		ObjectTracker const& objectTracker, DescriptorTracker const& descriptorTracker, ResourceAddressTracker const& addressTracker, SelectedItem* selectedItemInViewer /*= nullptr*/)
+	void RenderBindlessParameter(ObjectID heapId, Uint64 resourceDescriptorHeapIndex, 
+		ObjectTracker const& objectTracker, DescriptorTracker const& descriptorTracker, SelectedItem* selectedItemInViewer /*= nullptr*/)
 	{
-		if ((binding.shaderVisibility != D3D12_SHADER_VISIBILITY_ALL && binding.shaderVisibility != expectedVisibility))
-		{
-			return;
-		}
-
 		std::string paramLabel = std::format("Bindless Parameter Heap Index {}: ", resourceDescriptorHeapIndex);
-		ID3D12Resource* resource = nullptr;
-		TrackedObjectInfo const* resourceInfo = nullptr;
 		Int descriptorIndex = (Int)resourceDescriptorHeapIndex;
-		DescriptorInfo descriptorInfo;
-
-		if (!binding.isSet)
-		{
-			paramLabel += "<not bound> [";
-			paramLabel += std::format("Type: {}, Visibility: {}]",
-				D3D12RootParameterTypeToString(binding.type),
-				D3D12ShaderVisibilityToString(binding.shaderVisibility));
-		}
-		else
-		{
-			descriptorInfo = *descriptorTracker.GetDescriptorInfo(heapId, descriptorIndex);
-			resourceInfo = objectTracker.GetObjectInfo(descriptorInfo.resourceId);
-			resource = reinterpret_cast<ID3D12Resource*>(resourceInfo->objectPtr);
-		}
-
+		DescriptorInfo const* descriptorInfo = descriptorTracker.GetDescriptorInfo(heapId, descriptorIndex);
+		TrackedObjectInfo const* resourceInfo = objectTracker.GetObjectInfo(descriptorInfo->resourceId);
+		ID3D12Resource* resource = resourceInfo ? reinterpret_cast<ID3D12Resource*>(resourceInfo->objectPtr) : nullptr;
 		ImGui::PushID(static_cast<Int>(heapId));
 		ImGui::PushID(static_cast<Int>(descriptorIndex));
 
 		if (selectedItemInViewer)
 		{
-			if (resource || descriptorInfo.type == DescriptorViewType::Sampler)
+			if (resource || descriptorInfo->type == DescriptorViewType::Sampler)
 			{
 				if (resource)
 				{
@@ -1944,7 +1924,7 @@ namespace vista
 					ImGui::PushID(static_cast<int>(heapId) ^ descriptorIndex);
 				}
 
-				Bool isSelected = selectedItemInViewer->Matches(resource, heapId, descriptorIndex);
+				Bool isSelected = selectedItemInViewer->Matches(descriptorInfo->resourceId, heapId, descriptorIndex);
 				if (ImGui::Selectable(paramLabel.c_str(), &isSelected))
 				{
 					if (isSelected)
@@ -1953,7 +1933,7 @@ namespace vista
 						selectedItemInViewer->resource = resource;
 						selectedItemInViewer->heapId = heapId;
 						selectedItemInViewer->descriptorIndex = descriptorIndex;
-						selectedItemInViewer->descriptorInfo = descriptorInfo;
+						selectedItemInViewer->descriptorInfo = *descriptorInfo;
 					}
 					else
 					{
@@ -1971,7 +1951,6 @@ namespace vista
 		{
 			ImGui::Text("%s", paramLabel.c_str());
 		}
-
 		ImGui::PopID();
 		ImGui::PopID();
 	}
@@ -2004,7 +1983,7 @@ namespace vista
 		{
 			ImGui::PushID(resource);
 		}
-		Bool isSelected = selectedItem.Matches(resource, InvalidObjectID, -1);
+		Bool isSelected = selectedItem.Matches(descInfo.resourceId, InvalidObjectID, -1);
 		if (ImGui::Selectable(label.c_str(), &isSelected))
 		{
 			if (isSelected)

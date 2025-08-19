@@ -19,7 +19,7 @@ namespace vista
 		{
 			return { IndexSourceType::ImmediateConstant, constInt->getZExtValue() };
 		}
-		auto GetCBufferInfo = [&](llvm::Value* handleValue) -> hlsl::DxilCBuffer const*
+		auto GetCBufferInfo = [&](llvm::Value* handleValue) -> std::optional<hlsl::DxilCBuffer>
 		{
 			llvm::Value* currentHandle = handleValue;
 			while (currentHandle) 
@@ -42,7 +42,7 @@ namespace vista
 						if (static_cast<hlsl::DXIL::ResourceClass>(resClassVal->getZExtValue()) == hlsl::DXIL::ResourceClass::CBuffer) 
 						{
 							llvm::ConstantInt* rangeIdVal = llvm::cast<llvm::ConstantInt>(resBind->getAggregateElement(0u));
-							return &module.GetCBuffer((Uint32)rangeIdVal->getZExtValue());
+							return module.GetCBuffer((Uint32)rangeIdVal->getZExtValue());
 						}
 					}
 					break; 
@@ -54,7 +54,7 @@ namespace vista
 					if (static_cast<hlsl::DXIL::ResourceClass>(resClassVal->getZExtValue()) == hlsl::DXIL::ResourceClass::CBuffer) 
 					{
 						llvm::ConstantInt* rangeIdVal = llvm::cast<llvm::ConstantInt>(call->getArgOperand(2));
-						return &module.GetCBuffer((Uint32)rangeIdVal->getZExtValue());
+						return module.GetCBuffer((Uint32)rangeIdVal->getZExtValue());
 					}
 					break;
 				}
@@ -67,7 +67,7 @@ namespace vista
 					break;
 				}
 			}
-			return nullptr; 
+			return std::nullopt; 
 		};
 
 		//The index comes directly from a load instruction.
@@ -77,7 +77,7 @@ namespace vista
 			if (dxilOp->getOpCode(call) == hlsl::DXIL::OpCode::BufferLoad) 
 			{
 				//CBV: BufferLoad(handle, byte_offset, alignment)
-				hlsl::DxilCBuffer const* cbuffer = GetCBufferInfo(call->getArgOperand(1));
+				std::optional<hlsl::DxilCBuffer> cbuffer = GetCBufferInfo(call->getArgOperand(1));
 				if (cbuffer) 
 				{
 					if (llvm::ConstantInt* offsetConst = llvm::dyn_cast<llvm::ConstantInt>(call->getArgOperand(2)))
@@ -100,7 +100,7 @@ namespace vista
 				hlsl::OP* dxilOp = module.GetOP();
 				if (dxilOp->getOpCode(call) == hlsl::DXIL::OpCode::CBufferLoadLegacy) 
 				{
-					hlsl::DxilCBuffer const* cbuffer = GetCBufferInfo(call->getArgOperand(1));
+					std::optional<hlsl::DxilCBuffer> cbuffer = GetCBufferInfo(call->getArgOperand(1));
 					if (cbuffer) 
 					{
 						Uint32 baseByteOffset = 0;

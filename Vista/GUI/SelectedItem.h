@@ -37,11 +37,11 @@ namespace vista
 		Int descriptorIndex = -1;
 		DescriptorInfo descriptorInfo;
 
-		Bool Matches(ID3D12Resource* res, ObjectID hId, Int index) const
+		Bool Matches(ObjectID resId, ObjectID hId, Int index) const
 		{
 			if (type == Type::None) return false;
-			if (res && type == Type::Resource) return resource == res;
-			if (!res && type == Type::Sampler) return heapId == hId && descriptorIndex == index;
+			if (type == Type::Resource) return descriptorInfo.resourceId == resId;
+			if (type == Type::Sampler) return heapId == hId && descriptorIndex == index;
 			return false;
 		}
 

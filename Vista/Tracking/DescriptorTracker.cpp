@@ -308,6 +308,7 @@ namespace vista
 		}
 		return nullptr;
 	}
+
 	std::unordered_map<ObjectID, TrackedDescriptorHeapInfo> const& DescriptorTracker::GetTrackedHeaps() const
 	{
 		return trackedHeaps;
