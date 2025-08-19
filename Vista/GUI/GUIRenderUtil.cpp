@@ -1765,7 +1765,7 @@ namespace vista
 					ImGui::PushID(static_cast<int>(heapId) ^ descriptorIndex);
 				}
 
-				Bool isSelected = selectedItemInViewer->Matches(resource, heapId, descriptorIndex);
+				Bool isSelected = selectedItemInViewer->Matches(descriptorInfo.resourceId, heapId, descriptorIndex);
 				if (ImGui::Selectable(paramLabel.c_str(), &isSelected))
 				{
 					if (isSelected)
@@ -1900,6 +1900,58 @@ namespace vista
 		}
 	}
 
+	void RenderBindlessParameter(ObjectID heapId, Uint64 resourceDescriptorHeapIndex, 
+		ObjectTracker const& objectTracker, DescriptorTracker const& descriptorTracker, SelectedItem* selectedItemInViewer /*= nullptr*/)
+	{
+		std::string paramLabel = std::format("Bindless Parameter Heap Index {}: ", resourceDescriptorHeapIndex);
+		Int descriptorIndex = (Int)resourceDescriptorHeapIndex;
+		DescriptorInfo const* descriptorInfo = descriptorTracker.GetDescriptorInfo(heapId, descriptorIndex);
+		TrackedObjectInfo const* resourceInfo = objectTracker.GetObjectInfo(descriptorInfo->resourceId);
+		ID3D12Resource* resource = resourceInfo ? reinterpret_cast<ID3D12Resource*>(resourceInfo->objectPtr) : nullptr;
+		ImGui::PushID(static_cast<Int>(heapId));
+		if (selectedItemInViewer)
+		{
+			if (resource || descriptorInfo->type == DescriptorViewType::Sampler)
+			{
+				if (resource)
+				{
+					ImGui::PushID(resource);
+				}
+				else
+				{
+					ImGui::PushID(static_cast<int>(heapId) ^ descriptorIndex);
+				}
+
+				Bool isSelected = selectedItemInViewer->Matches(descriptorInfo->resourceId, heapId, descriptorIndex);
+				if (ImGui::Selectable(paramLabel.c_str(), &isSelected))
+				{
+					if (isSelected)
+					{
+						selectedItemInViewer->type = resource ? SelectedItem::Type::Resource : SelectedItem::Type::Sampler;
+						selectedItemInViewer->resource = resource;
+						selectedItemInViewer->heapId = heapId;
+						selectedItemInViewer->descriptorIndex = descriptorIndex;
+						selectedItemInViewer->descriptorInfo = *descriptorInfo;
+					}
+					else
+					{
+						selectedItemInViewer->Reset();
+					}
+				}
+				ImGui::PopID();
+			}
+			else
+			{
+				ImGui::Text("%s", paramLabel.c_str());
+			}
+		}
+		else
+		{
+			ImGui::Text("%s", paramLabel.c_str());
+		}
+		ImGui::PopID();
+	}
+
 	std::string GetResourceLabel(Char const* prefix, D3D12_GPU_VIRTUAL_ADDRESS address, ObjectTracker const& objectTracker, ResourceAddressTracker const& addressTracker)
 	{
 		ID3D12Resource* resource = addressTracker.QueryResource(address);
@@ -1928,7 +1980,7 @@ namespace vista
 		{
 			ImGui::PushID(resource);
 		}
-		Bool isSelected = selectedItem.Matches(resource, InvalidObjectID, -1);
+		Bool isSelected = selectedItem.Matches(descInfo.resourceId, InvalidObjectID, -1);
 		if (ImGui::Selectable(label.c_str(), &isSelected))
 		{
 			if (isSelected)

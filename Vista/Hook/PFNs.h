@@ -99,6 +99,8 @@ namespace vista
 
 		d3d12::PFN_D3D12Resource_Release Resource_Release;
 		d3d12::PFN_D3D12Resource_SetName Resource_SetName;
+		d3d12::PFN_D3D12Resource_Map	 Resource_Map;
+		d3d12::PFN_D3D12Resource_Unmap	 Resource_Unmap;
 
 		d3d12::PFN_D3D12Fence_GetCompletedValue GetCompletedValue;
 		d3d12::PFN_D3D12Fence_SetEventOnCompletion SetEventOnCompletion;

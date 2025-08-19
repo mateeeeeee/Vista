@@ -9,19 +9,32 @@ namespace vista
 	class DescriptorTracker;
 	class ResourceAddressTracker;
 	class ResourceCopyRequestManager;
+	class ResourceMirrorManager;
+	class BindlessAccessCache;
 	class Command;
 	class RecorderManager;
 	class ListCommand;
 	struct SelectedItem;
+	enum class ShaderType : Uint8;
+
+	struct Globals
+	{
+		ObjectTracker const& objectTracker;
+		DescriptorTracker const& descriptorTracker;
+		ResourceAddressTracker const& addressTracker;
+		ResourceMirrorManager const& mirrorManager;
+		ResourceCopyRequestManager& copyRequestManager;
+		BindlessAccessCache& bindlessAccessCache;
+	};
 
 	class GUI
 	{
 	public:
-		GUI(ObjectTracker const& objectTracker, 
-			DescriptorTracker const& descriptorTracker, 
-			ResourceAddressTracker const& addressTracker, 
-			ResourceCopyRequestManager& copyRequestManager)
-			: objectTracker(objectTracker), descriptorTracker(descriptorTracker), addressTracker(addressTracker), copyRequestManager(copyRequestManager) {}
+		explicit GUI(Globals globals)
+			: objectTracker(globals.objectTracker), descriptorTracker(globals.descriptorTracker), 
+			  addressTracker(globals.addressTracker), mirrorManager(globals.mirrorManager),
+			  copyRequestManager(globals.copyRequestManager), bindlessAccessCache(globals.bindlessAccessCache)
+		{}
 		~GUI() = default;
 
 		Bool Initialize(ID3D12Device*);
@@ -36,7 +49,10 @@ namespace vista
 		ObjectTracker const& objectTracker;
 		DescriptorTracker const& descriptorTracker;
 		ResourceAddressTracker const& addressTracker;
+		ResourceMirrorManager const& mirrorManager;
 		ResourceCopyRequestManager& copyRequestManager;
+		BindlessAccessCache& bindlessAccessCache;
+
 		ImGuiManager imguiManager;
 		Bool isFreezed = false;
 
@@ -63,5 +79,14 @@ namespace vista
 
 		void RenderTexture2DPreview(ID3D12Resource*, Float);
 		void RenderBufferPreview(ID3D12Resource*);
+
+
+		void RenderBindlessParameters(ShaderType shaderType, SelectedItem* selectedItemInViewer);
+
+		void RenderVertexBindlessParameters(SelectedItem* selectedItemInViewer);
+		void RenderPixelBindlessParameters(SelectedItem* selectedItemInViewer);
+		void RenderComputeBindlessParameters(SelectedItem* selectedItemInViewer);
+		void RenderMeshBindlessParameters(SelectedItem* selectedItemInViewer);
+		void RenderAmplificationBindlessParameters(SelectedItem* selectedItemInViewer);
 	};
 }

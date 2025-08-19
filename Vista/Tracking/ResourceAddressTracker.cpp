@@ -12,7 +12,6 @@ namespace vista
 	void ResourceAddressTracker::OnResourceCreated(ID3D12Resource* resource, D3D12_RESOURCE_DESC const& desc, ID3D12Heap* heap /*= nullptr*/)
 	{
 		VISTA_ASSERT(device);
-
 		if (desc.Dimension != D3D12_RESOURCE_DIMENSION_BUFFER)
 		{
 			return;
@@ -21,7 +20,6 @@ namespace vista
 		if (resource)
 		{
 			std::lock_guard lock(addressMutex);
-
 			D3D12_RESOURCE_ALLOCATION_INFO info = device->GetResourceAllocationInfo(0, 1, &desc);
 			AddressInfo addressInfo;
 			addressInfo.startAddress = resource->GetGPUVirtualAddress();

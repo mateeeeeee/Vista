@@ -125,21 +125,22 @@
     <ClCompile>
       <WarningLevel>Level3</WarningLevel>
       <SDLCheck>true</SDLCheck>
-      <PreprocessorDefinitions>_DEBUG;VISTA_EXPORTS;_WINDOWS;_USRDLL;%(PreprocessorDefinitions);DH_USE_D3D12;_CRT_SECURE_NO_WARNINGS</PreprocessorDefinitions>
+      <PreprocessorDefinitions>VISTA_DEBUG;VISTA_EXPORTS;_WINDOWS;_USRDLL;%(PreprocessorDefinitions);DH_USE_D3D12;_CRT_SECURE_NO_WARNINGS;NOMINMAX</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <PrecompiledHeader>Use</PrecompiledHeader>
       <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
-      <AdditionalIncludeDirectories>$(SolutionDir)External;$(ProjectDir);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)External;$(ProjectDir);$(SolutionDir)External\dxc\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <LanguageStandard>stdcpp20</LanguageStandard>
       <ForcedIncludeFiles>pch.h</ForcedIncludeFiles>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
+      <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <EnableUAC>false</EnableUAC>
-      <AdditionalLibraryDirectories>$(SolutionDir)External\DirectHook\MinHook\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
-      <AdditionalDependencies>minhook.x64.lib;dxgi.lib;dxguid.lib;d3d12.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>$(SolutionDir)External\DirectHook\MinHook\lib;$(SolutionDir)External\dxc\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>minhook.x64.lib;dxgi.lib;dxguid.lib;d3d12.lib;dxil.lib;dxcompiler.lib;LLVMCore.lib;LLVMDXIL.lib;LLVMDxilContainer.lib;LLVMSupport.lib;LLVMMSSupport.lib;LLVMBitReader.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
     <PostBuildEvent>
       <Command>set "ICON_SRC=$(SolutionDir)Data\Logos\Vista.ico"
@@ -157,11 +158,11 @@ xcopy /Y /D "%INI_SRC%" "%INI_DST%\"</Command>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <SDLCheck>true</SDLCheck>
-      <PreprocessorDefinitions>NDEBUG;VISTA_EXPORTS;_WINDOWS;_USRDLL;%(PreprocessorDefinitions);DH_USE_D3D12;_CRT_SECURE_NO_WARNINGS</PreprocessorDefinitions>
+      <PreprocessorDefinitions>VISTA_RELEASE;VISTA_EXPORTS;_WINDOWS;_USRDLL;%(PreprocessorDefinitions);DH_USE_D3D12;_CRT_SECURE_NO_WARNINGS;NOMINMAX</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <PrecompiledHeader>Use</PrecompiledHeader>
       <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
-      <AdditionalIncludeDirectories>$(SolutionDir)External;$(ProjectDir);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)External;$(ProjectDir);$(SolutionDir)External\dxc\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <LanguageStandard>stdcpp20</LanguageStandard>
       <ForcedIncludeFiles>pch.h</ForcedIncludeFiles>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
@@ -172,8 +173,8 @@ xcopy /Y /D "%INI_SRC%" "%INI_DST%\"</Command>
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <EnableUAC>false</EnableUAC>
-      <AdditionalLibraryDirectories>$(SolutionDir)External\DirectHook\MinHook\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
-      <AdditionalDependencies>minhook.x64.lib;dxgi.lib;dxguid.lib;d3d12.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>$(SolutionDir)External\DirectHook\MinHook\lib;$(SolutionDir)External\dxc\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>minhook.x64.lib;dxgi.lib;dxguid.lib;d3d12.lib;dxil.lib;dxcompiler.lib;LLVMCore.lib;LLVMDXIL.lib;LLVMDxilContainer.lib;LLVMSupport.lib;LLVMMSSupport.lib;LLVMBitReader.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
     <PostBuildEvent>
       <Command>set "ICON_SRC=$(SolutionDir)Data\Logos\Vista.ico"
@@ -210,6 +211,9 @@ xcopy /Y /D "%INI_SRC%" "%INI_DST%\"</Command>
     <ClCompile Include="Core\Logging\LogSinks\DebuggerSink.cpp" />
     <ClCompile Include="Core\Logging\LogSinks\FileSink.cpp" />
     <ClCompile Include="dllmain.cpp" />
+    <ClCompile Include="DXIL\BindlessAccess.cpp" />
+    <ClCompile Include="DXIL\BindlessAccessCache.cpp" />
+    <ClCompile Include="DXIL\DxilModuleWrapper.cpp" />
     <ClCompile Include="GUI\BufferFormatParser.cpp" />
     <ClCompile Include="GUI\Fonts\roboto_compressed.cpp" />
     <ClCompile Include="GUI\GUIRenderUtil.cpp" />
@@ -228,6 +232,7 @@ xcopy /Y /D "%INI_SRC%" "%INI_DST%\"</Command>
     <ClCompile Include="Resource\ResourceCopyRequest.cpp" />
     <ClCompile Include="Tracking\DescriptorTracker.cpp" />
     <ClCompile Include="Tracking\ResourceAddressTracker.cpp" />
+    <ClCompile Include="Tracking\ResourceMirrorManager.cpp" />
     <ClCompile Include="Tracking\ResourceStateTracker.cpp" />
     <ClCompile Include="Tracking\Traits\PSOTraits.cpp" />
     <ClCompile Include="Utilities\StringUtil.cpp" />
@@ -267,6 +272,9 @@ xcopy /Y /D "%INI_SRC%" "%INI_DST%\"</Command>
     <ClInclude Include="Core\Logging\LogSinks\FileSink.h" />
     <ClInclude Include="Core\Macros.h" />
     <ClInclude Include="Core\Types.h" />
+    <ClInclude Include="DXIL\BindlessAccessCache.h" />
+    <ClInclude Include="DXIL\BindlessAccess.h" />
+    <ClInclude Include="DXIL\DxilModuleWrapper.h" />
     <ClInclude Include="GUI\BufferFormatParser.h" />
     <ClInclude Include="GUI\GUI.h" />
     <ClInclude Include="GUI\GUIRenderUtil.h" />
@@ -281,6 +289,7 @@ xcopy /Y /D "%INI_SRC%" "%INI_DST%\"</Command>
     <ClInclude Include="Resource\ResourceCopyRequest.h" />
     <ClInclude Include="Resource\ResourceCopyRequestManager.h" />
     <ClInclude Include="Tracking\ResourceAddressTracker.h" />
+    <ClInclude Include="Tracking\ResourceMirrorManager.h" />
     <ClInclude Include="Tracking\Traits\CommandSignatureTraits.h" />
     <ClInclude Include="Tracking\Traits\HeapTraits.h" />
     <ClInclude Include="Tracking\Traits\StateObjectTraits.h" />

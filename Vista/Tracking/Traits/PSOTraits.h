@@ -3,6 +3,19 @@
 
 namespace vista
 {
+	enum class ShaderType : Uint8
+	{
+		Vertex,
+		Domain,
+		Hull,
+		Geometry,
+		Pixel,
+		Compute,
+		Mesh,
+		Amplification,
+		RayTracingLibrary
+	};
+
 	struct ShaderBytecodeStorage
 	{
 		ShaderBytecodeStorage() = default;
@@ -17,8 +30,11 @@ namespace vista
 			}
 		}
 
+		void const* GetBuffer() const { return Bytecode.data(); }
+		Uint64 GetSize() const { return Bytecode.size(); }
 		Bool IsValid() const { return !Bytecode.empty(); }
-		D3D12_SHADER_BYTECODE GetBytecode() const 
+
+		D3D12_SHADER_BYTECODE GetD3D12Bytecode() const 
 		{
 			return { Bytecode.empty() ? nullptr : Bytecode.data(), Bytecode.size() };
 		}
@@ -97,7 +113,6 @@ namespace vista
 
 	struct CachedPSOStorage
 	{
-
 		CachedPSOStorage() = default;
 		CachedPSOStorage(D3D12_CACHED_PIPELINE_STATE const& desc)
 		{
@@ -165,7 +180,6 @@ namespace vista
 	struct StreamPSODescStorage
 	{
 		StreamPSODescStorage() = default;
-
 		StreamPSODescStorage(D3D12_PIPELINE_STATE_STREAM_DESC const& desc, ObjectTracker& tracker);
 
 		void ParseStream(ObjectTracker& tracker);

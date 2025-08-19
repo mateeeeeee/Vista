@@ -432,6 +432,16 @@ namespace vista::hooks
 		return g_Vista.OnSetName(pResource, Name);
 	}
 
+	HRESULT STDMETHODCALLTYPE Map(ID3D12Resource* pResource, UINT Subresource, const D3D12_RANGE* pReadRange, void** ppData)
+	{
+		return g_Vista.OnMap(pResource, Subresource, pReadRange, ppData);
+	}
+
+	void STDMETHODCALLTYPE Unmap(ID3D12Resource* pResource, UINT Subresource, const D3D12_RANGE* pWrittenRange)
+	{
+		return g_Vista.OnUnmap(pResource, Subresource, pWrittenRange);
+	}
+
 	UINT64 STDMETHODCALLTYPE GetCompletedValue(ID3D12Fence* pFence)
 	{
 		return g_Vista.OnGetCompletedValue(pFence);
@@ -446,6 +456,5 @@ namespace vista::hooks
 	{
 		return g_Vista.OnSignal(pFence, Value);
 	}
-
 }
 

@@ -123,6 +123,18 @@
     <ClCompile Include="GUI\BufferFormatParser.cpp">
       <Filter>GUI</Filter>
     </ClCompile>
+    <ClCompile Include="DXIL\DxilModuleWrapper.cpp">
+      <Filter>DXIL</Filter>
+    </ClCompile>
+    <ClCompile Include="DXIL\BindlessAccess.cpp">
+      <Filter>DXIL</Filter>
+    </ClCompile>
+    <ClCompile Include="DXIL\BindlessAccessCache.cpp">
+      <Filter>DXIL</Filter>
+    </ClCompile>
+    <ClCompile Include="Tracking\ResourceMirrorManager.cpp">
+      <Filter>Tracking</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="External">
@@ -178,6 +190,9 @@
     </Filter>
     <Filter Include="Resource">
       <UniqueIdentifier>{645c88ae-05dd-4cac-8065-cde40eb641f1}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="DXIL">
+      <UniqueIdentifier>{e5f213c3-4e9d-475b-b2ff-70d1db32a0a3}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -425,6 +440,18 @@
     </ClInclude>
     <ClInclude Include="Command\RTTI.h">
       <Filter>Command</Filter>
+    </ClInclude>
+    <ClInclude Include="DXIL\DxilModuleWrapper.h">
+      <Filter>DXIL</Filter>
+    </ClInclude>
+    <ClInclude Include="DXIL\BindlessAccess.h">
+      <Filter>DXIL</Filter>
+    </ClInclude>
+    <ClInclude Include="DXIL\BindlessAccessCache.h">
+      <Filter>DXIL</Filter>
+    </ClInclude>
+    <ClInclude Include="Tracking\ResourceMirrorManager.h">
+      <Filter>Tracking</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

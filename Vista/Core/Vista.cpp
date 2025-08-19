@@ -135,7 +135,7 @@ namespace vista
 		InitializeD3D12Hooks();
 		if (!GUI.Initialize(pDevice))
 		{
-			VISTA_ERROR("GUI initialization failed!");
+			VISTA_LOG(ERROR, "GUI initialization failed!");
 		}
 	}
 
@@ -146,7 +146,6 @@ namespace vista
 			return d3d12PFNs.Present(pSwapChain, syncInterval, flags);
 		}
 
-		VISTA_TODO("Hook DXGIFactory CreateSwapchain call");
 		static Bool backbuffersCaptured = false;
 		if (!backbuffersCaptured)
 		{
@@ -904,6 +903,7 @@ namespace vista
 
 			stateTracker.OnResourceCreated((ID3D12Resource*)*ppvResource, resourceDesc.initialResourceState);
 			addressTracker.OnResourceCreated((ID3D12Resource*)*ppvResource, resourceDesc.resourceDesc);
+			mirrorManager.OnResourceCreated((ID3D12Resource*)*ppvResource, resourceDesc.resourceDesc);
 		}
 		return hr;
 	}
@@ -934,6 +934,7 @@ namespace vista
 
 			stateTracker.OnResourceCreated((ID3D12Resource*)*ppvResource, resourceDesc.initialResourceState);
 			addressTracker.OnResourceCreated((ID3D12Resource*)*ppvResource, resourceDesc.resourceDesc);
+			mirrorManager.OnResourceCreated((ID3D12Resource*)*ppvResource, resourceDesc.resourceDesc);
 		}
 		return hr;
 	}
@@ -964,6 +965,7 @@ namespace vista
 
 			stateTracker.OnResourceCreated((ID3D12Resource*)*ppvResource, resourceDesc.initialResourceState);
 			addressTracker.OnResourceCreated((ID3D12Resource*)*ppvResource, resourceDesc.resourceDesc);
+			mirrorManager.OnResourceCreated((ID3D12Resource*)*ppvResource, resourceDesc.resourceDesc);
 		}
 		return hr;
 	}
@@ -1006,6 +1008,7 @@ namespace vista
 
 			stateTracker.OnResourceCreated((ID3D12Resource*)*ppvResource, resourceDesc.initialResourceState);
 			addressTracker.OnResourceCreated((ID3D12Resource*)*ppvResource, resourceDesc.resourceDesc);
+			mirrorManager.OnResourceCreated((ID3D12Resource*)*ppvResource, resourceDesc.resourceDesc);
 		}
 		return hr;
 	}
@@ -1168,6 +1171,8 @@ namespace vista
 		cmd.srcBufferId = objectTracker.GetObjectID(pSrcBuffer);
 		cmd.srcOffset = srcOffset;
 		cmd.numBytes = numBytes;
+
+		mirrorManager.OnCopyBuffer(pDstBuffer, dstOffset, pSrcBuffer, srcOffset, numBytes);
 		return d3d12PFNs.CopyBufferRegion(pCommandList, pDstBuffer, dstOffset, pSrcBuffer, srcOffset, numBytes);
 	}
 
@@ -1186,7 +1191,10 @@ namespace vista
 		cmd.dstY = dstY;
 		cmd.dstZ = dstZ;
 		cmd.srcTextureId = objectTracker.GetObjectID(pSrc->pResource);
-		if(pSrcBox) cmd.srcBox = *pSrcBox;
+		if (pSrcBox)
+		{
+			cmd.srcBox = *pSrcBox;
+		}
 		return d3d12PFNs.CopyTextureRegion(pCommandList, pDst, dstX, dstY, dstZ, pSrc, pSrcBox);
 	}
 
@@ -1200,6 +1208,7 @@ namespace vista
 		CopyResourceCommand& cmd = recorder.AddCommand<CopyResourceCommand>();
 		cmd.dstResourceId = objectTracker.GetObjectID(pDstResource);
 		cmd.srcResourceId = objectTracker.GetObjectID(pSrcResource);
+		mirrorManager.OnCopyResource(pDstResource, pSrcResource);
 		return d3d12PFNs.CopyResource(pCommandList, pDstResource, pSrcResource);
 	}
 
@@ -1974,10 +1983,11 @@ namespace vista
 		}
 
 		VISTA_TODO("Include pix3.h?");
-		//D3D12_EVENT_METADATA == 2
+		static constexpr Uint32 D3D12_EVENT_METADATA = 2;
+
 		std::string name;
 		Uint64 color = 0xFFFFFFFF;
-		if (metadata == 2 && pData != nullptr && size >= (2 * sizeof(Uint64)))
+		if (metadata == D3D12_EVENT_METADATA && pData != nullptr && size >= (2 * sizeof(Uint64)))
 		{
 			Uint64 const* data64 = reinterpret_cast<Uint64 const*>(pData);
 			auto ExtractPixEventName = [](Uint64 const* buffer, Uint sizeInBytes) -> std::string
@@ -2030,6 +2040,7 @@ namespace vista
 		{
 			stateTracker.OnResourceReleased(pResource);
 			addressTracker.OnResourceReleased(pResource);
+			mirrorManager.OnResourceReleased(pResource);
 		}
 		return refCount;
 	}
@@ -2048,6 +2059,26 @@ namespace vista
 		cmd.hr = hr;
 		objectTracker.SetDebugName(pResource, resourceName);
 		return hr;
+	}
+
+	HRESULT Vista::OnMap(ID3D12Resource* pResource, UINT subresource, const D3D12_RANGE* pReadRange, void** ppData)
+	{
+		if (g_isInsideVistaRender || GUI.IsFreezed())
+		{
+			return d3d12PFNs.Resource_Map(pResource, subresource, pReadRange, ppData);
+		}
+		mirrorManager.OnMap(pResource, subresource, pReadRange, ppData);
+		return d3d12PFNs.Resource_Map(pResource, subresource, pReadRange, ppData);
+	}
+
+	void Vista::OnUnmap(ID3D12Resource* pResource, UINT subresource, const D3D12_RANGE* pWrittenRange)
+	{
+		if (g_isInsideVistaRender || GUI.IsFreezed())
+		{
+			return d3d12PFNs.Resource_Unmap(pResource, subresource, pWrittenRange);
+		}
+		mirrorManager.OnUnmap(pResource, subresource, pWrittenRange);
+		return d3d12PFNs.Resource_Unmap(pResource, subresource, pWrittenRange);
 	}
 
 	UINT64 Vista::OnGetCompletedValue(ID3D12Fence* pFence)
@@ -2110,10 +2141,6 @@ namespace vista
 				if (pCommandList4)
 				{
 					d3d12PFNs.EndRenderPass(pCommandList4.Get());
-				}
-				else
-				{
-					beginRenderPassCmd = nullptr;
 				}
 			}
 

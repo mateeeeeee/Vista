@@ -33,12 +33,13 @@ quickly identifying problematic command patterns, or generally observing GPU beh
   - Resource information and descriptor view metadata shown side-by-side
   - Buffer format window for specifying custom buffer formats
   - Channel and mip selection for `Texture2D` preview
+  - Partial support for bindless resources via DXIL parsing 
+	- Immediate constants and constant buffer values used as indices to access `ResourceDescriptorHeap`
 
 ## Current State
 <img align="center" padding="2" src="Data/UI.png"/>
 
 ## Current Limitations & Future Plans
-- Bindless resources are not yet supported
 - `Buffer` and `Texture2D` resources are previewable  
   - Support for other resources such as `Texture1D, Texture2DArray`, etc., is planned
 - UI/UX improvements 

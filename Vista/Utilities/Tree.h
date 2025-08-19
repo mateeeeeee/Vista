@@ -14,7 +14,7 @@ namespace vista
 
 	public:
 		TreeNode(std::string const& node_name, T const& node_data,
-			AllocatorT& alloc, TreeNode* parent_node = nullptr)
+			NodeAllocator& alloc, TreeNode* parent_node = nullptr)
 			: name(node_name),
 			data(node_data),
 			parent(parent_node),
@@ -151,7 +151,7 @@ namespace vista
 		std::string name;
 		T data;
 		std::vector<TreeNode*> children;
-		AllocatorT& allocator;
+		NodeAllocator& allocator;
 	};
 
 	template<typename T, typename AllocatorT>

@@ -65,6 +65,13 @@ namespace vista
 		std::span<RootParameterBinding const> rootArgs,
 		Char const* rootSignatureLabel = "Root Signature Parameters");
 
+	void RenderBindlessParameter(
+		ObjectID heapId, 
+		Uint64 resourceDescriptorHeapIndex, 
+		ObjectTracker const& objectTracker, 
+		DescriptorTracker const& descriptorTracker, 
+		SelectedItem* selectedItemInViewer = nullptr);
+
 	TrackedObjectInfo const* RenderObjectInfoByID(ObjectID id, ObjectTracker const& tracker, Char const* label = "");
 	std::string GetResourceLabel(Char const* prefix, D3D12_GPU_VIRTUAL_ADDRESS address, ObjectTracker const& objectTracker, ResourceAddressTracker const& addressTracker);
 	std::string GetResourceLabel(Char const* prefix, ID3D12Resource* resource, ObjectTracker const& objectTracker, ResourceAddressTracker const& addressTracker);

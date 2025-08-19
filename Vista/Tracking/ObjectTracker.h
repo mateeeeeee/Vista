@@ -142,7 +142,6 @@ namespace vista
 			return objectList;
 		}
 
-
 	private:
 		mutable std::mutex objectMutex;
 		std::unordered_map<void*, TrackedObjectInfo> trackedObjects;
