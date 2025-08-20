@@ -37,12 +37,25 @@ namespace vista
 					llvm::Constant* resBind = llvm::dyn_cast<llvm::Constant>(call->getArgOperand(1));
 					if (resBind) 
 					{
-						//ResBind struct: { rangeId, space, lowerBound, resourceClass }
+						//ResBind struct: { lowerBound, upperBound, space, resourceClass }
 						llvm::ConstantInt* resClassVal = llvm::cast<llvm::ConstantInt>(resBind->getAggregateElement(3u));
 						if (static_cast<hlsl::DXIL::ResourceClass>(resClassVal->getZExtValue()) == hlsl::DXIL::ResourceClass::CBuffer) 
 						{
-							llvm::ConstantInt* rangeIdVal = llvm::cast<llvm::ConstantInt>(resBind->getAggregateElement(0u));
-							return module.GetCBuffer((Uint32)rangeIdVal->getZExtValue());
+							llvm::ConstantInt* lowerBound = llvm::cast<llvm::ConstantInt>(resBind->getAggregateElement(0u));
+							llvm::ConstantInt* upperBound = llvm::cast<llvm::ConstantInt>(resBind->getAggregateElement(1u));
+							llvm::ConstantInt* registerSpace = llvm::cast<llvm::ConstantInt>(resBind->getAggregateElement(2u));
+
+							auto const& cbuffers = module.GetCBuffers();
+							for (auto const& cbuffer : cbuffers)
+							{
+								if (cbuffer->GetLowerBound() == lowerBound->getZExtValue() &&
+									cbuffer->GetUpperBound() == upperBound->getZExtValue() &&
+									cbuffer->GetSpaceID() == registerSpace->getZExtValue())
+								{
+									return *cbuffer;
+								}
+							}
+							return std::nullopt;
 						}
 					}
 					break; 
