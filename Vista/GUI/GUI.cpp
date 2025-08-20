@@ -291,7 +291,7 @@ namespace vista
 								}
 
 								ID3D12Resource* resource = lastValidCopyRequest.GetDestinationResource();
-								Bool const isTexture2D = resource && resource->GetDesc().Dimension == D3D12_RESOURCE_DIMENSION_TEXTURE2D && resource->GetDesc().DepthOrArraySize == 1;
+								Bool const isTexture2D = resource && resource->GetDesc().Dimension == D3D12_RESOURCE_DIMENSION_TEXTURE2D;
 								Bool const isBuffer = resource && resource->GetDesc().Dimension == D3D12_RESOURCE_DIMENSION_BUFFER;
 
 								if (isTexture2D)
@@ -1452,7 +1452,7 @@ namespace vista
 	{
 		static Bool showR = true, showG = true, showB = true, showA = false;
 		static Int selectedMipLevel = 0;
-		static ID3D12Resource* lastResource = nullptr;
+		static Int selectedArraySlice = 0;
 
 		static Float zoom = 1.0f;
 		static ImVec2 uv0 = ImVec2(0.0f, 0.0f);
@@ -1464,15 +1464,39 @@ namespace vista
 		ImGui::SameLine(); ImGui::Checkbox("B##ChannelB", &showB);
 		ImGui::SameLine(); ImGui::Checkbox("A##ChannelA", &showA);
 
-		static Char const* mipLabels[] =
+		Uint16 const mipCount = resource->GetDesc().MipLevels;
+		if (mipCount > 1)
 		{
-			"Mip 0", "Mip 1", "Mip 2", "Mip 3", "Mip 4", "Mip 5", "Mip 6", "Mip 7",
-			"Mip 8", "Mip 9", "Mip 10", "Mip 11", "Mip 12", "Mip 13", "Mip 14", "Mip 15"
-		};
-		ImGui::Text("Mip Level:");
-		ImGui::SameLine();
-		ImGui::SetNextItemWidth(75.0f);
-		ImGui::Combo("##MipLevelCombo", &selectedMipLevel, mipLabels, resource->GetDesc().MipLevels);
+			static Char const* mipLabels[] =
+			{
+				"Mip 0", "Mip 1", "Mip 2", "Mip 3", "Mip 4", "Mip 5", "Mip 6", "Mip 7",
+				"Mip 8", "Mip 9", "Mip 10", "Mip 11", "Mip 12", "Mip 13", "Mip 14", "Mip 15"
+			};
+			ImGui::Text("Mip Level:");
+			ImGui::SameLine();
+			ImGui::SetNextItemWidth(75.0f);
+			ImGui::Combo("##MipLevelCombo", &selectedMipLevel, mipLabels, resource->GetDesc().MipLevels);
+		}
+
+		D3D12_RESOURCE_DESC const& resDesc = resource->GetDesc();
+		Bool const isTextureArray = resDesc.DepthOrArraySize > 1;
+		if (isTextureArray)
+		{
+			ImGui::SameLine();
+			ImGui::Text("Array Slice:");
+			ImGui::SameLine();
+			ImGui::SetNextItemWidth(150.0f);
+
+			auto arraySliceGetter = [](void* data, Int idx, Char const** out_text) -> Bool 
+				{
+				static Char buffer[32];
+				snprintf(buffer, sizeof(buffer), "Slice %d", idx);
+				*out_text = buffer;
+				return true;
+				};
+			ImGui::Combo("##ArraySliceCombo", &selectedArraySlice, arraySliceGetter, nullptr, resDesc.DepthOrArraySize);
+		}
+
 		ImGui::SameLine();
 		Bool resetView = ImGui::Button("Reset View");
 		ImGui::Separator();
@@ -1538,11 +1562,25 @@ namespace vista
 			}
 		}
 
-		D3D12_RESOURCE_DESC const& resDesc = resource->GetDesc();
 		D3D12_SHADER_RESOURCE_VIEW_DESC srvDesc{};
-		srvDesc.Texture2D.MostDetailedMip = selectedMipLevel;
-		srvDesc.Texture2D.MipLevels = 1;
-		srvDesc.ViewDimension = D3D12_SRV_DIMENSION_TEXTURE2D;
+		if (isTextureArray)
+		{
+			srvDesc.ViewDimension = D3D12_SRV_DIMENSION_TEXTURE2DARRAY;
+			srvDesc.Texture2DArray.MostDetailedMip = selectedMipLevel;
+			srvDesc.Texture2DArray.MipLevels = 1;
+			srvDesc.Texture2DArray.FirstArraySlice = selectedArraySlice;
+			srvDesc.Texture2DArray.ArraySize = 1;
+			srvDesc.Texture2DArray.PlaneSlice = 0;
+			srvDesc.Texture2DArray.ResourceMinLODClamp = 0.0f;
+		}
+		else
+		{
+			srvDesc.ViewDimension = D3D12_SRV_DIMENSION_TEXTURE2D;
+			srvDesc.Texture2D.MostDetailedMip = selectedMipLevel;
+			srvDesc.Texture2D.MipLevels = 1;
+			srvDesc.Texture2D.PlaneSlice = 0;
+			srvDesc.Texture2D.ResourceMinLODClamp = 0.0f;
+		}
 		srvDesc.Format = resDesc.Format;
 		srvDesc.Shader4ComponentMapping = D3D12_ENCODE_SHADER_4_COMPONENT_MAPPING(
 			showR ? D3D12_SHADER_COMPONENT_MAPPING_FROM_MEMORY_COMPONENT_0 : D3D12_SHADER_COMPONENT_MAPPING_FORCE_VALUE_0,
@@ -1551,7 +1589,7 @@ namespace vista
 			showA ? D3D12_SHADER_COMPONENT_MAPPING_FROM_MEMORY_COMPONENT_3 : D3D12_SHADER_COMPONENT_MAPPING_FORCE_VALUE_1
 		);
 
-		switch (resDesc.Format)
+		switch (srvDesc.Format)
 		{
 		case DXGI_FORMAT_R16_TYPELESS:		srvDesc.Format = DXGI_FORMAT_R16_UNORM; break;
 		case DXGI_FORMAT_R32_TYPELESS:
@@ -1559,6 +1597,7 @@ namespace vista
 		case DXGI_FORMAT_R24G8_TYPELESS:	srvDesc.Format = DXGI_FORMAT_R24_UNORM_X8_TYPELESS; break;
 		case DXGI_FORMAT_R32G8X24_TYPELESS: srvDesc.Format = DXGI_FORMAT_R32_FLOAT_X8X24_TYPELESS; break;
 		}
+
 		D3D12_CPU_DESCRIPTOR_HANDLE srvHandle = imguiManager.GetCPUDescriptor();
 		imguiManager.GetDevice()->CreateShaderResourceView(resource, &srvDesc, srvHandle);
 		drawList->AddImage((ImTextureID)imguiManager.GetGPUDescriptor().ptr, canvasTopLeft, ImVec2(canvasTopLeft.x + canvasSize.x, canvasTopLeft.y + canvasSize.y), uv0, uv1);

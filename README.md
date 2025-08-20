@@ -29,10 +29,11 @@ quickly identifying problematic command patterns, or generally observing GPU beh
   - Browse all created D3D12 objects
 
 - **Resource Viewer**  
-  - Preview bound resources such as `Buffer, Texture2D` at the selected command
+  - Preview bound resources such as `Buffer, Texture2D, Texture2DArray` at the selected command
   - Resource information and descriptor view metadata shown side-by-side
   - Buffer format window for specifying custom buffer formats
   - Channel and mip selection for `Texture2D` preview
+  - Array slice selection for `Texture2DArray` preview
   - Partial support for bindless resources via DXIL parsing 
 	- Immediate constants and constant buffer values used as indices to access `ResourceDescriptorHeap`
 
@@ -40,8 +41,6 @@ quickly identifying problematic command patterns, or generally observing GPU beh
 <img align="center" padding="2" src="Data/UI.png"/>
 
 ## Current Limitations & Future Plans
-- `Buffer` and `Texture2D` resources are previewable  
-  - Support for other resources such as `Texture1D, Texture2DArray`, etc., is planned
 - UI/UX improvements 
 - Live inspection means state can be volatile  
   - For example, the **selected command may become unselected or incorrectly reselected** between frames if the command list changes too much, Vista uses heuristics to re-identify the selected command, which may fail if the structure diverges significantly
