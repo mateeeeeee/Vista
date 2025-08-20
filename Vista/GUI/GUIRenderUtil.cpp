@@ -1786,17 +1786,17 @@ namespace vista
 
 		if (!binding.isSet)
 		{
-			paramLabel += "<not bound> [Type: ";
-			paramLabel += D3D12RootParameterTypeToString(binding.type);
-			paramLabel += std::format(", Visibility: {}]", D3D12ShaderVisibilityToString(binding.shaderVisibility));
+			paramLabel += std::format("<not bound> [Type: {}]", D3D12RootParameterTypeToString(binding.type));
 		}
 		else
 		{
+			paramLabel += std::format(" [Type: {}]", D3D12RootParameterTypeToString(binding.type));
 			std::visit([&](auto&& argValue)
 				{
 					using T = std::decay_t<decltype(argValue)>;
 					if constexpr (std::is_same_v<T, D3D12_GPU_DESCRIPTOR_HANDLE>)
 					{
+						VISTA_ASSERT(binding.type == D3D12_ROOT_PARAMETER_TYPE_DESCRIPTOR_TABLE);
 						paramLabel += "Descriptor Table";
 						if (argValue.ptr != 0)
 						{
@@ -1807,7 +1807,6 @@ namespace vista
 							{
 								heapId = heapInfo->heapId;
 								descriptorInfo = heapInfo->descriptors[descriptorIndex];
-								paramLabel += std::format(" [Type: {}]", DescriptorViewTypeToString(descriptorInfo.type));
 								if (descriptorInfo.type != DescriptorViewType::Sampler && descriptorInfo.resourceId != InvalidObjectID)
 								{
 									resourceInfo = objectTracker.GetObjectInfo(descriptorInfo.resourceId);
@@ -1822,13 +1821,11 @@ namespace vista
 								}
 							}
 						}
-						else
-						{
-							paramLabel += " [Null Handle]";
-						}
 					}
 					else if constexpr (std::is_same_v<T, D3D12_GPU_VIRTUAL_ADDRESS>)
 					{
+						VISTA_ASSERT(binding.type >= D3D12_ROOT_PARAMETER_TYPE_CBV && binding.type <= D3D12_ROOT_PARAMETER_TYPE_UAV);
+						DescriptorViewType const descriptorType = RootParameterTypeToDescriptorViewType(binding.type);
 						resource = addressTracker.QueryResource(argValue);
 						if (resource)
 						{
@@ -1836,17 +1833,12 @@ namespace vista
 							if (resourceInfo)
 							{
 								descriptorInfo.resourceId = resourceInfo->objectId;
-								descriptorInfo.type = DescriptorViewType::Unknown;
-								paramLabel += std::format(" [Type: Unknown]");
+								descriptorInfo.type = descriptorType;
 								if (!resourceInfo->objectDebugName.empty())
 								{
 									paramLabel += std::format(" Name: {}", resourceInfo->objectDebugName);
 								}
 							}
-						}
-						else
-						{
-							paramLabel += " [Unmapped VA]";
 						}
 					}
 				}, binding.value);
@@ -1902,7 +1894,8 @@ namespace vista
 		ObjectTracker const& objectTracker, DescriptorTracker const& descriptorTracker,
 		SelectedItem* selectedItemInViewer)
 	{
-		DescriptorInfo const* descriptorInfo = descriptorTracker.GetDescriptorInfo(heapId, (Uint32)resourceDescriptorHeapIndex);
+		Int heapIndex = (Int)resourceDescriptorHeapIndex;
+		DescriptorInfo const* descriptorInfo = descriptorTracker.GetDescriptorInfo(heapId, heapIndex);
 		TrackedObjectInfo const* resourceInfo = objectTracker.GetObjectInfo(descriptorInfo->resourceId);
 		ID3D12Resource* resource = resourceInfo ? reinterpret_cast<ID3D12Resource*>(resourceInfo->objectPtr) : nullptr;
 
@@ -1921,7 +1914,6 @@ namespace vista
 		}
 
 		ImGui::PushID(static_cast<Int>(heapId * 1000 + (descriptorInfo->resourceId != InvalidObjectID ? descriptorInfo->resourceId : 0)));
-
 		if (selectedItemInViewer)
 		{
 			if (resource || descriptorInfo->type == DescriptorViewType::Sampler)
@@ -1932,10 +1924,10 @@ namespace vista
 				}
 				else
 				{
-					ImGui::PushID(static_cast<int>(heapId) ^ (Int)resourceDescriptorHeapIndex);
+					ImGui::PushID(static_cast<int>(heapId) ^ heapIndex);
 				}
 
-				Bool isSelected = selectedItemInViewer->Matches(descriptorInfo->resourceId, heapId, (Int)resourceDescriptorHeapIndex);
+				Bool isSelected = selectedItemInViewer->Matches(descriptorInfo->resourceId, heapId, heapIndex);
 				if (ImGui::Selectable(paramLabel.c_str(), &isSelected))
 				{
 					if (isSelected)

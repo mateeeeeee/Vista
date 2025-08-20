@@ -172,9 +172,9 @@ namespace vista
 		{
 		case D3D12_ROOT_PARAMETER_TYPE_DESCRIPTOR_TABLE: return "Descriptor Table";
 		case D3D12_ROOT_PARAMETER_TYPE_32BIT_CONSTANTS:   return "32-bit Constants";
-		case D3D12_ROOT_PARAMETER_TYPE_CBV:                return "Constant Buffer View (CBV)";
-		case D3D12_ROOT_PARAMETER_TYPE_SRV:                return "Shader Resource View (SRV)";
-		case D3D12_ROOT_PARAMETER_TYPE_UAV:                return "Unordered Access View (UAV)";
+		case D3D12_ROOT_PARAMETER_TYPE_CBV:                return "CBV";
+		case D3D12_ROOT_PARAMETER_TYPE_SRV:                return "SRV";
+		case D3D12_ROOT_PARAMETER_TYPE_UAV:                return "UAV";
 		default: return "Unknown Root Parameter Type";
 		}
 	}

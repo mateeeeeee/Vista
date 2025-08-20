@@ -30,6 +30,17 @@ namespace vista
 		}
 	}
 
+	inline DescriptorViewType RootParameterTypeToDescriptorViewType(D3D12_ROOT_PARAMETER_TYPE rootParamType)
+	{
+		switch (rootParamType)
+		{
+		case D3D12_ROOT_PARAMETER_TYPE_CBV:	return DescriptorViewType::CBV;
+		case D3D12_ROOT_PARAMETER_TYPE_SRV:	return DescriptorViewType::SRV;
+		case D3D12_ROOT_PARAMETER_TYPE_UAV:	return DescriptorViewType::UAV;
+		}
+		return DescriptorViewType::Unknown;
+	}
+
 	using DescriptorDesc = std::variant<std::monostate, D3D12_CONSTANT_BUFFER_VIEW_DESC, D3D12_SHADER_RESOURCE_VIEW_DESC, D3D12_UNORDERED_ACCESS_VIEW_DESC,
 										D3D12_SAMPLER_DESC, D3D12_RENDER_TARGET_VIEW_DESC, D3D12_DEPTH_STENCIL_VIEW_DESC>;
 
