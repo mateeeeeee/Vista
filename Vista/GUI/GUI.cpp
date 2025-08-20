@@ -278,21 +278,6 @@ namespace vista
 
 							ImGui::BeginChild("##ImagePreview", ImVec2(imageWidth, 0), true, ImGuiWindowFlags_HorizontalScrollbar);
 							{
-								if (ImGui::IsWindowHovered())
-								{
-									if (ImGui::GetIO().MouseWheel != 0.0f)
-									{
-										Float zoomDelta = ImGui::GetIO().MouseWheel * 0.1f;
-										zoomFactor += zoomDelta;
-										zoomFactor = std::clamp(zoomFactor, 0.1f, 5.0f);
-									}
-									if (ImGui::IsMouseDragging(ImGuiMouseButton_Middle))
-									{
-										ImGui::SetScrollX(ImGui::GetScrollX() - ImGui::GetIO().MouseDelta.x);
-										ImGui::SetScrollY(ImGui::GetScrollY() - ImGui::GetIO().MouseDelta.y);
-									}
-								}
-
 								if (!IsFreezed())
 								{
 									copyRequestManager.RequestCopy(selectedCommandInfo, selectedItemInViewer);
@@ -311,7 +296,7 @@ namespace vista
 
 								if (isTexture2D)
 								{
-									RenderTexture2DPreview(resource, zoomFactor);
+									RenderTexture2DPreview(resource);
 								}
 								else if (isBuffer)
 								{
@@ -1463,47 +1448,97 @@ namespace vista
 		}
 	}
 
-	void GUI::RenderTexture2DPreview(ID3D12Resource* resource, Float zoomFactor)
+	void GUI::RenderTexture2DPreview(ID3D12Resource* resource)
 	{
 		static Bool showR = true, showG = true, showB = true, showA = false;
-		ImGui::Text("Select Channels:");
-		ImGui::SameLine();
-		ImGui::Checkbox("R##ChannelR", &showR);
-		ImGui::SameLine();
-		ImGui::Checkbox("G##ChannelG", &showG);
-		ImGui::SameLine();
-		ImGui::Checkbox("B##ChannelB", &showB);
-		ImGui::SameLine();
-		ImGui::Checkbox("A##ChannelA", &showA);
+		static Int selectedMipLevel = 0;
+		static ID3D12Resource* lastResource = nullptr;
 
-		static Char const* mipLabels[] = 
+		static Float zoom = 1.0f;
+		static ImVec2 uv0 = ImVec2(0.0f, 0.0f);
+		static ImVec2 uv1 = ImVec2(1.0f, 1.0f);
+
+		ImGui::Text("Select Channels:");
+		ImGui::SameLine(); ImGui::Checkbox("R##ChannelR", &showR);
+		ImGui::SameLine(); ImGui::Checkbox("G##ChannelG", &showG);
+		ImGui::SameLine(); ImGui::Checkbox("B##ChannelB", &showB);
+		ImGui::SameLine(); ImGui::Checkbox("A##ChannelA", &showA);
+
+		static Char const* mipLabels[] =
 		{
 			"Mip 0", "Mip 1", "Mip 2", "Mip 3", "Mip 4", "Mip 5", "Mip 6", "Mip 7",
 			"Mip 8", "Mip 9", "Mip 10", "Mip 11", "Mip 12", "Mip 13", "Mip 14", "Mip 15"
 		};
-
-		static Int selectedMipLevel = 0;
-		Uint32 const mipLevels = resource->GetDesc().MipLevels;
 		ImGui::Text("Mip Level:");
 		ImGui::SameLine();
 		ImGui::SetNextItemWidth(75.0f);
-		ImGui::Combo("##MipLevelCombo", &selectedMipLevel, mipLabels, mipLevels);
+		ImGui::Combo("##MipLevelCombo", &selectedMipLevel, mipLabels, resource->GetDesc().MipLevels);
+		ImGui::SameLine();
+		Bool resetView = ImGui::Button("Reset View");
+		ImGui::Separator();
+
+		if (resetView)
+		{
+			selectedMipLevel = 0;
+			zoom = 1.0f;
+			uv0 = ImVec2(0.0f, 0.0f);
+			uv1 = ImVec2(1.0f, 1.0f);
+		}
+
+		ImGui::Text("Zoom: %.2fx (Scroll to Zoom, Middle-Click to Pan)", zoom);
+		ImVec2 canvasSize = ImGui::GetContentRegionAvail();
+		ImVec2 canvasTopLeft = ImGui::GetCursorScreenPos();
+
+		ImDrawList* drawList = ImGui::GetWindowDrawList();
+		drawList->AddRectFilled(canvasTopLeft, ImVec2(canvasTopLeft.x + canvasSize.x, canvasTopLeft.y + canvasSize.y), IM_COL32(0, 0, 0, 255));
+
+		ImGui::InvisibleButton("##ImageCanvas", canvasSize);
+		if (ImGui::IsItemHovered())
+		{
+			ImVec2 mousePos = ImGui::GetMousePos();
+			ImVec2 mousePosInCanvas = ImVec2(mousePos.x - canvasTopLeft.x, mousePos.y - canvasTopLeft.y);
+
+			Float wheel = ImGui::GetIO().MouseWheel;
+			if (wheel != 0.0f)
+			{
+				Float oldZoom = zoom;
+				zoom *= (wheel > 0) ? 1.2f : 1.0f / 1.2f;
+				zoom = std::clamp(zoom, 0.1f, 100.0f);
+
+				ImVec2 mouseUV = ImVec2(
+					uv0.x + (uv1.x - uv0.x) * (mousePosInCanvas.x / canvasSize.x),
+					uv0.y + (uv1.y - uv0.y) * (mousePosInCanvas.y / canvasSize.y)
+				);
+
+				Float newUvWidth = (uv1.x - uv0.x) * (oldZoom / zoom);
+				Float newUvHeight = (uv1.y - uv0.y) * (oldZoom / zoom);
+
+				Float mouseRatioX = mousePosInCanvas.x / canvasSize.x;
+				Float mouseRatioY = mousePosInCanvas.y / canvasSize.y;
+
+				uv0.x = mouseUV.x - mouseRatioX * newUvWidth;
+				uv0.y = mouseUV.y - mouseRatioY * newUvHeight;
+				uv1.x = uv0.x + newUvWidth;
+				uv1.y = uv0.y + newUvHeight;
+			}
+
+			if (ImGui::IsMouseDragging(ImGuiMouseButton_Middle))
+			{
+				ImVec2 dragDelta = ImGui::GetIO().MouseDelta;
+
+				Float uvWidth = uv1.x - uv0.x;
+				Float uvHeight = uv1.y - uv0.y;
+				Float deltaU = (dragDelta.x / canvasSize.x) * uvWidth;
+				Float deltaV = (dragDelta.y / canvasSize.y) * uvHeight;
+
+				uv0.x -= deltaU;
+				uv0.y -= deltaV;
+				uv1.x -= deltaU;
+				uv1.y -= deltaV;
+			}
+		}
 
 		D3D12_RESOURCE_DESC const& resDesc = resource->GetDesc();
-		Float const aspectRatio = (Float)resDesc.Height / resDesc.Width;
-		Float const availableWidth = ImGui::GetContentRegionAvail().x;
-		Float const availableHeight = ImGui::GetContentRegionAvail().y;
-		Float defaultWidth = std::min<Float>(availableWidth, (Float)resDesc.Width);
-		Float defaultHeight = defaultWidth * aspectRatio;
-
-		if (defaultHeight > availableHeight)
-		{
-			defaultHeight = availableHeight;
-			defaultWidth = defaultHeight / aspectRatio;
-		}
-		Float zoomedWidth = defaultWidth * zoomFactor;
-		Float zoomedHeight = defaultHeight * zoomFactor;
-
 		D3D12_SHADER_RESOURCE_VIEW_DESC srvDesc{};
 		srvDesc.Texture2D.MostDetailedMip = selectedMipLevel;
 		srvDesc.Texture2D.MipLevels = 1;
@@ -1518,32 +1553,15 @@ namespace vista
 
 		switch (resDesc.Format)
 		{
-		case DXGI_FORMAT_R16_TYPELESS:
-			srvDesc.Format = DXGI_FORMAT_R16_UNORM;
-			break;
+		case DXGI_FORMAT_R16_TYPELESS:		srvDesc.Format = DXGI_FORMAT_R16_UNORM; break;
 		case DXGI_FORMAT_R32_TYPELESS:
-		case DXGI_FORMAT_D32_FLOAT:
-			srvDesc.Format = DXGI_FORMAT_R32_FLOAT;
-			break;
-		case DXGI_FORMAT_R24G8_TYPELESS:
-			srvDesc.Format = DXGI_FORMAT_R24_UNORM_X8_TYPELESS;
-			break;
-		case DXGI_FORMAT_R32G8X24_TYPELESS:
-			srvDesc.Format = DXGI_FORMAT_R32_FLOAT_X8X24_TYPELESS;
-			break;
+		case DXGI_FORMAT_D32_FLOAT:			srvDesc.Format = DXGI_FORMAT_R32_FLOAT; break;
+		case DXGI_FORMAT_R24G8_TYPELESS:	srvDesc.Format = DXGI_FORMAT_R24_UNORM_X8_TYPELESS; break;
+		case DXGI_FORMAT_R32G8X24_TYPELESS: srvDesc.Format = DXGI_FORMAT_R32_FLOAT_X8X24_TYPELESS; break;
 		}
 		D3D12_CPU_DESCRIPTOR_HANDLE srvHandle = imguiManager.GetCPUDescriptor();
 		imguiManager.GetDevice()->CreateShaderResourceView(resource, &srvDesc, srvHandle);
-
-		ImGui::SetCursorPos(ImVec2(0, ImGui::GetCursorPosY()));
-		ImVec2 imagePos = ImGui::GetCursorScreenPos();
-		ImVec2 imageSize = ImVec2(zoomedWidth, zoomedHeight);
-
-		ImDrawList* drawList = ImGui::GetWindowDrawList();
-		drawList->AddRectFilled(imagePos, ImVec2(imagePos.x + imageSize.x, imagePos.y + imageSize.y), IM_COL32(0, 0, 0, 255));
-
-		ImGui::Image((ImTextureID)imguiManager.GetGPUDescriptor().ptr, ImVec2(zoomedWidth, zoomedHeight),
-			ImVec2(0, 0), ImVec2(1, 1), ImVec4(1, 1, 1, 1), ImVec4(0, 0, 0, 1));
+		drawList->AddImage((ImTextureID)imguiManager.GetGPUDescriptor().ptr, canvasTopLeft, ImVec2(canvasTopLeft.x + canvasSize.x, canvasTopLeft.y + canvasSize.y), uv0, uv1);
 	}
 
 	void GUI::RenderBufferPreview(ID3D12Resource* resource)
