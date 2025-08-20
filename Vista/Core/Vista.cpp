@@ -51,6 +51,7 @@ namespace vista
 			VISTA_HOOK(Device, CreateConstantBufferView);
 			VISTA_HOOK(Device, CreateSampler);
 			VISTA_HOOK(Device, CopyDescriptorsSimple);
+			VISTA_HOOK(Device, CopyDescriptors);
 			VISTA_HOOK(Queue, ExecuteCommandLists);
 			VISTA_HOOK2(Queue, Signal);
 			VISTA_HOOK(List, CopyBufferRegion);
