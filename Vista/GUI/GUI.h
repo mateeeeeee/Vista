@@ -78,6 +78,7 @@ namespace vista
 		void RenderDispatchRaysCommandBoundResources(SelectedItem&);
 
 		void RenderTexture2DPreview(ID3D12Resource*);
+		void RenderTexture3DPreview(ID3D12Resource*);
 		void RenderBufferPreview(ID3D12Resource*);
 
 

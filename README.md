@@ -29,11 +29,12 @@ quickly identifying problematic command patterns, or generally observing GPU beh
   - Browse all created D3D12 objects
 
 - **Resource Viewer**  
-  - Preview bound resources such as `Buffer, Texture2D, Texture2DArray` at the selected command
+  - Preview bound resources such as `Buffer, Texture2D, Texture2DArray, Texture3D` at the selected command
   - Resource information and descriptor view metadata shown side-by-side
   - Buffer format window for specifying custom buffer formats
-  - Channel and mip selection for `Texture2D` preview
+  - Channel and mip selection for `Texture2D` and `Texture2DArray` preview
   - Array slice selection for `Texture2DArray` preview
+  - Depth slice selection for `Texture3D` preview
   - Partial support for bindless resources via DXIL parsing 
 	- Immediate constants and constant buffer values used as indices to access `ResourceDescriptorHeap`
 
