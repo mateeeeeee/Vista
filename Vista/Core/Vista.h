@@ -6,7 +6,7 @@
 #include "Tracking/DescriptorTracker.h"
 #include "Tracking/ResourceStateTracker.h"
 #include "Tracking/ResourceAddressTracker.h"
-#include "Tracking/ResourceMirrorManager.h"
+#include "Tracking/MappedBufferManager.h"
 #include "Resource/ResourceCopyRequestManager.h"
 #include "DXIL/BindlessAccessCache.h"
 #include "GUI/GUI.h"
@@ -127,7 +127,7 @@ namespace vista
 		RecorderManager recorderManager;
 		ResourceStateTracker stateTracker;
 		ResourceAddressTracker addressTracker;
-		ResourceMirrorManager mirrorManager;
+		MappedBufferManager mappedBufferManager;
 		ResourceCopyRequestManager copyRequestManager;
 		BindlessAccessCache bindlessAccessCache;
 		GUI GUI;
@@ -136,8 +136,8 @@ namespace vista
 
 	private:
 		Vista() : d3d12PFNs(), objectTracker(), descriptorTracker(objectTracker), recorderManager(objectTracker), 
-				  stateTracker(), addressTracker(), mirrorManager(), bindlessAccessCache(),
-			GUI(Globals{ objectTracker, descriptorTracker, addressTracker, mirrorManager, copyRequestManager, bindlessAccessCache }) 
+				  stateTracker(), addressTracker(), mappedBufferManager(), bindlessAccessCache(),
+			GUI(Globals{ objectTracker, descriptorTracker, addressTracker, mappedBufferManager, copyRequestManager, bindlessAccessCache }) 
 		{}
 		~Vista() = default;
 

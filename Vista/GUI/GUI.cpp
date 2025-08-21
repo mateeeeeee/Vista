@@ -6,7 +6,7 @@
 #include "Tracking/ObjectTracker.h"
 #include "Tracking/DescriptorTracker.h"
 #include "Tracking/ResourceAddressTracker.h"
-#include "Tracking/ResourceMirrorManager.h"
+#include "Tracking/MappedBufferManager.h"
 #include "Visitors/EventListCommandVisitor.h"
 #include "Visitors/EventDetailsCommandVisitor.h"
 #include "Visitors/StateUpdateVisitor.h"
@@ -1729,7 +1729,7 @@ namespace vista
 		}
 
 		D3D12_SHADER_RESOURCE_VIEW_DESC srvDesc{};
-		srvDesc.ViewDimension = D3D12_SRV_DIMENSION_TEXTURE2DARRAY;
+		srvDesc.ViewDimension = D3D12_SRV_DIMENSION_TEXTURE3D;
 		srvDesc.Texture2DArray.MostDetailedMip = selectedMipLevel;
 		srvDesc.Texture2DArray.MipLevels = 1;
 		srvDesc.Texture2DArray.FirstArraySlice = selectedDepthSlice;
@@ -2091,7 +2091,7 @@ namespace vista
 										Uint64 baseVA = res->GetGPUVirtualAddress();
 										Uint32 heapIndex = UINT32_MAX;
 										Uint64 offset = (gpuVA - baseVA) + cbufferOffset;
-										if (mirrorManager.ReadBytes(res, offset, &heapIndex, sizeof(heapIndex)))
+										if (mappedBufferManager.ReadBytes(res, offset, &heapIndex, sizeof(heapIndex)))
 										{
 											resolvedHeapIndex = heapIndex;
 										}
@@ -2129,7 +2129,7 @@ namespace vista
 														Uint64 baseVA = res->GetGPUVirtualAddress();
 														Uint64 offset = (cbvDesc.BufferLocation - baseVA) + cbufferOffset;
 														Uint32 heapIndex = UINT32_MAX;
-														if (mirrorManager.ReadBytes(res, offset, &heapIndex, sizeof(heapIndex)))
+														if (mappedBufferManager.ReadBytes(res, offset, &heapIndex, sizeof(heapIndex)))
 														{
 															resolvedHeapIndex = heapIndex;
 														}

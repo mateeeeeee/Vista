@@ -1,5 +1,6 @@
 #include "BindlessAccess.h"
 #include "DxilModuleWrapper.h"
+#include "Utilities/HashUtil.h"
 #pragma warning(push)
 #pragma warning(disable: 4267 4244)
 #include "dxc/DXIL/DxilModule.h"
@@ -12,6 +13,59 @@
 
 namespace vista
 {
+	inline Bool operator==(CBufferSourceInfo const& lhs, CBufferSourceInfo const& rhs)
+	{
+		return lhs.ResourceBinding == rhs.ResourceBinding &&
+			lhs.ResourceSpace == rhs.ResourceSpace &&
+			lhs.ByteOffset == rhs.ByteOffset &&
+			lhs.ResourceName == rhs.ResourceName;
+	}
+
+	struct BindlessAccessHasher
+	{
+		Uint64 operator()(BindlessAccess const& s) const noexcept
+		{
+			HashState hashState{};
+			hashState.Combine(std::hash<Int>{}(static_cast<Int>(s.ResourceKind)));
+			hashState.Combine(std::hash<Int>{}(static_cast<Int>(s.ResourceClass)));
+			hashState.Combine(std::hash<IndexSourceType>{}(s.Index.type));
+			Uint64 detailsHash = std::visit([](auto&& arg) -> Uint64
+				{
+				using T = std::decay_t<decltype(arg)>;
+				if constexpr (std::is_same_v<T, vista::CBufferSourceInfo>) 
+				{
+					HashState cbufHashState{};
+					cbufHashState.Combine(std::hash<std::string>{}(arg.ResourceName));
+					cbufHashState.Combine(std::hash<Uint32>{}(arg.ResourceBinding));
+					cbufHashState.Combine(std::hash<Uint32>{}(arg.ResourceSpace));
+					cbufHashState.Combine(std::hash<Uint32>{}(arg.ByteOffset));
+					return cbufHashState;
+				}
+				else 
+				{
+					return std::hash<T>{}(arg);
+				}
+				}, s.Index.details);
+
+			hashState.Combine(detailsHash);
+			return hashState;
+		}
+	};
+
+	struct BindlessAccessComparer
+	{
+		Bool operator()(BindlessAccess const& lhs, BindlessAccess const& rhs) const
+		{
+			if (lhs.ResourceKind != rhs.ResourceKind ||
+				lhs.ResourceClass != rhs.ResourceClass ||
+				lhs.Index.type != rhs.Index.type)
+			{
+				return false;
+			}
+			return lhs.Index.details == rhs.Index.details;
+		}
+	};
+
 	static IndexSource AnalyzeIndexSource(hlsl::DxilModule& module, llvm::Value* indexValue)
 	{
 		IndexSource indexSource = { IndexSourceType::Unknown, std::monostate{} };
@@ -141,7 +195,7 @@ namespace vista
 		DxilModuleWrapper dxilModule(shaderBytecode, bytecodeSize);
 		hlsl::DxilModule& hlslModule = dxilModule.GetDxilModule();
 
-		std::vector<BindlessAccess> results;
+		std::unordered_set<BindlessAccess, BindlessAccessHasher, BindlessAccessComparer> results;
 		llvm::Module* module = hlslModule.GetModule();
 		hlsl::OP* dxilOp = hlslModule.GetOP();
 
@@ -196,10 +250,10 @@ namespace vista
 							result.ResourceKind = hlsl::DXIL::ResourceKind::Sampler;
 						}
 					}
-					results.push_back(result);
+					results.insert(result);
 				}
 			}
 		}
-		return results;
+		return std::vector<BindlessAccess>(results.begin(), results.end());
 	}
 }

@@ -3,19 +3,19 @@
 
 namespace vista
 {
-	class ResourceMirrorManager
+	class MappedBufferManager
 	{
 		struct Mirror
 		{
 			std::vector<Uint8> data;  // shadow bytes for the whole buffer
-			void* lastMappedPtr = nullptr; // last CPU pointer from Map (typically for upload heap)
+			void* lastMappedPtr = nullptr; // last CPU pointer from Map
 			Uint64 gpuVA = 0;
 			Uint64 size = 0;
 		};
 
 	public:
-		ResourceMirrorManager() = default;
-		~ResourceMirrorManager() = default;
+		MappedBufferManager() = default;
+		~MappedBufferManager() = default;
 
 		void OnResourceCreated(ID3D12Resource* resource, D3D12_RESOURCE_DESC const& desc);
 		void OnResourceCreated(ID3D12Resource* resource, D3D12_RESOURCE_DESC1 const& desc);

@@ -108,6 +108,8 @@ namespace vista
 			VISTA_HOOK(List, EndEvent);
 			VISTA_HOOK2(Resource, Release);
 			VISTA_HOOK2(Resource, SetName);
+			VISTA_HOOK2(Resource, Map);
+			VISTA_HOOK2(Resource, Unmap);
 			VISTA_HOOK(Fence, GetCompletedValue);
 			VISTA_HOOK(Fence, SetEventOnCompletion);
 			VISTA_HOOK2(Fence, Signal);
@@ -904,7 +906,7 @@ namespace vista
 
 			stateTracker.OnResourceCreated((ID3D12Resource*)*ppvResource, resourceDesc.initialResourceState);
 			addressTracker.OnResourceCreated((ID3D12Resource*)*ppvResource, resourceDesc.resourceDesc);
-			mirrorManager.OnResourceCreated((ID3D12Resource*)*ppvResource, resourceDesc.resourceDesc);
+			mappedBufferManager.OnResourceCreated((ID3D12Resource*)*ppvResource, resourceDesc.resourceDesc);
 		}
 		return hr;
 	}
@@ -935,7 +937,7 @@ namespace vista
 
 			stateTracker.OnResourceCreated((ID3D12Resource*)*ppvResource, resourceDesc.initialResourceState);
 			addressTracker.OnResourceCreated((ID3D12Resource*)*ppvResource, resourceDesc.resourceDesc);
-			mirrorManager.OnResourceCreated((ID3D12Resource*)*ppvResource, resourceDesc.resourceDesc);
+			mappedBufferManager.OnResourceCreated((ID3D12Resource*)*ppvResource, resourceDesc.resourceDesc);
 		}
 		return hr;
 	}
@@ -966,7 +968,7 @@ namespace vista
 
 			stateTracker.OnResourceCreated((ID3D12Resource*)*ppvResource, resourceDesc.initialResourceState);
 			addressTracker.OnResourceCreated((ID3D12Resource*)*ppvResource, resourceDesc.resourceDesc);
-			mirrorManager.OnResourceCreated((ID3D12Resource*)*ppvResource, resourceDesc.resourceDesc);
+			mappedBufferManager.OnResourceCreated((ID3D12Resource*)*ppvResource, resourceDesc.resourceDesc);
 		}
 		return hr;
 	}
@@ -1009,7 +1011,7 @@ namespace vista
 
 			stateTracker.OnResourceCreated((ID3D12Resource*)*ppvResource, resourceDesc.initialResourceState);
 			addressTracker.OnResourceCreated((ID3D12Resource*)*ppvResource, resourceDesc.resourceDesc);
-			mirrorManager.OnResourceCreated((ID3D12Resource*)*ppvResource, resourceDesc.resourceDesc);
+			mappedBufferManager.OnResourceCreated((ID3D12Resource*)*ppvResource, resourceDesc.resourceDesc);
 		}
 		return hr;
 	}
@@ -1173,7 +1175,7 @@ namespace vista
 		cmd.srcOffset = srcOffset;
 		cmd.numBytes = numBytes;
 
-		mirrorManager.OnCopyBuffer(pDstBuffer, dstOffset, pSrcBuffer, srcOffset, numBytes);
+		mappedBufferManager.OnCopyBuffer(pDstBuffer, dstOffset, pSrcBuffer, srcOffset, numBytes);
 		return d3d12PFNs.CopyBufferRegion(pCommandList, pDstBuffer, dstOffset, pSrcBuffer, srcOffset, numBytes);
 	}
 
@@ -1209,7 +1211,7 @@ namespace vista
 		CopyResourceCommand& cmd = recorder.AddCommand<CopyResourceCommand>();
 		cmd.dstResourceId = objectTracker.GetObjectID(pDstResource);
 		cmd.srcResourceId = objectTracker.GetObjectID(pSrcResource);
-		mirrorManager.OnCopyResource(pDstResource, pSrcResource);
+		mappedBufferManager.OnCopyResource(pDstResource, pSrcResource);
 		return d3d12PFNs.CopyResource(pCommandList, pDstResource, pSrcResource);
 	}
 
@@ -2041,7 +2043,7 @@ namespace vista
 		{
 			stateTracker.OnResourceReleased(pResource);
 			addressTracker.OnResourceReleased(pResource);
-			mirrorManager.OnResourceReleased(pResource);
+			mappedBufferManager.OnResourceReleased(pResource);
 		}
 		return refCount;
 	}
@@ -2068,8 +2070,12 @@ namespace vista
 		{
 			return d3d12PFNs.Resource_Map(pResource, subresource, pReadRange, ppData);
 		}
-		mirrorManager.OnMap(pResource, subresource, pReadRange, ppData);
-		return d3d12PFNs.Resource_Map(pResource, subresource, pReadRange, ppData);
+		HRESULT hr = d3d12PFNs.Resource_Map(pResource, subresource, pReadRange, ppData);
+		if (SUCCEEDED(hr))
+		{
+			mappedBufferManager.OnMap(pResource, subresource, pReadRange, ppData);
+		}
+		return hr;
 	}
 
 	void Vista::OnUnmap(ID3D12Resource* pResource, UINT subresource, const D3D12_RANGE* pWrittenRange)
@@ -2078,7 +2084,7 @@ namespace vista
 		{
 			return d3d12PFNs.Resource_Unmap(pResource, subresource, pWrittenRange);
 		}
-		mirrorManager.OnUnmap(pResource, subresource, pWrittenRange);
+		mappedBufferManager.OnUnmap(pResource, subresource, pWrittenRange);
 		return d3d12PFNs.Resource_Unmap(pResource, subresource, pWrittenRange);
 	}
 
@@ -2170,10 +2176,13 @@ namespace vista
 				barriers[0].Transition.pResource = request->GetSourceResource();
 				barriers[0].Transition.StateBefore = currentState;
 				barriers[0].Transition.StateAfter = D3D12_RESOURCE_STATE_COPY_SOURCE;
+				barriers[0].Transition.Subresource = D3D12_RESOURCE_BARRIER_ALL_SUBRESOURCES;
+
 				barriers[1].Type = D3D12_RESOURCE_BARRIER_TYPE_TRANSITION;
 				barriers[1].Transition.pResource = request->GetDestinationResource();
 				barriers[1].Transition.StateBefore = D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE;
 				barriers[1].Transition.StateAfter = D3D12_RESOURCE_STATE_COPY_DEST;
+				barriers[1].Transition.Subresource = D3D12_RESOURCE_BARRIER_ALL_SUBRESOURCES;
 
 				d3d12PFNs.ResourceBarrier(pCommandList, 2, barriers);
 				d3d12PFNs.CopyResource(pCommandList, request->GetDestinationResource(), request->GetSourceResource());

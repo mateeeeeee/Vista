@@ -132,7 +132,7 @@
     <ClCompile Include="DXIL\BindlessAccessCache.cpp">
       <Filter>DXIL</Filter>
     </ClCompile>
-    <ClCompile Include="Tracking\ResourceMirrorManager.cpp">
+    <ClCompile Include="Tracking\MappedBufferManager.cpp">
       <Filter>Tracking</Filter>
     </ClCompile>
   </ItemGroup>
@@ -450,7 +450,7 @@
     <ClInclude Include="DXIL\BindlessAccessCache.h">
       <Filter>DXIL</Filter>
     </ClInclude>
-    <ClInclude Include="Tracking\ResourceMirrorManager.h">
+    <ClInclude Include="Tracking\MappedBufferManager.h">
       <Filter>Tracking</Filter>
     </ClInclude>
   </ItemGroup>

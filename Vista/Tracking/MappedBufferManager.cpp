@@ -1,4 +1,4 @@
-#include "ResourceMirrorManager.h"
+#include "MappedBufferManager.h"
 
 namespace vista
 {
@@ -28,7 +28,7 @@ namespace vista
 		}
 	}
 
-	void ResourceMirrorManager::OnResourceCreated(ID3D12Resource* resource, D3D12_RESOURCE_DESC const& desc)
+	void MappedBufferManager::OnResourceCreated(ID3D12Resource* resource, D3D12_RESOURCE_DESC const& desc)
 	{
 		if (!resource || !IsBufferDesc(desc))
 		{
@@ -44,7 +44,7 @@ namespace vista
 		mirrorMap[resource] = std::move(m);
 	}
 
-	void ResourceMirrorManager::OnResourceCreated(ID3D12Resource* resource, D3D12_RESOURCE_DESC1 const& desc)
+	void MappedBufferManager::OnResourceCreated(ID3D12Resource* resource, D3D12_RESOURCE_DESC1 const& desc)
 	{
 		if (!resource || !IsBufferDesc(desc))
 		{
@@ -55,12 +55,13 @@ namespace vista
 		m.size = GetBufferSizeBytes(desc);
 		m.data.resize(static_cast<Uint64>(m.size), 0);
 		m.gpuVA = resource->GetGPUVirtualAddress();
+		m.lastMappedPtr = nullptr;
 
 		std::lock_guard lock(mirrorMutex);
-		mirrorMap[resource] = std::move(m);
+		mirrorMap[resource] = m;
 	}
 
-	void ResourceMirrorManager::OnResourceReleased(ID3D12Resource* resource)
+	void MappedBufferManager::OnResourceReleased(ID3D12Resource* resource)
 	{
 		if (resource)
 		{
@@ -69,7 +70,7 @@ namespace vista
 		}
 	}
 
-	void ResourceMirrorManager::OnMap(ID3D12Resource* resource, UINT subresource, D3D12_RANGE const* readRange, void** data)
+	void MappedBufferManager::OnMap(ID3D12Resource* resource, UINT subresource, D3D12_RANGE const* readRange, void** data)
 	{
 		if (!resource || !data)
 		{
@@ -78,16 +79,16 @@ namespace vista
 
 		std::lock_guard lock(mirrorMutex);
 		auto it = mirrorMap.find(resource);
-		if (it == mirrorMap.end())
+		if (it != mirrorMap.end())
 		{
-			return;
+			it->second.lastMappedPtr = *data;
 		}
-
-		it->second.lastMappedPtr = *data;
 	}
 
-	void ResourceMirrorManager::OnUnmap(ID3D12Resource* resource, UINT subresource, D3D12_RANGE const* writtenRange)
+	void MappedBufferManager::OnUnmap(ID3D12Resource* resource, UINT subresource, D3D12_RANGE const* writtenRange)
 	{
+		return; 
+#if 0
 		if (!resource)
 		{
 			return;
@@ -121,9 +122,10 @@ namespace vista
 
 		// We don't keep the pointer after Unmap.
 		m.lastMappedPtr = nullptr;
+#endif
 	}
 
-	void ResourceMirrorManager::OnCopyBuffer(ID3D12Resource* dst, UINT64 dstOffset, ID3D12Resource* src, UINT64 srcOffset, UINT64 numBytes)
+	void MappedBufferManager::OnCopyBuffer(ID3D12Resource* dst, UINT64 dstOffset, ID3D12Resource* src, UINT64 srcOffset, UINT64 numBytes)
 	{
 		if (!dst || !src)
 		{
@@ -150,7 +152,7 @@ namespace vista
 			static_cast<Uint64>(numBytes));
 	}
 
-	void ResourceMirrorManager::OnCopyResource(ID3D12Resource* dst, ID3D12Resource* src)
+	void MappedBufferManager::OnCopyResource(ID3D12Resource* dst, ID3D12Resource* src)
 	{
 		if (!dst || !src || !IsBuffer(dst) || !IsBuffer(src))
 		{
@@ -176,7 +178,7 @@ namespace vista
 		std::memcpy(md.data.data(), ms.data.data(), n);
 	}
 
-	Bool ResourceMirrorManager::ReadBytes(ID3D12Resource* resource, Uint64 offset, void* dst, Uint64 size) const
+	Bool MappedBufferManager::ReadBytes(ID3D12Resource* resource, Uint64 offset, void* dst, Uint64 size) const
 	{
 		if (!resource || !dst || size == 0)
 		{
@@ -196,7 +198,6 @@ namespace vista
 			return false;
 		}
 
-		//If persistently mapped
 		if (m.lastMappedPtr != nullptr) 
 		{
 			std::memcpy(m.data.data() + offset,

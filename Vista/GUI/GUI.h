@@ -9,7 +9,7 @@ namespace vista
 	class DescriptorTracker;
 	class ResourceAddressTracker;
 	class ResourceCopyRequestManager;
-	class ResourceMirrorManager;
+	class MappedBufferManager;
 	class BindlessAccessCache;
 	class Command;
 	class RecorderManager;
@@ -22,7 +22,7 @@ namespace vista
 		ObjectTracker const& objectTracker;
 		DescriptorTracker const& descriptorTracker;
 		ResourceAddressTracker const& addressTracker;
-		ResourceMirrorManager const& mirrorManager;
+		MappedBufferManager const& mappedBufferManager;
 		ResourceCopyRequestManager& copyRequestManager;
 		BindlessAccessCache& bindlessAccessCache;
 	};
@@ -32,7 +32,7 @@ namespace vista
 	public:
 		explicit GUI(Globals globals)
 			: objectTracker(globals.objectTracker), descriptorTracker(globals.descriptorTracker), 
-			  addressTracker(globals.addressTracker), mirrorManager(globals.mirrorManager),
+			  addressTracker(globals.addressTracker), mappedBufferManager(globals.mappedBufferManager),
 			  copyRequestManager(globals.copyRequestManager), bindlessAccessCache(globals.bindlessAccessCache)
 		{}
 		~GUI() = default;
@@ -49,7 +49,7 @@ namespace vista
 		ObjectTracker const& objectTracker;
 		DescriptorTracker const& descriptorTracker;
 		ResourceAddressTracker const& addressTracker;
-		ResourceMirrorManager const& mirrorManager;
+		MappedBufferManager const& mappedBufferManager;
 		ResourceCopyRequestManager& copyRequestManager;
 		BindlessAccessCache& bindlessAccessCache;
 
