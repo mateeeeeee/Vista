@@ -2039,14 +2039,33 @@ namespace vista
 							{
 								RootParameter const& param = rootSignatureDesc.Parameters[i];
 
-								Bool const matches =
-									(param.ParameterType == D3D12_ROOT_PARAMETER_TYPE_CBV &&
-										param.Descriptor.ShaderRegister == cbufferSlot &&
-										param.Descriptor.RegisterSpace == cbufferSpace)
-									||
-									(param.ParameterType == D3D12_ROOT_PARAMETER_TYPE_32BIT_CONSTANTS &&
-										param.Constants.ShaderRegister == cbufferSlot &&
-										param.Constants.RegisterSpace == cbufferSpace);
+								Bool matches = false;
+								if (param.ParameterType == D3D12_ROOT_PARAMETER_TYPE_CBV &&
+									param.Descriptor.ShaderRegister == cbufferSlot &&
+									param.Descriptor.RegisterSpace == cbufferSpace)
+								{
+									matches = true;
+								}
+								else if (param.ParameterType == D3D12_ROOT_PARAMETER_TYPE_32BIT_CONSTANTS &&
+									param.Constants.ShaderRegister == cbufferSlot &&
+									param.Constants.RegisterSpace == cbufferSpace)
+								{
+									matches = true;
+								}
+								else if (param.ParameterType == D3D12_ROOT_PARAMETER_TYPE_DESCRIPTOR_TABLE)
+								{
+									for (DescriptorRange const& range : param.DescriptorTable.Ranges)
+									{
+										if (range.RangeType == D3D12_DESCRIPTOR_RANGE_TYPE_CBV &&
+											range.BaseShaderRegister <= cbufferSlot &&
+											cbufferSlot < range.BaseShaderRegister + range.NumDescriptors &&
+											range.RegisterSpace == cbufferSpace)
+										{
+											matches = true;
+											break;
+										}
+									}
+								}
 
 								if (!matches)
 								{
@@ -2085,6 +2104,40 @@ namespace vista
 									if (dwordIndex < consts.size())
 									{
 										resolvedHeapIndex = consts[dwordIndex];
+									}
+								}
+								else if (binding.type == D3D12_ROOT_PARAMETER_TYPE_DESCRIPTOR_TABLE)
+								{
+									D3D12_GPU_DESCRIPTOR_HANDLE gpuHandle = std::get<D3D12_GPU_DESCRIPTOR_HANDLE>(binding.value);
+									for (DescriptorRange const& range : param.DescriptorTable.Ranges)
+									{
+										if (range.RangeType == D3D12_DESCRIPTOR_RANGE_TYPE_CBV &&
+											range.BaseShaderRegister <= cbufferSlot &&
+											cbufferSlot < range.BaseShaderRegister + range.NumDescriptors &&
+											range.RegisterSpace == cbufferSpace)
+										{
+											Uint32 descriptorOffset = cbufferSlot - range.BaseShaderRegister;
+											auto [heapInfo, baseDescriptorIndex] = descriptorTracker.FindDescriptorByGpuHandle(gpuHandle);
+											if (heapInfo)
+											{
+												DescriptorInfo const* descInfo = descriptorTracker.GetDescriptorInfo(heapInfo->heapId, baseDescriptorIndex + descriptorOffset);
+												if (descInfo && descInfo->type == DescriptorViewType::CBV && std::holds_alternative<D3D12_CONSTANT_BUFFER_VIEW_DESC>(descInfo->desc))
+												{
+													D3D12_CONSTANT_BUFFER_VIEW_DESC const& cbvDesc = std::get<D3D12_CONSTANT_BUFFER_VIEW_DESC>(descInfo->desc);
+													if (ID3D12Resource* res = addressTracker.QueryResource(cbvDesc.BufferLocation))
+													{
+														Uint64 baseVA = res->GetGPUVirtualAddress();
+														Uint64 offset = (cbvDesc.BufferLocation - baseVA) + cbufferOffset;
+														Uint32 heapIndex = UINT32_MAX;
+														if (mirrorManager.ReadBytes(res, offset, &heapIndex, sizeof(heapIndex)))
+														{
+															resolvedHeapIndex = heapIndex;
+														}
+													}
+												}
+											}
+											break;
+										}
 									}
 								}
 								break;
