@@ -81,7 +81,6 @@ namespace vista
 		void RenderTexture3DPreview(ID3D12Resource*);
 		void RenderBufferPreview(ID3D12Resource*);
 
-
 		void RenderBindlessParameters(ShaderType shaderType, SelectedItem* selectedItemInViewer);
 
 		void RenderVertexBindlessParameters(SelectedItem* selectedItemInViewer);

@@ -1452,7 +1452,7 @@ namespace vista
 			ImGui::TreePop();
 		}
 	}
-
+	
 	void GUI::RenderTexture2DPreview(ID3D12Resource* resource)
 	{
 		static Bool showR = true, showG = true, showB = true, showA = false;
@@ -1462,6 +1462,9 @@ namespace vista
 		static Float zoom = 1.0f;
 		static ImVec2 uv0 = ImVec2(0.0f, 0.0f);
 		static ImVec2 uv1 = ImVec2(1.0f, 1.0f);
+
+		static Bool hasPickedPixel = false;
+		static Int pickedX = -1, pickedY = -1;
 
 		ImGui::Text("Select Channels:");
 		ImGui::SameLine(); ImGui::Checkbox("R##ChannelR", &showR);
@@ -1519,7 +1522,9 @@ namespace vista
 		ImVec2 canvasTopLeft = ImGui::GetCursorScreenPos();
 
 		ImDrawList* drawList = ImGui::GetWindowDrawList();
-		drawList->AddRectFilled(canvasTopLeft, ImVec2(canvasTopLeft.x + canvasSize.x, canvasTopLeft.y + canvasSize.y), IM_COL32(0, 0, 0, 255));
+		drawList->AddRectFilled(canvasTopLeft,
+			ImVec2(canvasTopLeft.x + canvasSize.x, canvasTopLeft.y + canvasSize.y),
+			IM_COL32(0, 0, 0, 255));
 
 		ImGui::InvisibleButton("##ImageCanvas", canvasSize);
 		if (ImGui::IsItemHovered())
@@ -1564,6 +1569,20 @@ namespace vista
 				uv1.x -= deltaU;
 				uv1.y -= deltaV;
 			}
+
+			if (ImGui::IsItemClicked(ImGuiMouseButton_Left))
+			{
+				Uint width = static_cast<Uint>(resDesc.Width >> selectedMipLevel);
+				Uint height = static_cast<Uint>(resDesc.Height >> selectedMipLevel);
+
+				Float u = uv0.x + (uv1.x - uv0.x) * (mousePosInCanvas.x / canvasSize.x);
+				Float v = uv0.y + (uv1.y - uv0.y) * (mousePosInCanvas.y / canvasSize.y);
+
+				pickedX = Int(std::clamp(u * width, 0.0f, Float(width) - 1.0f));
+				pickedY = Int(std::clamp(v * height, 0.0f, Float(height) - 1.0f));
+
+				hasPickedPixel = true;
+			}
 		}
 
 		D3D12_SHADER_RESOURCE_VIEW_DESC srvDesc{};
@@ -1595,11 +1614,11 @@ namespace vista
 
 		switch (srvDesc.Format)
 		{
-		case DXGI_FORMAT_R16_TYPELESS:		srvDesc.Format = DXGI_FORMAT_R16_UNORM; break;
+		case DXGI_FORMAT_R16_TYPELESS:        srvDesc.Format = DXGI_FORMAT_R16_UNORM; break;
 		case DXGI_FORMAT_R32_TYPELESS:
-		case DXGI_FORMAT_D32_FLOAT:			srvDesc.Format = DXGI_FORMAT_R32_FLOAT; break;
-		case DXGI_FORMAT_R24G8_TYPELESS:	srvDesc.Format = DXGI_FORMAT_R24_UNORM_X8_TYPELESS; break;
-		case DXGI_FORMAT_R32G8X24_TYPELESS: srvDesc.Format = DXGI_FORMAT_R32_FLOAT_X8X24_TYPELESS; break;
+		case DXGI_FORMAT_D32_FLOAT:           srvDesc.Format = DXGI_FORMAT_R32_FLOAT; break;
+		case DXGI_FORMAT_R24G8_TYPELESS:      srvDesc.Format = DXGI_FORMAT_R24_UNORM_X8_TYPELESS; break;
+		case DXGI_FORMAT_R32G8X24_TYPELESS:   srvDesc.Format = DXGI_FORMAT_R32_FLOAT_X8X24_TYPELESS; break;
 		}
 
 		D3D12_CPU_DESCRIPTOR_HANDLE srvHandle = imguiManager.GetCPUDescriptor();
@@ -1609,10 +1628,10 @@ namespace vista
 		ImVec2 uvMax(std::min(uv1.x, 1.0f), std::min(uv1.y, 1.0f));
 		if (uvMin.x < uvMax.x && uvMin.y < uvMax.y)
 		{
-			Float const fracLeft = (uvMin.x - uv0.x) / (uv1.x - uv0.x);
-			Float const fracTop = (uvMin.y - uv0.y) / (uv1.y - uv0.y);
-			Float const fracRight = (uvMax.x - uv0.x) / (uv1.x - uv0.x);
-			Float const fracBottom = (uvMax.y - uv0.y) / (uv1.y - uv0.y);
+			Float fracLeft = (uvMin.x - uv0.x) / (uv1.x - uv0.x);
+			Float fracTop = (uvMin.y - uv0.y) / (uv1.y - uv0.y);
+			Float fracRight = (uvMax.x - uv0.x) / (uv1.x - uv0.x);
+			Float fracBottom = (uvMax.y - uv0.y) / (uv1.y - uv0.y);
 
 			ImVec2 dstMin(
 				canvasTopLeft.x + fracLeft * canvasSize.x,
@@ -1629,8 +1648,37 @@ namespace vista
 				uvMin, uvMax
 			);
 		}
-	}
 
+		if (hasPickedPixel)
+		{
+			Uint width = static_cast<Uint>(resDesc.Width >> selectedMipLevel);
+			Uint height = static_cast<Uint>(resDesc.Height >> selectedMipLevel);
+
+			// pixel center UV
+			Float pixelUCenter = (Float(pickedX) + 0.5f) / Float(width);
+			Float pixelVCenter = (Float(pickedY) + 0.5f) / Float(height);
+			Float pixelUSize = 1.0f / Float(width);
+			Float pixelVSize = 1.0f / Float(height);
+
+			Float pixelU0 = pixelUCenter - pixelUSize * 0.5f;
+			Float pixelV0 = pixelVCenter - pixelVSize * 0.5f;
+			Float pixelU1 = pixelUCenter + pixelUSize * 0.5f;
+			Float pixelV1 = pixelVCenter + pixelVSize * 0.5f;
+
+			ImVec2 dstMin(
+				canvasTopLeft.x + (pixelU0 - uv0.x) / (uv1.x - uv0.x) * canvasSize.x,
+				canvasTopLeft.y + (pixelV0 - uv0.y) / (uv1.y - uv0.y) * canvasSize.y
+			);
+			ImVec2 dstMax(
+				canvasTopLeft.x + (pixelU1 - uv0.x) / (uv1.x - uv0.x) * canvasSize.x,
+				canvasTopLeft.y + (pixelV1 - uv0.y) / (uv1.y - uv0.y) * canvasSize.y
+			);
+
+			drawList->AddRect(dstMin, dstMax, IM_COL32(255, 255, 0, 255), 0.0f, 0, 1.5f);
+			ImGui::Text("Picked Pixel: X = %d, Y = %d", pickedX, pickedY);
+		}
+	}
+	
 	void GUI::RenderTexture3DPreview(ID3D12Resource* resource)
 	{
 		static Bool showR = true, showG = true, showB = true, showA = false;
@@ -1641,8 +1689,10 @@ namespace vista
 		static ImVec2 uv0 = ImVec2(0.0f, 0.0f);
 		static ImVec2 uv1 = ImVec2(1.0f, 1.0f);
 
-		D3D12_RESOURCE_DESC const& resDesc = resource->GetDesc();
+		static Bool hasPickedPixel = false;
+		static Int pickedX = -1, pickedY = -1;
 
+		D3D12_RESOURCE_DESC const& resDesc = resource->GetDesc();
 		Uint depthAtMip = std::max<Uint>(1, static_cast<Uint>(resDesc.DepthOrArraySize) >> selectedMipLevel);
 		selectedDepthSlice = std::clamp(selectedDepthSlice, 0, static_cast<Int>(depthAtMip) - 1);
 
@@ -1676,12 +1726,12 @@ namespace vista
 			ImGui::SameLine();
 			ImGui::SetNextItemWidth(150.0f);
 			auto depthSliceGetter = [](void* data, Int idx, Char const** out_text) -> Bool
-			{
-				static Char buffer[32];
-				snprintf(buffer, sizeof(buffer), "Depth Slice %d", idx);
-				*out_text = buffer;
-				return true;
-			};
+				{
+					static Char buffer[32];
+					snprintf(buffer, sizeof(buffer), "Depth Slice %d", idx);
+					*out_text = buffer;
+					return true;
+				};
 			ImGui::Combo("##DepthSliceCombo", &selectedDepthSlice, depthSliceGetter, nullptr, depthAtMip);
 		}
 
@@ -1703,7 +1753,9 @@ namespace vista
 		ImVec2 canvasTopLeft = ImGui::GetCursorScreenPos();
 
 		ImDrawList* drawList = ImGui::GetWindowDrawList();
-		drawList->AddRectFilled(canvasTopLeft, ImVec2(canvasTopLeft.x + canvasSize.x, canvasTopLeft.y + canvasSize.y), IM_COL32(0, 0, 0, 255));
+		drawList->AddRectFilled(canvasTopLeft,
+			ImVec2(canvasTopLeft.x + canvasSize.x, canvasTopLeft.y + canvasSize.y),
+			IM_COL32(0, 0, 0, 255));
 
 		ImGui::InvisibleButton("##ImageCanvas", canvasSize);
 		if (ImGui::IsItemHovered())
@@ -1749,16 +1801,26 @@ namespace vista
 				uv1.x -= deltaU;
 				uv1.y -= deltaV;
 			}
+
+			if (ImGui::IsItemClicked(ImGuiMouseButton_Left))
+			{
+				Uint width = static_cast<Uint>(resDesc.Width >> selectedMipLevel);
+				Uint height = static_cast<Uint>(resDesc.Height >> selectedMipLevel);
+
+				Float u = uv0.x + (uv1.x - uv0.x) * (mousePosInCanvas.x / canvasSize.x);
+				Float v = uv0.y + (uv1.y - uv0.y) * (mousePosInCanvas.y / canvasSize.y);
+
+				pickedX = Int(std::clamp(u * width, 0.0f, Float(width) - 1.0f));
+				pickedY = Int(std::clamp(v * height, 0.0f, Float(height) - 1.0f));
+
+				hasPickedPixel = true;
+			}
 		}
 
 		D3D12_SHADER_RESOURCE_VIEW_DESC srvDesc{};
 		srvDesc.ViewDimension = D3D12_SRV_DIMENSION_TEXTURE3D;
-		srvDesc.Texture2DArray.MostDetailedMip = selectedMipLevel;
-		srvDesc.Texture2DArray.MipLevels = 1;
-		srvDesc.Texture2DArray.FirstArraySlice = selectedDepthSlice;
-		srvDesc.Texture2DArray.ArraySize = 1;
-		srvDesc.Texture2DArray.PlaneSlice = 0;
-		srvDesc.Texture2DArray.ResourceMinLODClamp = 0.0f;
+		srvDesc.Texture3D.MostDetailedMip = selectedMipLevel;
+		srvDesc.Texture3D.MipLevels = 1;
 		srvDesc.Format = resDesc.Format;
 		srvDesc.Shader4ComponentMapping = D3D12_ENCODE_SHADER_4_COMPONENT_MAPPING(
 			showR ? D3D12_SHADER_COMPONENT_MAPPING_FROM_MEMORY_COMPONENT_0 : D3D12_SHADER_COMPONENT_MAPPING_FORCE_VALUE_0,
@@ -1769,11 +1831,11 @@ namespace vista
 
 		switch (srvDesc.Format)
 		{
-		case DXGI_FORMAT_R16_TYPELESS:		srvDesc.Format = DXGI_FORMAT_R16_UNORM; break;
+		case DXGI_FORMAT_R16_TYPELESS:        srvDesc.Format = DXGI_FORMAT_R16_UNORM; break;
 		case DXGI_FORMAT_R32_TYPELESS:
-		case DXGI_FORMAT_D32_FLOAT:			srvDesc.Format = DXGI_FORMAT_R32_FLOAT; break;
-		case DXGI_FORMAT_R24G8_TYPELESS:	srvDesc.Format = DXGI_FORMAT_R24_UNORM_X8_TYPELESS; break;
-		case DXGI_FORMAT_R32G8X24_TYPELESS: srvDesc.Format = DXGI_FORMAT_R32_FLOAT_X8X24_TYPELESS; break;
+		case DXGI_FORMAT_D32_FLOAT:           srvDesc.Format = DXGI_FORMAT_R32_FLOAT; break;
+		case DXGI_FORMAT_R24G8_TYPELESS:      srvDesc.Format = DXGI_FORMAT_R24_UNORM_X8_TYPELESS; break;
+		case DXGI_FORMAT_R32G8X24_TYPELESS:   srvDesc.Format = DXGI_FORMAT_R32_FLOAT_X8X24_TYPELESS; break;
 		}
 
 		D3D12_CPU_DESCRIPTOR_HANDLE srvHandle = imguiManager.GetCPUDescriptor();
@@ -1783,10 +1845,10 @@ namespace vista
 		ImVec2 uvMax(std::min(uv1.x, 1.0f), std::min(uv1.y, 1.0f));
 		if (uvMin.x < uvMax.x && uvMin.y < uvMax.y)
 		{
-			Float const fracLeft = (uvMin.x - uv0.x) / (uv1.x - uv0.x);
-			Float const fracTop = (uvMin.y - uv0.y) / (uv1.y - uv0.y);
-			Float const fracRight = (uvMax.x - uv0.x) / (uv1.x - uv0.x);
-			Float const fracBottom = (uvMax.y - uv0.y) / (uv1.y - uv0.y);
+			Float fracLeft = (uvMin.x - uv0.x) / (uv1.x - uv0.x);
+			Float fracTop = (uvMin.y - uv0.y) / (uv1.y - uv0.y);
+			Float fracRight = (uvMax.x - uv0.x) / (uv1.x - uv0.x);
+			Float fracBottom = (uvMax.y - uv0.y) / (uv1.y - uv0.y);
 
 			ImVec2 dstMin(
 				canvasTopLeft.x + fracLeft * canvasSize.x,
@@ -1802,6 +1864,34 @@ namespace vista
 				dstMin, dstMax,
 				uvMin, uvMax
 			);
+		}
+
+		if (hasPickedPixel)
+		{
+			Uint width = static_cast<Uint>(resDesc.Width >> selectedMipLevel);
+			Uint height = static_cast<Uint>(resDesc.Height >> selectedMipLevel);
+
+			Float pixelUCenter = (Float(pickedX) + 0.5f) / Float(width);
+			Float pixelVCenter = (Float(pickedY) + 0.5f) / Float(height);
+			Float pixelUSize = 1.0f / Float(width);
+			Float pixelVSize = 1.0f / Float(height);
+
+			Float pixelU0 = pixelUCenter - pixelUSize * 0.5f;
+			Float pixelV0 = pixelVCenter - pixelVSize * 0.5f;
+			Float pixelU1 = pixelUCenter + pixelUSize * 0.5f;
+			Float pixelV1 = pixelVCenter + pixelVSize * 0.5f;
+
+			ImVec2 dstMin(
+				canvasTopLeft.x + (pixelU0 - uv0.x) / (uv1.x - uv0.x) * canvasSize.x,
+				canvasTopLeft.y + (pixelV0 - uv0.y) / (uv1.y - uv0.y) * canvasSize.y
+			);
+			ImVec2 dstMax(
+				canvasTopLeft.x + (pixelU1 - uv0.x) / (uv1.x - uv0.x) * canvasSize.x,
+				canvasTopLeft.y + (pixelV1 - uv0.y) / (uv1.y - uv0.y) * canvasSize.y
+			);
+
+			drawList->AddRect(dstMin, dstMax, IM_COL32(255, 255, 0, 255), 0.0f, 0, 1.5f);
+			ImGui::Text("Picked Pixel: X = %d, Y = %d, Z = %d", pickedX, pickedY, selectedDepthSlice);
 		}
 	}
 
