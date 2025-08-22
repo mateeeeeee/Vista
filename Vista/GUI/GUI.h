@@ -17,24 +17,10 @@ namespace vista
 	struct SelectedItem;
 	enum class ShaderType : Uint8;
 
-	struct Globals
-	{
-		ObjectTracker const& objectTracker;
-		DescriptorTracker const& descriptorTracker;
-		ResourceAddressTracker const& addressTracker;
-		MappedBufferManager const& mappedBufferManager;
-		ResourceCopyRequestManager& copyRequestManager;
-		BindlessAccessCache& bindlessAccessCache;
-	};
-
 	class GUI
 	{
 	public:
-		explicit GUI(Globals globals)
-			: objectTracker(globals.objectTracker), descriptorTracker(globals.descriptorTracker), 
-			  addressTracker(globals.addressTracker), mappedBufferManager(globals.mappedBufferManager),
-			  copyRequestManager(globals.copyRequestManager), bindlessAccessCache(globals.bindlessAccessCache)
-		{}
+		GUI();
 		~GUI() = default;
 
 		Bool Initialize(ID3D12Device*);

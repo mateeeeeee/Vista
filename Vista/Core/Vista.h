@@ -17,6 +17,7 @@ namespace vista
 	class Vista : public Singleton<Vista>
 	{
 		friend class Singleton<Vista>;
+
 	public:
 		Bool Initialize();
 		void Shutdown();
@@ -120,6 +121,13 @@ namespace vista
 		HRESULT OnSetEventOnCompletion(ID3D12Fence* pFence, UINT64 value, HANDLE event);
 		HRESULT OnSignal(ID3D12Fence* pFence, UINT64 value);
 
+		ObjectTracker const& GetObjectTracker() const { return objectTracker; }
+		DescriptorTracker const& GetDescriptorTracker() const { return descriptorTracker; }
+		ResourceAddressTracker const& GetAddressTracker() const { return addressTracker; }
+		MappedBufferManager const& GetMappedBufferManager() const { return mappedBufferManager; }
+		ResourceCopyRequestManager& GetCopyRequestManager() { return copyRequestManager; }
+		BindlessAccessCache& GetBindlessAccessCache() { return bindlessAccessCache; }
+
 	private:
 		D3D12PFNs d3d12PFNs;
 		ObjectTracker objectTracker;
@@ -136,8 +144,7 @@ namespace vista
 
 	private:
 		Vista() : d3d12PFNs(), objectTracker(), descriptorTracker(objectTracker), recorderManager(objectTracker), 
-				  stateTracker(), addressTracker(), mappedBufferManager(), bindlessAccessCache(),
-			GUI(Globals{ objectTracker, descriptorTracker, addressTracker, mappedBufferManager, copyRequestManager, bindlessAccessCache }) 
+				  stateTracker(), addressTracker(), mappedBufferManager(), bindlessAccessCache(), GUI() 
 		{}
 		~Vista() = default;
 

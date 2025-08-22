@@ -2,6 +2,7 @@
 #include "GUI.h"
 #include "GUIRenderUtil.h" 
 #include "BufferFormatParser.h"
+#include "Core/Vista.h"
 #include "Tracking/State.h"
 #include "Tracking/ObjectTracker.h"
 #include "Tracking/DescriptorTracker.h"
@@ -23,6 +24,13 @@
 
 namespace vista
 {
+
+	GUI::GUI() : objectTracker(g_Vista.GetObjectTracker()), descriptorTracker(g_Vista.GetDescriptorTracker()),
+		addressTracker(g_Vista.GetAddressTracker()), mappedBufferManager(g_Vista.GetMappedBufferManager()),
+		copyRequestManager(g_Vista.GetCopyRequestManager()), bindlessAccessCache(g_Vista.GetBindlessAccessCache())
+	{
+	}
+
 	Bool GUI::Initialize(ID3D12Device* device)
 	{
 		return imguiManager.Initialize(device);
@@ -1654,7 +1662,6 @@ namespace vista
 			Uint width = static_cast<Uint>(resDesc.Width >> selectedMipLevel);
 			Uint height = static_cast<Uint>(resDesc.Height >> selectedMipLevel);
 
-			// pixel center UV
 			Float pixelUCenter = (Float(pickedX) + 0.5f) / Float(width);
 			Float pixelVCenter = (Float(pickedY) + 0.5f) / Float(height);
 			Float pixelUSize = 1.0f / Float(width);

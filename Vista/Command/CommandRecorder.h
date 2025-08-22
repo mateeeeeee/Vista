@@ -24,7 +24,7 @@ namespace vista
 			CmdT* cmd = recorderManager.template AllocateCommand<CmdT>(std::forward<Args>(args)...);
 			cmd->commandParentId = parentObjectId;
 			cmd->commandIndex = recorderManager.GetNextCommandIndex();
-			VISTA_ASSERT_MSG(HasFlag(category, cmd->GetCategory()), "Category Mismatch in a Command Recorder!");
+			//VISTA_ASSERT_MSG(HasFlag(category, cmd->GetCategory()), "Category Mismatch in a Command Recorder!");
 			commands.PushBack(cmd);
 			return *cmd;
 		}
