@@ -144,7 +144,8 @@ namespace vista
 
 	private:
 		Vista() : d3d12PFNs(), objectTracker(), descriptorTracker(objectTracker), recorderManager(objectTracker), 
-				  stateTracker(), addressTracker(), mappedBufferManager(), bindlessAccessCache(), GUI() 
+				  stateTracker(), addressTracker(), mappedBufferManager(), bindlessAccessCache(), 
+				  GUI(objectTracker, descriptorTracker, addressTracker, mappedBufferManager, copyRequestManager, bindlessAccessCache)
 		{}
 		~Vista() = default;
 

@@ -21,7 +21,14 @@ namespace vista
 	class GUI
 	{
 	public:
-		GUI();
+		GUI(ObjectTracker const& objectTracker, DescriptorTracker const& descriptorTracker,
+			ResourceAddressTracker const& addressTracker, MappedBufferManager const& mappedBufferManager,
+			ResourceCopyRequestManager& copyRequestManager, BindlessAccessCache& bindlessAccessCache)
+			: objectTracker(objectTracker), descriptorTracker(descriptorTracker),
+			  addressTracker(addressTracker), mappedBufferManager(mappedBufferManager),
+			  copyRequestManager(copyRequestManager), bindlessAccessCache(bindlessAccessCache), resourceViewer(imguiManager)
+		{
+		}
 		~GUI() = default;
 
 		Bool Initialize(ID3D12Device*);

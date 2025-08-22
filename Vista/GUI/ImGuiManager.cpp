@@ -24,10 +24,10 @@ namespace vista
 	Bool ImGuiManager::Initialize(ID3D12Device* dev)
 	{
 		if (initialized)
+		{
 			return true;
-
+		}
 		s_ImGuiManagerInstance = this;
-
 		device = dev;
 		if (!CreateWindowAndSwapChain())
 		{
@@ -44,16 +44,13 @@ namespace vista
 
 		ImGui_ImplWin32_Init(window);
 
-		D3D12_CPU_DESCRIPTOR_HANDLE cpuHandle = gpuVisibleHeap->GetCPUDescriptorHandleForHeapStart();
-		D3D12_GPU_DESCRIPTOR_HANDLE gpuHandle = gpuVisibleHeap->GetGPUDescriptorHandleForHeapStart();
-
 		ImGui_ImplDX12_InitInfo init_info{};
 		init_info.Device = device;
 		init_info.NumFramesInFlight = bufferCount;
 		init_info.RTVFormat = DXGI_FORMAT_R8G8B8A8_UNORM;
-		init_info.SrvDescriptorHeap = gpuVisibleHeap.Get();
-		init_info.LegacySingleSrvCpuDescriptor = cpuHandle; 
-		init_info.LegacySingleSrvGpuDescriptor = gpuHandle; 
+		init_info.SrvDescriptorHeap = gpuVisibleAllocator->GetHeap();
+		init_info.LegacySingleSrvCpuDescriptor = gpuVisibleAllocator->GetHandle(0); 
+		init_info.LegacySingleSrvGpuDescriptor = gpuVisibleAllocator->GetHandle(0);
 		init_info.CommandQueue = commandQueue.Get();
 		ImGui_ImplDX12_Init(&init_info);
 
@@ -158,29 +155,26 @@ namespace vista
 		dxgiFactory->CreateSwapChainForHwnd(commandQueue.Get(), window, &scDesc, nullptr, nullptr, tempSwapChain.GetAddressOf());
 		tempSwapChain->QueryInterface(IID_PPV_ARGS(swapChain.GetAddressOf()));
 
-		D3D12_DESCRIPTOR_HEAP_DESC rtvHeapDesc = {};
-		rtvHeapDesc.NumDescriptors = bufferCount;
-		rtvHeapDesc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_RTV;
-		device->CreateDescriptorHeap(&rtvHeapDesc, IID_PPV_ARGS(rtvDescriptorHeap.GetAddressOf()));
+		D3D12DescriptorAllocatorDesc rtvAllocatorDesc{};
+		rtvAllocatorDesc.descriptorCount = bufferCount;
+		rtvAllocatorDesc.type = D3D12DescriptorHeapType::RTV;
+		rtvAllocatorDesc.shaderVisible = false;
+		rtvDescriptorAllocator = std::make_unique<D3D12DescriptorAllocator>(device, rtvAllocatorDesc);
 
-		D3D12_DESCRIPTOR_HEAP_DESC gpuVisibleHeapDesc = {};
-		gpuVisibleHeapDesc.NumDescriptors = bufferCount + 1; 
-		gpuVisibleHeapDesc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV;
-		gpuVisibleHeapDesc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE;
-		device->CreateDescriptorHeap(&gpuVisibleHeapDesc, IID_PPV_ARGS(gpuVisibleHeap.GetAddressOf()));
-
-		Uint32 rtvSize = device->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_RTV);
-		D3D12_CPU_DESCRIPTOR_HANDLE rtvHandle = rtvDescriptorHeap->GetCPUDescriptorHandleForHeapStart();
-
+		D3D12DescriptorAllocatorDesc gpuVisibleDesc{};
+		gpuVisibleDesc.descriptorCount = bufferCount + 1;
+		gpuVisibleDesc.type = D3D12DescriptorHeapType::CBV_SRV_UAV;
+		gpuVisibleDesc.shaderVisible = true;
+		gpuVisibleAllocator = std::make_unique<D3D12DescriptorAllocator>(device, gpuVisibleDesc);
+		
 		backBuffers.resize(bufferCount);
 		backBufferDescriptors.resize(bufferCount);
-
 		for (Uint32 i = 0; i < bufferCount; ++i)
 		{
+			D3D12Descriptor rtvHandle = rtvDescriptorAllocator->GetHandle(i);
 			swapChain->GetBuffer(i, IID_PPV_ARGS(backBuffers[i].GetAddressOf()));
 			device->CreateRenderTargetView(backBuffers[i].Get(), nullptr, rtvHandle);
 			backBufferDescriptors[i] = rtvHandle;
-			rtvHandle.ptr += rtvSize;
 			backBuffers[i]->SetName(L"VistaBackbuffer");
 		}
 
@@ -192,17 +186,13 @@ namespace vista
 		device->CreateCommandList(0, D3D12_COMMAND_LIST_TYPE_DIRECT, commandAllocators[0].Get(), nullptr, IID_PPV_ARGS(commandList.GetAddressOf()));
 		commandList->Close(); 
 
-		device->CreateFence(0, D3D12_FENCE_FLAG_NONE, IID_PPV_ARGS(fence.GetAddressOf()));
-		fenceEvent = CreateEvent(nullptr, FALSE, FALSE, nullptr);
-
+		frameFence.Create(device, "Frame Fence (Vista)");
 		for (Uint32 i = 0; i < bufferCount; ++i)
 		{
 			fenceValues[i] = 0;
 		}
-
 		nextFenceValue = 1;
 		bufferIndex = swapChain->GetCurrentBackBufferIndex();
-
 		return true;
 	}
 
@@ -233,18 +223,14 @@ namespace vista
 		windowWidth = newWidth;
 		windowHeight = newHeight;
 
-		Uint32 rtvSize = device->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_RTV);
-		D3D12_CPU_DESCRIPTOR_HANDLE rtvHandle = rtvDescriptorHeap->GetCPUDescriptorHandleForHeapStart();
-
 		backBuffers.resize(bufferCount);
 		backBufferDescriptors.resize(bufferCount);
-
 		for (Uint32 i = 0; i < bufferCount; ++i)
 		{
+			D3D12Descriptor rtvHandle = rtvDescriptorAllocator->GetHandle(i);
 			swapChain->GetBuffer(i, IID_PPV_ARGS(backBuffers[i].GetAddressOf()));
 			device->CreateRenderTargetView(backBuffers[i].Get(), nullptr, rtvHandle);
 			backBufferDescriptors[i] = rtvHandle;
-			rtvHandle.ptr += rtvSize;
 			backBuffers[i]->SetName(L"VistaBackbuffer");
 		}
 		bufferIndex = swapChain->GetCurrentBackBufferIndex(); 
@@ -263,8 +249,8 @@ namespace vista
 		UnregisterClass(L"VistaWindowClass", GetModuleHandle(nullptr));
 
 		Flush();
-		gpuVisibleHeap = nullptr;
-		rtvDescriptorHeap = nullptr;
+		gpuVisibleAllocator.reset();
+		rtvDescriptorAllocator.reset();
 		swapChain = nullptr;
 		commandQueue = nullptr;
 		commandList = nullptr;
@@ -272,13 +258,6 @@ namespace vista
 		commandAllocators.clear();
 		backBuffers.clear();
 		backBufferDescriptors.clear();
-
-		if (fenceEvent)
-		{
-			CloseHandle(fenceEvent);
-			fenceEvent = nullptr;
-		}
-		fence = nullptr; 
 	}
 
 	void ImGuiManager::SetStyle()
@@ -374,9 +353,8 @@ namespace vista
 
 	void ImGuiManager::Flush()
 	{
-		commandQueue->Signal(fence.Get(), nextFenceValue);
-		fence->SetEventOnCompletion(nextFenceValue, fenceEvent);
-		WaitForSingleObject(fenceEvent, INFINITE);
+		commandQueue->Signal(frameFence, nextFenceValue);
+		frameFence.Wait(nextFenceValue);
 		nextFenceValue++;
 	}
 
@@ -410,12 +388,7 @@ namespace vista
 			}
 		}
 
-		if (fence->GetCompletedValue() < fenceValues[bufferIndex])
-		{
-			fence->SetEventOnCompletion(fenceValues[bufferIndex], fenceEvent);
-			WaitForSingleObject(fenceEvent, INFINITE);
-		}
-
+		frameFence.Wait(fenceValues[bufferIndex]);
 		commandAllocators[bufferIndex]->Reset();
 		commandList->Reset(commandAllocators[bufferIndex].Get(), nullptr);
 
@@ -454,7 +427,7 @@ namespace vista
 		}
 
 		commandList->OMSetRenderTargets(1, &backBufferDescriptors[bufferIndex], FALSE, nullptr);
-		ID3D12DescriptorHeap* heaps[] = { gpuVisibleHeap.Get() };
+		ID3D12DescriptorHeap* heaps[] = { gpuVisibleAllocator->GetHeap() };
 		commandList->SetDescriptorHeaps(_countof(heaps), heaps);
 
 		ImGui_ImplDX12_RenderDrawData(ImGui::GetDrawData(), commandList.Get());
@@ -475,26 +448,15 @@ namespace vista
 		swapChain->Present(1, 0);
 
 		Uint64 signalValue = nextFenceValue++;
-		commandQueue->Signal(fence.Get(), signalValue);
+		commandQueue->Signal(frameFence, signalValue);
 		fenceValues[bufferIndex] = signalValue;
 
 		bufferIndex = swapChain->GetCurrentBackBufferIndex();
 	}
 
-	D3D12_GPU_DESCRIPTOR_HANDLE ImGuiManager::GetGPUDescriptor() const
+	D3D12Descriptor ImGuiManager::GetDescriptorForThisFrame() const
 	{
-		UINT srvHeapDescriptorSize = device->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
-		D3D12_GPU_DESCRIPTOR_HANDLE srvHandle = gpuVisibleHeap->GetGPUDescriptorHandleForHeapStart();
-		srvHandle.ptr += (1 + bufferIndex) * srvHeapDescriptorSize;
-		return srvHandle;
-	}
-
-	D3D12_CPU_DESCRIPTOR_HANDLE ImGuiManager::GetCPUDescriptor() const
-	{
-		UINT srvHeapDescriptorSize = device->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
-		D3D12_CPU_DESCRIPTOR_HANDLE srvHandle = gpuVisibleHeap->GetCPUDescriptorHandleForHeapStart();
-		srvHandle.ptr += (1 + bufferIndex) * srvHeapDescriptorSize; 
-		return srvHandle;
+		return gpuVisibleAllocator->GetHandle(1 + bufferIndex);
 	}
 
 	LRESULT ImGuiManager::WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)

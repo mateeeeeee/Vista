@@ -1,4 +1,5 @@
 #pragma once
+#include "D3D12/D3D12Fence.h"
 #include "D3D12/D3D12DescriptorAllocator.h"
 
 namespace vista
@@ -6,6 +7,7 @@ namespace vista
 	class ImGuiManager
 	{
 		static constexpr Uint32 MaxFramesInFlight = 3;
+
 	public:
 		Bool Initialize(ID3D12Device*);
 		void Shutdown();
@@ -15,10 +17,9 @@ namespace vista
 		Bool BeginFrame();
 		void EndFrame();
 
-		LRESULT WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam);
+		D3D12Descriptor GetDescriptorForThisFrame() const;
 
-		D3D12_GPU_DESCRIPTOR_HANDLE GetGPUDescriptor() const;
-		D3D12_CPU_DESCRIPTOR_HANDLE GetCPUDescriptor() const;
+		LRESULT WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam);
 
 	private:
 		Bool initialized = false;
@@ -27,23 +28,22 @@ namespace vista
 		Uint32 windowHeight = 720;
 		Bool needsResize;
 
+
 		ID3D12Device* device;
 		Ref<ID3D12CommandQueue> commandQueue;
 		Ref<IDXGISwapChain3> swapChain;
-		
 		Ref<ID3D12GraphicsCommandList> commandList;
+
 		std::vector<Ref<ID3D12CommandAllocator>> commandAllocators;
 		std::vector<Ref<ID3D12Resource>> backBuffers;
 		std::vector<D3D12_CPU_DESCRIPTOR_HANDLE> backBufferDescriptors;
-
-		Ref<ID3D12DescriptorHeap> rtvDescriptorHeap;
-		Ref<ID3D12DescriptorHeap> gpuVisibleHeap;
-
 		Uint32 bufferIndex = 0;
-		Uint32 bufferCount = MaxFramesInFlight;
+		Uint32 const bufferCount = MaxFramesInFlight;
 
-		Ref<ID3D12Fence> fence;
-		HANDLE fenceEvent = nullptr;
+		std::unique_ptr<D3D12DescriptorAllocator> rtvDescriptorAllocator;
+		std::unique_ptr<D3D12DescriptorAllocator> gpuVisibleAllocator;
+
+		D3D12Fence frameFence;
 		Uint64 fenceValues[MaxFramesInFlight] = {};
 		Uint64 nextFenceValue = 1;
 

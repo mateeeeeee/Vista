@@ -196,7 +196,7 @@ namespace vista
 		case DXGI_FORMAT_R32G8X24_TYPELESS:   srvDesc.Format = DXGI_FORMAT_R32_FLOAT_X8X24_TYPELESS; break;
 		}
 
-		D3D12_CPU_DESCRIPTOR_HANDLE srvHandle = imguiManager.GetCPUDescriptor();
+		D3D12_CPU_DESCRIPTOR_HANDLE srvHandle = imguiManager.GetDescriptorForThisFrame();
 		imguiManager.GetDevice()->CreateShaderResourceView(resource, &srvDesc, srvHandle);
 
 		ImVec2 uvMin(std::max(uv0.x, 0.0f), std::max(uv0.y, 0.0f));
@@ -217,8 +217,9 @@ namespace vista
 				canvasTopLeft.y + fracBottom * canvasSize.y
 			);
 
+			D3D12_GPU_DESCRIPTOR_HANDLE gpuDescriptor = imguiManager.GetDescriptorForThisFrame();
 			drawList->AddImage(
-				(ImTextureID)imguiManager.GetGPUDescriptor().ptr,
+				(ImTextureID)gpuDescriptor.ptr,
 				dstMin, dstMax,
 				uvMin, uvMax
 			);

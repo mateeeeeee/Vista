@@ -25,12 +25,6 @@
 namespace vista
 {
 
-	GUI::GUI() : objectTracker(g_Vista.GetObjectTracker()), descriptorTracker(g_Vista.GetDescriptorTracker()),
-		addressTracker(g_Vista.GetAddressTracker()), mappedBufferManager(g_Vista.GetMappedBufferManager()),
-		copyRequestManager(g_Vista.GetCopyRequestManager()), bindlessAccessCache(g_Vista.GetBindlessAccessCache()),
-		resourceViewer(imguiManager)
-	{
-	}
 
 	Bool GUI::Initialize(ID3D12Device* device)
 	{
