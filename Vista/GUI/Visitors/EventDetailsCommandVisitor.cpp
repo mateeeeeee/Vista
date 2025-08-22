@@ -6,7 +6,7 @@
 #include "Tracking/ObjectTracker.h"
 #include "Tracking/DescriptorTracker.h"
 #include "Tracking/ResourceAddressTracker.h"
-#include "Utilities/D3D12Util.h"
+#include "D3D12/D3D12Util.h"
 #include "ImGui/imgui.h"
 #include <format>
 

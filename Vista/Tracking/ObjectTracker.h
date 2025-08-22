@@ -1,6 +1,6 @@
 #pragma once
 #include "Traits/AllObjectTraits.h"
-#include "Utilities/D3D12Util.h"
+#include "D3D12/D3D12Util.h"
 
 namespace vista
 {

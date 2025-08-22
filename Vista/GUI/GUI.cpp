@@ -18,7 +18,7 @@
 #include "Command/Commands/ListCommands.h"
 #include "Resource/ResourceCopyRequestManager.h"
 #include "DXIL/BindlessAccessCache.h"
-#include "Utilities/D3D12Util.h"
+#include "D3D12/D3D12Util.h"
 #include "Utilities/HashUtil.h"
 #include "ImGui/imgui.h"
 

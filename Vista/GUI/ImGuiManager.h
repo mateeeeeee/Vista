@@ -1,4 +1,5 @@
 #pragma once
+#include "D3D12/D3D12DescriptorAllocator.h"
 
 namespace vista
 {
@@ -29,12 +30,14 @@ namespace vista
 		ID3D12Device* device;
 		Ref<ID3D12CommandQueue> commandQueue;
 		Ref<IDXGISwapChain3> swapChain;
-		Ref<ID3D12DescriptorHeap> rtvDescriptorHeap;
-		Ref<ID3D12DescriptorHeap> gpuVisibleHeap;
+		
 		Ref<ID3D12GraphicsCommandList> commandList;
 		std::vector<Ref<ID3D12CommandAllocator>> commandAllocators;
 		std::vector<Ref<ID3D12Resource>> backBuffers;
 		std::vector<D3D12_CPU_DESCRIPTOR_HANDLE> backBufferDescriptors;
+
+		Ref<ID3D12DescriptorHeap> rtvDescriptorHeap;
+		Ref<ID3D12DescriptorHeap> gpuVisibleHeap;
 
 		Uint32 bufferIndex = 0;
 		Uint32 bufferCount = MaxFramesInFlight;

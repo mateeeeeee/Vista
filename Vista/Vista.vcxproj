@@ -210,6 +210,9 @@ xcopy /Y /D "%INI_SRC%" "%INI_DST%\"</Command>
     <ClCompile Include="Core\Logging\LogSinks\ConsoleSink.cpp" />
     <ClCompile Include="Core\Logging\LogSinks\DebuggerSink.cpp" />
     <ClCompile Include="Core\Logging\LogSinks\FileSink.cpp" />
+    <ClCompile Include="D3D12\D3D12DescriptorAllocator.cpp" />
+    <ClCompile Include="D3D12\D3D12DescriptorAllocatorBase.cpp" />
+    <ClCompile Include="D3D12\D3D12Fence.cpp" />
     <ClCompile Include="dllmain.cpp" />
     <ClCompile Include="DXIL\BindlessAccess.cpp" />
     <ClCompile Include="DXIL\BindlessAccessCache.cpp" />
@@ -273,6 +276,11 @@ xcopy /Y /D "%INI_SRC%" "%INI_DST%\"</Command>
     <ClInclude Include="Core\Logging\LogSinks\FileSink.h" />
     <ClInclude Include="Core\Macros.h" />
     <ClInclude Include="Core\Types.h" />
+    <ClInclude Include="D3D12\D3D12Descriptor.h" />
+    <ClInclude Include="D3D12\D3D12DescriptorAllocator.h" />
+    <ClInclude Include="D3D12\D3D12DescriptorAllocatorBase.h" />
+    <ClInclude Include="D3D12\D3D12Util.h" />
+    <ClInclude Include="D3D12\D3D12Fence.h" />
     <ClInclude Include="DXIL\BindlessAccessCache.h" />
     <ClInclude Include="DXIL\BindlessAccess.h" />
     <ClInclude Include="DXIL\DxilModuleWrapper.h" />
@@ -317,7 +325,6 @@ xcopy /Y /D "%INI_SRC%" "%INI_DST%\"</Command>
     <ClInclude Include="Tracking\Traits\RootSignatureTraits.h" />
     <ClInclude Include="Utilities\AllocatorUtil.h" />
     <ClInclude Include="Utilities\ConcurrentQueue.h" />
-    <ClInclude Include="Utilities\D3D12Util.h" />
     <ClInclude Include="Utilities\Delegate.h" />
     <ClInclude Include="Utilities\EnumUtil.h" />
     <ClInclude Include="Utilities\HashUtil.h" />

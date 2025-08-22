@@ -1,6 +1,6 @@
 #include "Tracking/DescriptorTracker.h"
 #include "Tracking/Traits/AllObjectTraits.h"
-#include "Utilities/D3D12Util.h"
+#include "D3D12/D3D12Util.h"
 
 struct D3D12_SAMPLER_DESC;
 struct D3D12_STATIC_SAMPLER_DESC;

@@ -138,6 +138,15 @@
     <ClCompile Include="GUI\ResourceViewer.cpp">
       <Filter>GUI</Filter>
     </ClCompile>
+    <ClCompile Include="D3D12\D3D12DescriptorAllocator.cpp">
+      <Filter>D3D12</Filter>
+    </ClCompile>
+    <ClCompile Include="D3D12\D3D12DescriptorAllocatorBase.cpp">
+      <Filter>D3D12</Filter>
+    </ClCompile>
+    <ClCompile Include="D3D12\D3D12Fence.cpp">
+      <Filter>D3D12</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="External">
@@ -196,6 +205,9 @@
     </Filter>
     <Filter Include="DXIL">
       <UniqueIdentifier>{e5f213c3-4e9d-475b-b2ff-70d1db32a0a3}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="D3D12">
+      <UniqueIdentifier>{0370953e-8215-40b1-9f92-05ea4eb58618}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -327,9 +339,6 @@
     <ClInclude Include="GUI\Visitors\EventListCommandVisitor.h">
       <Filter>GUI\Visitors</Filter>
     </ClInclude>
-    <ClInclude Include="Utilities\D3D12Util.h">
-      <Filter>Utilities</Filter>
-    </ClInclude>
     <ClInclude Include="Utilities\StringUtil.h">
       <Filter>Utilities</Filter>
     </ClInclude>
@@ -458,6 +467,21 @@
     </ClInclude>
     <ClInclude Include="GUI\ResourceViewer.h">
       <Filter>GUI</Filter>
+    </ClInclude>
+    <ClInclude Include="D3D12\D3D12Descriptor.h">
+      <Filter>D3D12</Filter>
+    </ClInclude>
+    <ClInclude Include="D3D12\D3D12DescriptorAllocator.h">
+      <Filter>D3D12</Filter>
+    </ClInclude>
+    <ClInclude Include="D3D12\D3D12DescriptorAllocatorBase.h">
+      <Filter>D3D12</Filter>
+    </ClInclude>
+    <ClInclude Include="D3D12\D3D12Util.h">
+      <Filter>D3D12</Filter>
+    </ClInclude>
+    <ClInclude Include="D3D12\D3D12Fence.h">
+      <Filter>D3D12</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

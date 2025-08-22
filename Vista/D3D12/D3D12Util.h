@@ -1,6 +1,6 @@
 #pragma once
 #include <d3dcommon.h>
-#include "StringUtil.h"
+#include "Utilities/StringUtil.h"
 
 namespace vista
 {
