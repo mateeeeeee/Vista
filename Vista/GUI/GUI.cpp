@@ -1492,13 +1492,13 @@ namespace vista
 			ImGui::SameLine();
 			ImGui::SetNextItemWidth(150.0f);
 
-			auto arraySliceGetter = [](void* data, Int idx, Char const** out_text) -> Bool 
-			{
-				static Char buffer[32];
-				snprintf(buffer, sizeof(buffer), "Array Slice %d", idx);
-				*out_text = buffer;
-				return true;
-			};
+			auto arraySliceGetter = [](void* data, Int idx, Char const** out_text) -> Bool
+				{
+					static Char buffer[32];
+					snprintf(buffer, sizeof(buffer), "Array Slice %d", idx);
+					*out_text = buffer;
+					return true;
+				};
 			ImGui::Combo("##ArraySliceCombo", &selectedArraySlice, arraySliceGetter, nullptr, resDesc.DepthOrArraySize);
 		}
 
@@ -1554,7 +1554,6 @@ namespace vista
 			if (ImGui::IsMouseDragging(ImGuiMouseButton_Middle))
 			{
 				ImVec2 dragDelta = ImGui::GetIO().MouseDelta;
-
 				Float uvWidth = uv1.x - uv0.x;
 				Float uvHeight = uv1.y - uv0.y;
 				Float deltaU = (dragDelta.x / canvasSize.x) * uvWidth;
@@ -1605,7 +1604,31 @@ namespace vista
 
 		D3D12_CPU_DESCRIPTOR_HANDLE srvHandle = imguiManager.GetCPUDescriptor();
 		imguiManager.GetDevice()->CreateShaderResourceView(resource, &srvDesc, srvHandle);
-		drawList->AddImage((ImTextureID)imguiManager.GetGPUDescriptor().ptr, canvasTopLeft, ImVec2(canvasTopLeft.x + canvasSize.x, canvasTopLeft.y + canvasSize.y), uv0, uv1);
+
+		ImVec2 uvMin(std::max(uv0.x, 0.0f), std::max(uv0.y, 0.0f));
+		ImVec2 uvMax(std::min(uv1.x, 1.0f), std::min(uv1.y, 1.0f));
+		if (uvMin.x < uvMax.x && uvMin.y < uvMax.y)
+		{
+			Float const fracLeft = (uvMin.x - uv0.x) / (uv1.x - uv0.x);
+			Float const fracTop = (uvMin.y - uv0.y) / (uv1.y - uv0.y);
+			Float const fracRight = (uvMax.x - uv0.x) / (uv1.x - uv0.x);
+			Float const fracBottom = (uvMax.y - uv0.y) / (uv1.y - uv0.y);
+
+			ImVec2 dstMin(
+				canvasTopLeft.x + fracLeft * canvasSize.x,
+				canvasTopLeft.y + fracTop * canvasSize.y
+			);
+			ImVec2 dstMax(
+				canvasTopLeft.x + fracRight * canvasSize.x,
+				canvasTopLeft.y + fracBottom * canvasSize.y
+			);
+
+			drawList->AddImage(
+				(ImTextureID)imguiManager.GetGPUDescriptor().ptr,
+				dstMin, dstMax,
+				uvMin, uvMax
+			);
+		}
 	}
 
 	void GUI::RenderTexture3DPreview(ID3D12Resource* resource)
