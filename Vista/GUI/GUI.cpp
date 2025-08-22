@@ -27,7 +27,8 @@ namespace vista
 
 	GUI::GUI() : objectTracker(g_Vista.GetObjectTracker()), descriptorTracker(g_Vista.GetDescriptorTracker()),
 		addressTracker(g_Vista.GetAddressTracker()), mappedBufferManager(g_Vista.GetMappedBufferManager()),
-		copyRequestManager(g_Vista.GetCopyRequestManager()), bindlessAccessCache(g_Vista.GetBindlessAccessCache())
+		copyRequestManager(g_Vista.GetCopyRequestManager()), bindlessAccessCache(g_Vista.GetBindlessAccessCache()),
+		resourceViewer(imguiManager)
 	{
 	}
 
@@ -284,41 +285,22 @@ namespace vista
 							imageWidth = std::clamp(imageWidth, 50.0f, totalWidth - SplitterThickness - MinPanelWidth);
 							infoWidth = totalWidth - imageWidth - SplitterThickness;
 
+							if (!IsFreezed())
+							{
+								copyRequestManager.RequestCopy(selectedCommandInfo, selectedItemInViewer);
+							}
+
+							std::optional<ResourceCopyRequest> copyRequest = copyRequestManager.TryGetReadyRequest();
+							if (copyRequest.has_value())
+							{
+								copyRequestManager.FreeRequest(lastValidCopyRequest);
+								lastValidCopyRequest = *copyRequest;
+							}
+							ID3D12Resource* resource = lastValidCopyRequest.GetDestinationResource();
+
 							ImGui::BeginChild("##ImagePreview", ImVec2(imageWidth, 0), true, ImGuiWindowFlags_HorizontalScrollbar);
 							{
-								if (!IsFreezed())
-								{
-									copyRequestManager.RequestCopy(selectedCommandInfo, selectedItemInViewer);
-								}
-
-								std::optional<ResourceCopyRequest> copyRequest = copyRequestManager.TryGetReadyRequest();
-								if (copyRequest.has_value())
-								{
-									copyRequestManager.FreeRequest(lastValidCopyRequest);
-									lastValidCopyRequest = *copyRequest;
-								}
-
-								ID3D12Resource* resource = lastValidCopyRequest.GetDestinationResource();
-								Bool const isTexture2D = resource && resource->GetDesc().Dimension == D3D12_RESOURCE_DIMENSION_TEXTURE2D;
-								Bool const isTexture3D = resource && resource->GetDesc().Dimension == D3D12_RESOURCE_DIMENSION_TEXTURE3D;
-								Bool const isBuffer = resource && resource->GetDesc().Dimension == D3D12_RESOURCE_DIMENSION_BUFFER;
-
-								if (isTexture2D)
-								{
-									RenderTexture2DPreview(resource);
-								}
-								else if (isTexture3D)
-								{
-									RenderTexture3DPreview(resource);
-								}
-								else if (isBuffer)
-								{
-									RenderBufferPreview(resource);
-								}
-								else
-								{
-									ImGui::Text("Resource preview not supported for this resource type!");
-								}
+								resourceViewer.RenderResource(resource);
 							}
 							ImGui::EndChild();
 
@@ -1097,7 +1079,7 @@ namespace vista
 			{
 				RenderRootParameterBinding(i, currentState.graphicsRootArguments[i], D3D12_SHADER_VISIBILITY_VERTEX, objectTracker, descriptorTracker, addressTracker, &selectedItemInViewer);
 			}
-			RenderVertexBindlessParameters(&selectedItemInViewer);
+			RenderBindlessParameters(ShaderType::Vertex, &selectedItemInViewer);
 			ImGui::TreePop();
 		}
 
@@ -1107,7 +1089,7 @@ namespace vista
 			{
 				RenderRootParameterBinding(i, currentState.graphicsRootArguments[i], D3D12_SHADER_VISIBILITY_PIXEL, objectTracker, descriptorTracker, addressTracker, &selectedItemInViewer);
 			}
-			RenderPixelBindlessParameters(&selectedItemInViewer);
+			RenderBindlessParameters(ShaderType::Pixel, &selectedItemInViewer);
 			ImGui::TreePop();
 		}
 
@@ -1225,7 +1207,7 @@ namespace vista
 			{
 				RenderRootParameterBinding(i, currentState.computeRootArguments[i], D3D12_SHADER_VISIBILITY_ALL, objectTracker, descriptorTracker, addressTracker, &selectedItemInViewer);
 			}
-			RenderComputeBindlessParameters(&selectedItemInViewer);
+			RenderBindlessParameters(ShaderType::Compute, &selectedItemInViewer);
 			ImGui::TreePop();
 		}
 	}
@@ -1333,7 +1315,7 @@ namespace vista
 			{
 				RenderRootParameterBinding(i, currentState.graphicsRootArguments[i], D3D12_SHADER_VISIBILITY_AMPLIFICATION, objectTracker, descriptorTracker, addressTracker, &selectedItemInViewer);
 			}
-			RenderAmplificationBindlessParameters(&selectedItemInViewer);
+			RenderBindlessParameters(ShaderType::Amplification, &selectedItemInViewer);
 			ImGui::TreePop();
 		}
 
@@ -1343,7 +1325,7 @@ namespace vista
 			{
 				RenderRootParameterBinding(i, currentState.graphicsRootArguments[i], D3D12_SHADER_VISIBILITY_MESH, objectTracker, descriptorTracker, addressTracker, &selectedItemInViewer);
 			}
-			RenderMeshBindlessParameters(&selectedItemInViewer);
+			RenderBindlessParameters(ShaderType::Mesh, &selectedItemInViewer);
 			ImGui::TreePop();
 		}
 
@@ -1353,7 +1335,7 @@ namespace vista
 			{
 				RenderRootParameterBinding(i, currentState.graphicsRootArguments[i], D3D12_SHADER_VISIBILITY_PIXEL, objectTracker, descriptorTracker, addressTracker, &selectedItemInViewer);
 			}
-			RenderPixelBindlessParameters(&selectedItemInViewer);
+			RenderBindlessParameters(ShaderType::Pixel, &selectedItemInViewer);
 			ImGui::TreePop();
 		}
 
@@ -1458,660 +1440,6 @@ namespace vista
 				RenderRootParameterBinding(i, currentState.computeRootArguments[i], D3D12_SHADER_VISIBILITY_ALL, objectTracker, descriptorTracker, addressTracker, &selectedItemInViewer);
 			}
 			ImGui::TreePop();
-		}
-	}
-	
-	void GUI::RenderTexture2DPreview(ID3D12Resource* resource)
-	{
-		static Bool showR = true, showG = true, showB = true, showA = false;
-		static Int selectedMipLevel = 0;
-		static Int selectedArraySlice = 0;
-
-		static Float zoom = 1.0f;
-		static ImVec2 uv0 = ImVec2(0.0f, 0.0f);
-		static ImVec2 uv1 = ImVec2(1.0f, 1.0f);
-
-		static Bool hasPickedPixel = false;
-		static Int pickedX = -1, pickedY = -1;
-
-		ImGui::Text("Select Channels:");
-		ImGui::SameLine(); ImGui::Checkbox("R##ChannelR", &showR);
-		ImGui::SameLine(); ImGui::Checkbox("G##ChannelG", &showG);
-		ImGui::SameLine(); ImGui::Checkbox("B##ChannelB", &showB);
-		ImGui::SameLine(); ImGui::Checkbox("A##ChannelA", &showA);
-
-		Uint16 const mipCount = resource->GetDesc().MipLevels;
-		if (mipCount > 1)
-		{
-			static Char const* mipLabels[] =
-			{
-				"Mip 0", "Mip 1", "Mip 2", "Mip 3", "Mip 4", "Mip 5", "Mip 6", "Mip 7",
-				"Mip 8", "Mip 9", "Mip 10", "Mip 11", "Mip 12", "Mip 13", "Mip 14", "Mip 15"
-			};
-			ImGui::Text("Mip Level:");
-			ImGui::SameLine();
-			ImGui::SetNextItemWidth(75.0f);
-			ImGui::Combo("##MipLevelCombo", &selectedMipLevel, mipLabels, resource->GetDesc().MipLevels);
-		}
-
-		D3D12_RESOURCE_DESC const& resDesc = resource->GetDesc();
-		Bool const isTextureArray = resDesc.DepthOrArraySize > 1;
-		if (isTextureArray)
-		{
-			ImGui::SameLine();
-			ImGui::Text("Array Slice:");
-			ImGui::SameLine();
-			ImGui::SetNextItemWidth(150.0f);
-
-			auto arraySliceGetter = [](void* data, Int idx, Char const** out_text) -> Bool
-				{
-					static Char buffer[32];
-					snprintf(buffer, sizeof(buffer), "Array Slice %d", idx);
-					*out_text = buffer;
-					return true;
-				};
-			ImGui::Combo("##ArraySliceCombo", &selectedArraySlice, arraySliceGetter, nullptr, resDesc.DepthOrArraySize);
-		}
-
-		ImGui::SameLine();
-		Bool resetView = ImGui::Button("Reset View");
-		ImGui::Separator();
-
-		if (resetView)
-		{
-			selectedMipLevel = 0;
-			zoom = 1.0f;
-			uv0 = ImVec2(0.0f, 0.0f);
-			uv1 = ImVec2(1.0f, 1.0f);
-		}
-
-		ImGui::Text("Zoom: %.2fx (Scroll to Zoom, Middle-Click to Pan)", zoom);
-		ImVec2 canvasSize = ImGui::GetContentRegionAvail();
-		ImVec2 canvasTopLeft = ImGui::GetCursorScreenPos();
-
-		ImDrawList* drawList = ImGui::GetWindowDrawList();
-		drawList->AddRectFilled(canvasTopLeft,
-			ImVec2(canvasTopLeft.x + canvasSize.x, canvasTopLeft.y + canvasSize.y),
-			IM_COL32(0, 0, 0, 255));
-
-		ImGui::InvisibleButton("##ImageCanvas", canvasSize);
-		if (ImGui::IsItemHovered())
-		{
-			ImVec2 mousePos = ImGui::GetMousePos();
-			ImVec2 mousePosInCanvas = ImVec2(mousePos.x - canvasTopLeft.x, mousePos.y - canvasTopLeft.y);
-
-			Float wheel = ImGui::GetIO().MouseWheel;
-			if (wheel != 0.0f)
-			{
-				Float oldZoom = zoom;
-				zoom *= (wheel > 0) ? 1.2f : 1.0f / 1.2f;
-				zoom = std::clamp(zoom, 0.1f, 100.0f);
-
-				ImVec2 mouseUV = ImVec2(
-					uv0.x + (uv1.x - uv0.x) * (mousePosInCanvas.x / canvasSize.x),
-					uv0.y + (uv1.y - uv0.y) * (mousePosInCanvas.y / canvasSize.y)
-				);
-
-				Float newUvWidth = (uv1.x - uv0.x) * (oldZoom / zoom);
-				Float newUvHeight = (uv1.y - uv0.y) * (oldZoom / zoom);
-
-				Float mouseRatioX = mousePosInCanvas.x / canvasSize.x;
-				Float mouseRatioY = mousePosInCanvas.y / canvasSize.y;
-
-				uv0.x = mouseUV.x - mouseRatioX * newUvWidth;
-				uv0.y = mouseUV.y - mouseRatioY * newUvHeight;
-				uv1.x = uv0.x + newUvWidth;
-				uv1.y = uv0.y + newUvHeight;
-			}
-
-			if (ImGui::IsMouseDragging(ImGuiMouseButton_Middle))
-			{
-				ImVec2 dragDelta = ImGui::GetIO().MouseDelta;
-				Float uvWidth = uv1.x - uv0.x;
-				Float uvHeight = uv1.y - uv0.y;
-				Float deltaU = (dragDelta.x / canvasSize.x) * uvWidth;
-				Float deltaV = (dragDelta.y / canvasSize.y) * uvHeight;
-
-				uv0.x -= deltaU;
-				uv0.y -= deltaV;
-				uv1.x -= deltaU;
-				uv1.y -= deltaV;
-			}
-
-			if (ImGui::IsItemClicked(ImGuiMouseButton_Left))
-			{
-				Uint width = static_cast<Uint>(resDesc.Width >> selectedMipLevel);
-				Uint height = static_cast<Uint>(resDesc.Height >> selectedMipLevel);
-
-				Float u = uv0.x + (uv1.x - uv0.x) * (mousePosInCanvas.x / canvasSize.x);
-				Float v = uv0.y + (uv1.y - uv0.y) * (mousePosInCanvas.y / canvasSize.y);
-
-				pickedX = Int(std::clamp(u * width, 0.0f, Float(width) - 1.0f));
-				pickedY = Int(std::clamp(v * height, 0.0f, Float(height) - 1.0f));
-
-				hasPickedPixel = true;
-			}
-		}
-
-		D3D12_SHADER_RESOURCE_VIEW_DESC srvDesc{};
-		if (isTextureArray)
-		{
-			srvDesc.ViewDimension = D3D12_SRV_DIMENSION_TEXTURE2DARRAY;
-			srvDesc.Texture2DArray.MostDetailedMip = selectedMipLevel;
-			srvDesc.Texture2DArray.MipLevels = 1;
-			srvDesc.Texture2DArray.FirstArraySlice = selectedArraySlice;
-			srvDesc.Texture2DArray.ArraySize = 1;
-			srvDesc.Texture2DArray.PlaneSlice = 0;
-			srvDesc.Texture2DArray.ResourceMinLODClamp = 0.0f;
-		}
-		else
-		{
-			srvDesc.ViewDimension = D3D12_SRV_DIMENSION_TEXTURE2D;
-			srvDesc.Texture2D.MostDetailedMip = selectedMipLevel;
-			srvDesc.Texture2D.MipLevels = 1;
-			srvDesc.Texture2D.PlaneSlice = 0;
-			srvDesc.Texture2D.ResourceMinLODClamp = 0.0f;
-		}
-		srvDesc.Format = resDesc.Format;
-		srvDesc.Shader4ComponentMapping = D3D12_ENCODE_SHADER_4_COMPONENT_MAPPING(
-			showR ? D3D12_SHADER_COMPONENT_MAPPING_FROM_MEMORY_COMPONENT_0 : D3D12_SHADER_COMPONENT_MAPPING_FORCE_VALUE_0,
-			showG ? D3D12_SHADER_COMPONENT_MAPPING_FROM_MEMORY_COMPONENT_1 : D3D12_SHADER_COMPONENT_MAPPING_FORCE_VALUE_0,
-			showB ? D3D12_SHADER_COMPONENT_MAPPING_FROM_MEMORY_COMPONENT_2 : D3D12_SHADER_COMPONENT_MAPPING_FORCE_VALUE_0,
-			showA ? D3D12_SHADER_COMPONENT_MAPPING_FROM_MEMORY_COMPONENT_3 : D3D12_SHADER_COMPONENT_MAPPING_FORCE_VALUE_1
-		);
-
-		switch (srvDesc.Format)
-		{
-		case DXGI_FORMAT_R16_TYPELESS:        srvDesc.Format = DXGI_FORMAT_R16_UNORM; break;
-		case DXGI_FORMAT_R32_TYPELESS:
-		case DXGI_FORMAT_D32_FLOAT:           srvDesc.Format = DXGI_FORMAT_R32_FLOAT; break;
-		case DXGI_FORMAT_R24G8_TYPELESS:      srvDesc.Format = DXGI_FORMAT_R24_UNORM_X8_TYPELESS; break;
-		case DXGI_FORMAT_R32G8X24_TYPELESS:   srvDesc.Format = DXGI_FORMAT_R32_FLOAT_X8X24_TYPELESS; break;
-		}
-
-		D3D12_CPU_DESCRIPTOR_HANDLE srvHandle = imguiManager.GetCPUDescriptor();
-		imguiManager.GetDevice()->CreateShaderResourceView(resource, &srvDesc, srvHandle);
-
-		ImVec2 uvMin(std::max(uv0.x, 0.0f), std::max(uv0.y, 0.0f));
-		ImVec2 uvMax(std::min(uv1.x, 1.0f), std::min(uv1.y, 1.0f));
-		if (uvMin.x < uvMax.x && uvMin.y < uvMax.y)
-		{
-			Float fracLeft = (uvMin.x - uv0.x) / (uv1.x - uv0.x);
-			Float fracTop = (uvMin.y - uv0.y) / (uv1.y - uv0.y);
-			Float fracRight = (uvMax.x - uv0.x) / (uv1.x - uv0.x);
-			Float fracBottom = (uvMax.y - uv0.y) / (uv1.y - uv0.y);
-
-			ImVec2 dstMin(
-				canvasTopLeft.x + fracLeft * canvasSize.x,
-				canvasTopLeft.y + fracTop * canvasSize.y
-			);
-			ImVec2 dstMax(
-				canvasTopLeft.x + fracRight * canvasSize.x,
-				canvasTopLeft.y + fracBottom * canvasSize.y
-			);
-
-			drawList->AddImage(
-				(ImTextureID)imguiManager.GetGPUDescriptor().ptr,
-				dstMin, dstMax,
-				uvMin, uvMax
-			);
-		}
-
-		if (hasPickedPixel)
-		{
-			Uint width = static_cast<Uint>(resDesc.Width >> selectedMipLevel);
-			Uint height = static_cast<Uint>(resDesc.Height >> selectedMipLevel);
-
-			Float pixelUCenter = (Float(pickedX) + 0.5f) / Float(width);
-			Float pixelVCenter = (Float(pickedY) + 0.5f) / Float(height);
-			Float pixelUSize = 1.0f / Float(width);
-			Float pixelVSize = 1.0f / Float(height);
-
-			Float pixelU0 = pixelUCenter - pixelUSize * 0.5f;
-			Float pixelV0 = pixelVCenter - pixelVSize * 0.5f;
-			Float pixelU1 = pixelUCenter + pixelUSize * 0.5f;
-			Float pixelV1 = pixelVCenter + pixelVSize * 0.5f;
-
-			ImVec2 dstMin(
-				canvasTopLeft.x + (pixelU0 - uv0.x) / (uv1.x - uv0.x) * canvasSize.x,
-				canvasTopLeft.y + (pixelV0 - uv0.y) / (uv1.y - uv0.y) * canvasSize.y
-			);
-			ImVec2 dstMax(
-				canvasTopLeft.x + (pixelU1 - uv0.x) / (uv1.x - uv0.x) * canvasSize.x,
-				canvasTopLeft.y + (pixelV1 - uv0.y) / (uv1.y - uv0.y) * canvasSize.y
-			);
-
-			drawList->AddRect(dstMin, dstMax, IM_COL32(255, 255, 0, 255), 0.0f, 0, 1.5f);
-			ImGui::Text("Picked Pixel: X = %d, Y = %d", pickedX, pickedY);
-		}
-	}
-	
-	void GUI::RenderTexture3DPreview(ID3D12Resource* resource)
-	{
-		static Bool showR = true, showG = true, showB = true, showA = false;
-		static Int selectedMipLevel = 0;
-		static Int selectedDepthSlice = 0;
-
-		static Float zoom = 1.0f;
-		static ImVec2 uv0 = ImVec2(0.0f, 0.0f);
-		static ImVec2 uv1 = ImVec2(1.0f, 1.0f);
-
-		static Bool hasPickedPixel = false;
-		static Int pickedX = -1, pickedY = -1;
-
-		D3D12_RESOURCE_DESC const& resDesc = resource->GetDesc();
-		Uint depthAtMip = std::max<Uint>(1, static_cast<Uint>(resDesc.DepthOrArraySize) >> selectedMipLevel);
-		selectedDepthSlice = std::clamp(selectedDepthSlice, 0, static_cast<Int>(depthAtMip) - 1);
-
-		ImGui::Text("Select Channels:");
-		ImGui::SameLine(); ImGui::Checkbox("R##ChannelR", &showR);
-		ImGui::SameLine(); ImGui::Checkbox("G##ChannelG", &showG);
-		ImGui::SameLine(); ImGui::Checkbox("B##ChannelB", &showB);
-		ImGui::SameLine(); ImGui::Checkbox("A##ChannelA", &showA);
-
-		Uint16 const mipCount = resDesc.MipLevels;
-		if (mipCount > 1)
-		{
-			static Char const* mipLabels[] =
-			{
-				"Mip 0", "Mip 1", "Mip 2", "Mip 3", "Mip 4", "Mip 5", "Mip 6", "Mip 7",
-				"Mip 8", "Mip 9", "Mip 10", "Mip 11", "Mip 12", "Mip 13", "Mip 14", "Mip 15"
-			};
-			ImGui::Text("Mip Level:");
-			ImGui::SameLine();
-			ImGui::SetNextItemWidth(75.0f);
-			if (ImGui::Combo("##MipLevelCombo", &selectedMipLevel, mipLabels, mipCount))
-			{
-				depthAtMip = std::max<Uint>(1, static_cast<Uint>(resDesc.DepthOrArraySize) >> selectedMipLevel);
-				selectedDepthSlice = std::clamp(selectedDepthSlice, 0, static_cast<Int>(depthAtMip) - 1);
-			}
-		}
-
-		if (depthAtMip > 1)
-		{
-			ImGui::Text("Depth Slice:");
-			ImGui::SameLine();
-			ImGui::SetNextItemWidth(150.0f);
-			auto depthSliceGetter = [](void* data, Int idx, Char const** out_text) -> Bool
-				{
-					static Char buffer[32];
-					snprintf(buffer, sizeof(buffer), "Depth Slice %d", idx);
-					*out_text = buffer;
-					return true;
-				};
-			ImGui::Combo("##DepthSliceCombo", &selectedDepthSlice, depthSliceGetter, nullptr, depthAtMip);
-		}
-
-		ImGui::SameLine();
-		Bool resetView = ImGui::Button("Reset View");
-		ImGui::Separator();
-
-		if (resetView)
-		{
-			selectedMipLevel = 0;
-			selectedDepthSlice = 0;
-			zoom = 1.0f;
-			uv0 = ImVec2(0.0f, 0.0f);
-			uv1 = ImVec2(1.0f, 1.0f);
-		}
-
-		ImGui::Text("Zoom: %.2fx (Scroll to Zoom, Middle-Click to Pan)", zoom);
-		ImVec2 canvasSize = ImGui::GetContentRegionAvail();
-		ImVec2 canvasTopLeft = ImGui::GetCursorScreenPos();
-
-		ImDrawList* drawList = ImGui::GetWindowDrawList();
-		drawList->AddRectFilled(canvasTopLeft,
-			ImVec2(canvasTopLeft.x + canvasSize.x, canvasTopLeft.y + canvasSize.y),
-			IM_COL32(0, 0, 0, 255));
-
-		ImGui::InvisibleButton("##ImageCanvas", canvasSize);
-		if (ImGui::IsItemHovered())
-		{
-			ImVec2 mousePos = ImGui::GetMousePos();
-			ImVec2 mousePosInCanvas = ImVec2(mousePos.x - canvasTopLeft.x, mousePos.y - canvasTopLeft.y);
-
-			Float wheel = ImGui::GetIO().MouseWheel;
-			if (wheel != 0.0f)
-			{
-				Float oldZoom = zoom;
-				zoom *= (wheel > 0) ? 1.2f : 1.0f / 1.2f;
-				zoom = std::clamp(zoom, 0.1f, 100.0f);
-
-				ImVec2 mouseUV = ImVec2(
-					uv0.x + (uv1.x - uv0.x) * (mousePosInCanvas.x / canvasSize.x),
-					uv0.y + (uv1.y - uv0.y) * (mousePosInCanvas.y / canvasSize.y)
-				);
-
-				Float newUvWidth = (uv1.x - uv0.x) * (oldZoom / zoom);
-				Float newUvHeight = (uv1.y - uv0.y) * (oldZoom / zoom);
-
-				Float mouseRatioX = mousePosInCanvas.x / canvasSize.x;
-				Float mouseRatioY = mousePosInCanvas.y / canvasSize.y;
-
-				uv0.x = mouseUV.x - mouseRatioX * newUvWidth;
-				uv0.y = mouseUV.y - mouseRatioY * newUvHeight;
-				uv1.x = uv0.x + newUvWidth;
-				uv1.y = uv0.y + newUvHeight;
-			}
-
-			if (ImGui::IsMouseDragging(ImGuiMouseButton_Middle))
-			{
-				ImVec2 dragDelta = ImGui::GetIO().MouseDelta;
-
-				Float uvWidth = uv1.x - uv0.x;
-				Float uvHeight = uv1.y - uv0.y;
-				Float deltaU = (dragDelta.x / canvasSize.x) * uvWidth;
-				Float deltaV = (dragDelta.y / canvasSize.y) * uvHeight;
-
-				uv0.x -= deltaU;
-				uv0.y -= deltaV;
-				uv1.x -= deltaU;
-				uv1.y -= deltaV;
-			}
-
-			if (ImGui::IsItemClicked(ImGuiMouseButton_Left))
-			{
-				Uint width = static_cast<Uint>(resDesc.Width >> selectedMipLevel);
-				Uint height = static_cast<Uint>(resDesc.Height >> selectedMipLevel);
-
-				Float u = uv0.x + (uv1.x - uv0.x) * (mousePosInCanvas.x / canvasSize.x);
-				Float v = uv0.y + (uv1.y - uv0.y) * (mousePosInCanvas.y / canvasSize.y);
-
-				pickedX = Int(std::clamp(u * width, 0.0f, Float(width) - 1.0f));
-				pickedY = Int(std::clamp(v * height, 0.0f, Float(height) - 1.0f));
-
-				hasPickedPixel = true;
-			}
-		}
-
-		D3D12_SHADER_RESOURCE_VIEW_DESC srvDesc{};
-		srvDesc.ViewDimension = D3D12_SRV_DIMENSION_TEXTURE3D;
-		srvDesc.Texture3D.MostDetailedMip = selectedMipLevel;
-		srvDesc.Texture3D.MipLevels = 1;
-		srvDesc.Format = resDesc.Format;
-		srvDesc.Shader4ComponentMapping = D3D12_ENCODE_SHADER_4_COMPONENT_MAPPING(
-			showR ? D3D12_SHADER_COMPONENT_MAPPING_FROM_MEMORY_COMPONENT_0 : D3D12_SHADER_COMPONENT_MAPPING_FORCE_VALUE_0,
-			showG ? D3D12_SHADER_COMPONENT_MAPPING_FROM_MEMORY_COMPONENT_1 : D3D12_SHADER_COMPONENT_MAPPING_FORCE_VALUE_0,
-			showB ? D3D12_SHADER_COMPONENT_MAPPING_FROM_MEMORY_COMPONENT_2 : D3D12_SHADER_COMPONENT_MAPPING_FORCE_VALUE_0,
-			showA ? D3D12_SHADER_COMPONENT_MAPPING_FROM_MEMORY_COMPONENT_3 : D3D12_SHADER_COMPONENT_MAPPING_FORCE_VALUE_1
-		);
-
-		switch (srvDesc.Format)
-		{
-		case DXGI_FORMAT_R16_TYPELESS:        srvDesc.Format = DXGI_FORMAT_R16_UNORM; break;
-		case DXGI_FORMAT_R32_TYPELESS:
-		case DXGI_FORMAT_D32_FLOAT:           srvDesc.Format = DXGI_FORMAT_R32_FLOAT; break;
-		case DXGI_FORMAT_R24G8_TYPELESS:      srvDesc.Format = DXGI_FORMAT_R24_UNORM_X8_TYPELESS; break;
-		case DXGI_FORMAT_R32G8X24_TYPELESS:   srvDesc.Format = DXGI_FORMAT_R32_FLOAT_X8X24_TYPELESS; break;
-		}
-
-		D3D12_CPU_DESCRIPTOR_HANDLE srvHandle = imguiManager.GetCPUDescriptor();
-		imguiManager.GetDevice()->CreateShaderResourceView(resource, &srvDesc, srvHandle);
-
-		ImVec2 uvMin(std::max(uv0.x, 0.0f), std::max(uv0.y, 0.0f));
-		ImVec2 uvMax(std::min(uv1.x, 1.0f), std::min(uv1.y, 1.0f));
-		if (uvMin.x < uvMax.x && uvMin.y < uvMax.y)
-		{
-			Float fracLeft = (uvMin.x - uv0.x) / (uv1.x - uv0.x);
-			Float fracTop = (uvMin.y - uv0.y) / (uv1.y - uv0.y);
-			Float fracRight = (uvMax.x - uv0.x) / (uv1.x - uv0.x);
-			Float fracBottom = (uvMax.y - uv0.y) / (uv1.y - uv0.y);
-
-			ImVec2 dstMin(
-				canvasTopLeft.x + fracLeft * canvasSize.x,
-				canvasTopLeft.y + fracTop * canvasSize.y
-			);
-			ImVec2 dstMax(
-				canvasTopLeft.x + fracRight * canvasSize.x,
-				canvasTopLeft.y + fracBottom * canvasSize.y
-			);
-
-			drawList->AddImage(
-				(ImTextureID)imguiManager.GetGPUDescriptor().ptr,
-				dstMin, dstMax,
-				uvMin, uvMax
-			);
-		}
-
-		if (hasPickedPixel)
-		{
-			Uint width = static_cast<Uint>(resDesc.Width >> selectedMipLevel);
-			Uint height = static_cast<Uint>(resDesc.Height >> selectedMipLevel);
-
-			Float pixelUCenter = (Float(pickedX) + 0.5f) / Float(width);
-			Float pixelVCenter = (Float(pickedY) + 0.5f) / Float(height);
-			Float pixelUSize = 1.0f / Float(width);
-			Float pixelVSize = 1.0f / Float(height);
-
-			Float pixelU0 = pixelUCenter - pixelUSize * 0.5f;
-			Float pixelV0 = pixelVCenter - pixelVSize * 0.5f;
-			Float pixelU1 = pixelUCenter + pixelUSize * 0.5f;
-			Float pixelV1 = pixelVCenter + pixelVSize * 0.5f;
-
-			ImVec2 dstMin(
-				canvasTopLeft.x + (pixelU0 - uv0.x) / (uv1.x - uv0.x) * canvasSize.x,
-				canvasTopLeft.y + (pixelV0 - uv0.y) / (uv1.y - uv0.y) * canvasSize.y
-			);
-			ImVec2 dstMax(
-				canvasTopLeft.x + (pixelU1 - uv0.x) / (uv1.x - uv0.x) * canvasSize.x,
-				canvasTopLeft.y + (pixelV1 - uv0.y) / (uv1.y - uv0.y) * canvasSize.y
-			);
-
-			drawList->AddRect(dstMin, dstMax, IM_COL32(255, 255, 0, 255), 0.0f, 0, 1.5f);
-			ImGui::Text("Picked Pixel: X = %d, Y = %d, Z = %d", pickedX, pickedY, selectedDepthSlice);
-		}
-	}
-
-	void GUI::RenderBufferPreview(ID3D12Resource* resource)
-	{
-		void* mappedData = nullptr;
-		D3D12_RANGE readRange = { 0, static_cast<Uint64>(resource->GetDesc().Width) };
-		HRESULT hr = resource->Map(0, &readRange, &mappedData);
-		if (SUCCEEDED(hr) && mappedData)
-		{
-			static std::string userFormat;
-
-			Uint64 byteSize = static_cast<Uint64>(resource->GetDesc().Width);
-			BufferFormat format = BufferFormat::Parse(userFormat);
-
-			ImGui::Text("Buffer Size: %llu bytes", byteSize);
-
-			Char formatBuffer[256] = { 0 };
-			strncpy_s(formatBuffer, userFormat.c_str(), sizeof(formatBuffer) - 1);
-			if (ImGui::InputTextMultiline("Format", formatBuffer, sizeof(formatBuffer)))
-			{
-				userFormat = formatBuffer;
-			}
-
-			ImGui::BeginChild("BufferView", ImVec2(0, 200), true, ImGuiWindowFlags_HorizontalScrollbar);
-
-			if (format.isValid && format.totalStride > 0 && (byteSize % format.totalStride) == 0)
-			{
-				Uint64 structCount = byteSize / format.totalStride;
-				ImGui::Text("Buffer Contents (%s, %llu structs):", userFormat.c_str(), structCount);
-
-				if (ImGui::BeginTable("BufferTable", static_cast<Int>(format.fields.size() + 1)))
-				{
-					ImGui::TableSetupColumn("Index");
-					for (BufferField const& field : format.fields)
-					{
-						ImGui::TableSetupColumn(field.name.c_str());
-					}
-					ImGui::TableHeadersRow();
-
-					Uint8 const* data = static_cast<Uint8 const*>(mappedData);
-					for (Uint64 i = 0; i < structCount; ++i)
-					{
-						ImGui::TableNextRow();
-						ImGui::TableSetColumnIndex(0);
-						ImGui::Text("[%llu]", i);
-
-						Uint64 offset = i * format.totalStride;
-						for (Uint64 j = 0; j < format.fields.size(); ++j)
-						{
-							BufferField const& field = format.fields[j];
-							ImGui::TableSetColumnIndex(static_cast<Int>(j + 1));
-							Uint8 const* fieldData = data + offset;
-							offset += field.stride;
-
-							if (field.type == BufferField::DataType::FloatMatrix)
-							{
-								Float const* floatData = reinterpret_cast<Float const*>(fieldData);
-								for (Int r = 0; r < field.rows; ++r)
-								{
-									ImGui::Text("%s (row%d):", field.name.c_str(), r);
-									ImGui::SameLine();
-									for (Int c = 0; c < field.columns; ++c)
-									{
-										for (Int k = 0; k < field.baseComponents; ++k)
-										{
-											ImGui::Text("%.6f", floatData[(r * field.columns + c) * field.baseComponents + k]);
-											if (k < field.baseComponents - 1)
-											{
-												ImGui::SameLine();
-											}
-										}
-										if (c < field.columns - 1)
-										{
-											ImGui::SameLine();
-											ImGui::Text(",");
-											ImGui::SameLine();
-										}
-									}
-								}
-							}
-							else if (field.type == BufferField::DataType::IntMatrix)
-							{
-								Int const* intData = reinterpret_cast<Int const*>(fieldData);
-								for (Int r = 0; r < field.rows; ++r)
-								{
-									ImGui::Text("%s (row%d):", field.name.c_str(), r);
-									ImGui::SameLine();
-									for (Int c = 0; c < field.columns; ++c)
-									{
-										for (Int k = 0; k < field.baseComponents; ++k)
-										{
-											ImGui::Text("%d", intData[(r * field.columns + c) * field.baseComponents + k]);
-											if (k < field.baseComponents - 1)
-											{
-												ImGui::SameLine();
-											}
-										}
-										if (c < field.columns - 1)
-										{
-											ImGui::SameLine();
-											ImGui::Text(",");
-											ImGui::SameLine();
-										}
-									}
-								}
-							}
-							else if (field.type == BufferField::DataType::UintMatrix)
-							{
-								Uint32 const* uintData = reinterpret_cast<Uint32 const*>(fieldData);
-								for (Int r = 0; r < field.rows; ++r)
-								{
-									ImGui::Text("%s (row%d):", field.name.c_str(), r);
-									ImGui::SameLine();
-									for (Int c = 0; c < field.columns; ++c)
-									{
-										for (Int k = 0; k < field.baseComponents; ++k)
-										{
-											ImGui::Text("%u", uintData[(r * field.columns + c) * field.baseComponents + k]);
-											if (k < field.baseComponents - 1)
-											{
-												ImGui::SameLine();
-											}
-										}
-										if (c < field.columns - 1)
-										{
-											ImGui::SameLine();
-											ImGui::Text(",");
-											ImGui::SameLine();
-										}
-									}
-								}
-							}
-							else if (field.type == BufferField::DataType::BoolMatrix)
-							{
-								Uint32 const* boolData = reinterpret_cast<Uint32 const*>(fieldData);
-								for (Int r = 0; r < field.rows; ++r)
-								{
-									ImGui::Text("%s (row%d):", field.name.c_str(), r);
-									ImGui::SameLine();
-									for (Int c = 0; c < field.columns; ++c)
-									{
-										for (Int k = 0; k < field.baseComponents; ++k)
-										{
-											ImGui::Text("%s", boolData[(r * field.columns + c) * field.baseComponents + k] ? "true" : "false");
-											if (k < field.baseComponents - 1)
-											{
-												ImGui::SameLine();
-											}
-										}
-										if (c < field.columns - 1)
-										{
-											ImGui::SameLine();
-											ImGui::Text(",");
-											ImGui::SameLine();
-										}
-									}
-								}
-							}
-							else
-							{
-								for (Int k = 0; k < field.rows; ++k)
-								{
-									switch (field.type)
-									{
-									case BufferField::DataType::Float:
-									{
-										Float const* floatData = reinterpret_cast<Float const*>(fieldData);
-										ImGui::Text("%.6f", floatData[k]);
-									}
-									break;
-									case BufferField::DataType::Int:
-									{
-										Int32 const* intData = reinterpret_cast<Int32 const*>(fieldData);
-										ImGui::Text("%d", intData[k]);
-									}
-									break;
-									case BufferField::DataType::Uint:
-									{
-										Uint32 const* uintData = reinterpret_cast<Uint32 const*>(fieldData);
-										ImGui::Text("%u", uintData[k]);
-									}
-									break;
-									case BufferField::DataType::Bool:
-									{
-										Uint32 const* boolData = reinterpret_cast<Uint32 const*>(fieldData);
-										ImGui::Text("%s", boolData[k] ? "true" : "false");
-									}
-									}
-
-									if (k < field.rows - 1)
-									{
-										ImGui::SameLine();
-									}
-								}
-							}
-						}
-					}
-					ImGui::EndTable();
-				}
-			}
-			else
-			{
-				ImGui::Text("Invalid format or buffer size mismatch. Displaying hex view:");
-				std::string hexView = BufferToHex(mappedData, byteSize);
-				ImGui::TextUnformatted(hexView.c_str());
-			}
-			ImGui::EndChild();
-			resource->Unmap(0, nullptr);
-		}
-		else
-		{
-			ImGui::Text("Failed to map readback buffer.");
 		}
 	}
 
@@ -2306,30 +1634,5 @@ namespace vista
 				}
 			}
 		}
-	}
-
-	void GUI::RenderVertexBindlessParameters(SelectedItem* selectedItemInViewer)
-	{
-		RenderBindlessParameters(ShaderType::Vertex, selectedItemInViewer);
-	}
-
-	void GUI::RenderPixelBindlessParameters(SelectedItem* selectedItemInViewer)
-	{
-		RenderBindlessParameters(ShaderType::Pixel, selectedItemInViewer);
-	}
-
-	void GUI::RenderComputeBindlessParameters(SelectedItem* selectedItemInViewer)
-	{
-		RenderBindlessParameters(ShaderType::Compute, selectedItemInViewer);
-	}
-
-	void GUI::RenderMeshBindlessParameters(SelectedItem* selectedItemInViewer)
-	{
-		RenderBindlessParameters(ShaderType::Mesh, selectedItemInViewer);
-	}
-
-	void GUI::RenderAmplificationBindlessParameters(SelectedItem* selectedItemInViewer)
-	{
-		RenderBindlessParameters(ShaderType::Amplification, selectedItemInViewer);
 	}
 }

@@ -37,6 +37,6 @@ namespace vista
 		ID3D12Resource* destinationResource = nullptr;
 		Bool isReady = false;
 
-		Uint64 fenceValue = 0; //used by ResourceCopyRequestManager
+		Uint64 fenceValue = 0; 
 	};
 }

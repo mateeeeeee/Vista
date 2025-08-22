@@ -1,5 +1,6 @@
 #pragma once
 #include "ImGuiManager.h"
+#include "ResourceViewer.h"
 #include "SelectedItem.h"
 #include "Tracking/State.h"
 
@@ -40,6 +41,7 @@ namespace vista
 		BindlessAccessCache& bindlessAccessCache;
 
 		ImGuiManager imguiManager;
+		ResourceViewer resourceViewer;
 		Bool isFreezed = false;
 
 		SelectedCommandInfo selectedCommandInfo{};
@@ -63,16 +65,6 @@ namespace vista
 		void RenderDispatchMeshCommandBoundResources(SelectedItem&);
 		void RenderDispatchRaysCommandBoundResources(SelectedItem&);
 
-		void RenderTexture2DPreview(ID3D12Resource*);
-		void RenderTexture3DPreview(ID3D12Resource*);
-		void RenderBufferPreview(ID3D12Resource*);
-
 		void RenderBindlessParameters(ShaderType shaderType, SelectedItem* selectedItemInViewer);
-
-		void RenderVertexBindlessParameters(SelectedItem* selectedItemInViewer);
-		void RenderPixelBindlessParameters(SelectedItem* selectedItemInViewer);
-		void RenderComputeBindlessParameters(SelectedItem* selectedItemInViewer);
-		void RenderMeshBindlessParameters(SelectedItem* selectedItemInViewer);
-		void RenderAmplificationBindlessParameters(SelectedItem* selectedItemInViewer);
 	};
 }

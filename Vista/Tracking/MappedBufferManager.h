@@ -7,8 +7,8 @@ namespace vista
 	{
 		struct Mirror
 		{
-			std::vector<Uint8> data;  // shadow bytes for the whole buffer
-			void* lastMappedPtr = nullptr; // last CPU pointer from Map
+			std::vector<Uint8> data;  
+			void* lastMappedPtr = nullptr;
 			Uint64 gpuVA = 0;
 			Uint64 size = 0;
 		};

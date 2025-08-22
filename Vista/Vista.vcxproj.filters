@@ -135,6 +135,9 @@
     <ClCompile Include="Tracking\MappedBufferManager.cpp">
       <Filter>Tracking</Filter>
     </ClCompile>
+    <ClCompile Include="GUI\ResourceViewer.cpp">
+      <Filter>GUI</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="External">
@@ -452,6 +455,9 @@
     </ClInclude>
     <ClInclude Include="Tracking\MappedBufferManager.h">
       <Filter>Tracking</Filter>
+    </ClInclude>
+    <ClInclude Include="GUI\ResourceViewer.h">
+      <Filter>GUI</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>
