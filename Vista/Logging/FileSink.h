@@ -1,6 +1,6 @@
 #pragma once
 #include <cstdio>
-#include "Core/Logging/Log.h"
+#include "Logging/Log.h"
 
 namespace vista
 {

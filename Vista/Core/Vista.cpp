@@ -3,8 +3,8 @@
 #include "Hook/GlobalHooks.h"
 #include "Command/Commands.h"
 #include "Command/RTTI.h"
-#include "Logging/LogSinks/DebuggerSink.h"
-#include "Logging/LogSinks/PipeSink.h"
+#include "Logging/DebuggerSink.h"
+#include "Logging/PipeSink.h"
 
 namespace vista
 {

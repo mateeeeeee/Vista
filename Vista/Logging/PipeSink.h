@@ -1,5 +1,5 @@
 #pragma once
-#include "Core/Logging/Log.h"
+#include "Logging/Log.h"
 
 typedef void* HANDLE;
 

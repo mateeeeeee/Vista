@@ -35,21 +35,6 @@
     <ClCompile Include="GUI\ImGuiManager.cpp">
       <Filter>GUI</Filter>
     </ClCompile>
-    <ClCompile Include="Core\Logging\Log.cpp">
-      <Filter>Core\Logging</Filter>
-    </ClCompile>
-    <ClCompile Include="Core\Logging\LogSinks\CallbackSink.cpp">
-      <Filter>Core\Logging\LogSinks</Filter>
-    </ClCompile>
-    <ClCompile Include="Core\Logging\LogSinks\ConsoleSink.cpp">
-      <Filter>Core\Logging\LogSinks</Filter>
-    </ClCompile>
-    <ClCompile Include="Core\Logging\LogSinks\DebuggerSink.cpp">
-      <Filter>Core\Logging\LogSinks</Filter>
-    </ClCompile>
-    <ClCompile Include="Core\Logging\LogSinks\FileSink.cpp">
-      <Filter>Core\Logging\LogSinks</Filter>
-    </ClCompile>
     <ClCompile Include="pch.cpp" />
     <ClCompile Include="Command\CommandRecorder.cpp">
       <Filter>Command</Filter>
@@ -99,9 +84,6 @@
     <ClCompile Include="Hook\GlobalHooks.cpp">
       <Filter>Hook</Filter>
     </ClCompile>
-    <ClCompile Include="Core\Logging\LogSinks\PipeSink.cpp">
-      <Filter>Core\Logging\LogSinks</Filter>
-    </ClCompile>
     <ClCompile Include="Tracking\ResourceStateTracker.cpp">
       <Filter>Tracking</Filter>
     </ClCompile>
@@ -147,6 +129,24 @@
     <ClCompile Include="D3D12\D3D12Fence.cpp">
       <Filter>D3D12</Filter>
     </ClCompile>
+    <ClCompile Include="Logging\CallbackSink.cpp">
+      <Filter>Logging</Filter>
+    </ClCompile>
+    <ClCompile Include="Logging\ConsoleSink.cpp">
+      <Filter>Logging</Filter>
+    </ClCompile>
+    <ClCompile Include="Logging\DebuggerSink.cpp">
+      <Filter>Logging</Filter>
+    </ClCompile>
+    <ClCompile Include="Logging\FileSink.cpp">
+      <Filter>Logging</Filter>
+    </ClCompile>
+    <ClCompile Include="Logging\Log.cpp">
+      <Filter>Logging</Filter>
+    </ClCompile>
+    <ClCompile Include="Logging\PipeSink.cpp">
+      <Filter>Logging</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="External">
@@ -169,12 +169,6 @@
     </Filter>
     <Filter Include="GUI">
       <UniqueIdentifier>{e28af72e-aeec-41ac-ad97-b17fe71a7e65}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Core\Logging">
-      <UniqueIdentifier>{a46b338c-e562-4605-8925-997914c45e6a}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Core\Logging\LogSinks">
-      <UniqueIdentifier>{fb838c10-bb37-49c2-ace3-8587bc27a19a}</UniqueIdentifier>
     </Filter>
     <Filter Include="Command">
       <UniqueIdentifier>{274ddc3e-0c68-439b-ad48-02acadce5b9a}</UniqueIdentifier>
@@ -208,6 +202,9 @@
     </Filter>
     <Filter Include="D3D12">
       <UniqueIdentifier>{0370953e-8215-40b1-9f92-05ea4eb58618}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Logging">
+      <UniqueIdentifier>{2746707e-c9f1-418e-bc65-4d3a3c048025}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -277,21 +274,6 @@
     </ClInclude>
     <ClInclude Include="GUI\ImGuiManager.h">
       <Filter>GUI</Filter>
-    </ClInclude>
-    <ClInclude Include="Core\Logging\Log.h">
-      <Filter>Core\Logging</Filter>
-    </ClInclude>
-    <ClInclude Include="Core\Logging\LogSinks\CallbackSink.h">
-      <Filter>Core\Logging\LogSinks</Filter>
-    </ClInclude>
-    <ClInclude Include="Core\Logging\LogSinks\ConsoleSink.h">
-      <Filter>Core\Logging\LogSinks</Filter>
-    </ClInclude>
-    <ClInclude Include="Core\Logging\LogSinks\DebuggerSink.h">
-      <Filter>Core\Logging\LogSinks</Filter>
-    </ClInclude>
-    <ClInclude Include="Core\Logging\LogSinks\FileSink.h">
-      <Filter>Core\Logging\LogSinks</Filter>
     </ClInclude>
     <ClInclude Include="pch.h" />
     <ClInclude Include="Command\Command.h">
@@ -420,9 +402,6 @@
     <ClInclude Include="Hook\GlobalHooks.h">
       <Filter>Hook</Filter>
     </ClInclude>
-    <ClInclude Include="Core\Logging\LogSinks\PipeSink.h">
-      <Filter>Core\Logging\LogSinks</Filter>
-    </ClInclude>
     <ClInclude Include="Tracking\ResourceAddressTracker.h">
       <Filter>Tracking</Filter>
     </ClInclude>
@@ -482,6 +461,24 @@
     </ClInclude>
     <ClInclude Include="D3D12\D3D12Fence.h">
       <Filter>D3D12</Filter>
+    </ClInclude>
+    <ClInclude Include="Logging\CallbackSink.h">
+      <Filter>Logging</Filter>
+    </ClInclude>
+    <ClInclude Include="Logging\ConsoleSink.h">
+      <Filter>Logging</Filter>
+    </ClInclude>
+    <ClInclude Include="Logging\DebuggerSink.h">
+      <Filter>Logging</Filter>
+    </ClInclude>
+    <ClInclude Include="Logging\FileSink.h">
+      <Filter>Logging</Filter>
+    </ClInclude>
+    <ClInclude Include="Logging\Log.h">
+      <Filter>Logging</Filter>
+    </ClInclude>
+    <ClInclude Include="Logging\PipeSink.h">
+      <Filter>Logging</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>
