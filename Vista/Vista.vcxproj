@@ -239,7 +239,7 @@ xcopy /Y /D "%INI_SRC%" "%INI_DST%\"</Command>
     <ClCompile Include="Tracking\MappedBufferManager.cpp" />
     <ClCompile Include="Tracking\ResourceStateTracker.cpp" />
     <ClCompile Include="Tracking\Traits\PSOTraits.cpp" />
-    <ClCompile Include="Utilities\StringUtil.cpp" />
+    <ClCompile Include="Utilities\StringConversions.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\External\DirectHook\D3D12\d3d12hook.h" />
@@ -266,7 +266,6 @@ xcopy /Y /D "%INI_SRC%" "%INI_DST%\"</Command>
     <ClInclude Include="Command\Commands\ResourceCommands.h" />
     <ClInclude Include="Command\CommandVisitor.h" />
     <ClInclude Include="Command\RecorderManager.h" />
-    <ClInclude Include="Command\RTTI.h" />
     <ClInclude Include="Core\Vista.h" />
     <ClInclude Include="Core\Macros.h" />
     <ClInclude Include="Core\Types.h" />
@@ -303,6 +302,7 @@ xcopy /Y /D "%INI_SRC%" "%INI_DST%\"</Command>
     <ClInclude Include="Tracking\Traits\CommandSignatureTraits.h" />
     <ClInclude Include="Tracking\Traits\HeapTraits.h" />
     <ClInclude Include="Tracking\Traits\StateObjectTraits.h" />
+    <ClInclude Include="Utilities\RTTI.h" />
     <ClInclude Include="Vista_API.h" />
     <ClInclude Include="GUI\ImGuiManager.h" />
     <ClInclude Include="pch.h" />
@@ -323,17 +323,16 @@ xcopy /Y /D "%INI_SRC%" "%INI_DST%\"</Command>
     <ClInclude Include="Tracking\Traits\QueueTraits.h" />
     <ClInclude Include="Tracking\Traits\ResourceTraits.h" />
     <ClInclude Include="Tracking\Traits\RootSignatureTraits.h" />
-    <ClInclude Include="Utilities\AllocatorUtil.h" />
+    <ClInclude Include="Utilities\Align.h" />
     <ClInclude Include="Utilities\ConcurrentQueue.h" />
     <ClInclude Include="Utilities\Delegate.h" />
-    <ClInclude Include="Utilities\EnumUtil.h" />
-    <ClInclude Include="Utilities\HashUtil.h" />
+    <ClInclude Include="Utilities\Enum.h" />
+    <ClInclude Include="Utilities\Hash.h" />
     <ClInclude Include="Utilities\IntrusiveList.h" />
     <ClInclude Include="Utilities\LinearAllocator.h" />
     <ClInclude Include="Utilities\Ref.h" />
     <ClInclude Include="Utilities\Singleton.h" />
-    <ClInclude Include="Utilities\StringUtil.h" />
-    <ClInclude Include="Utilities\Tree.h" />
+    <ClInclude Include="Utilities\StringConversions.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

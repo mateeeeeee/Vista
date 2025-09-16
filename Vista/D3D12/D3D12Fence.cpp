@@ -1,5 +1,5 @@
 #include "D3D12Fence.h"
-#include "Utilities/StringUtil.h"
+#include "Utilities/StringConversions.h"
 
 namespace vista
 {

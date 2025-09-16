@@ -1,8 +1,8 @@
 #pragma once
 #include "CommandVisitor.h"
 #include "Tracking/ObjectID.h"
-#include "Utilities/HashUtil.h"
-#include "Utilities/EnumUtil.h"
+#include "Utilities/Hash.h"
+#include "Utilities/Enum.h"
 #include "Utilities/IntrusiveList.h"
 
 namespace vista

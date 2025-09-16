@@ -1,7 +1,7 @@
 #pragma once
 #include "Command.h"
 #include "RecorderManager.h"
-#include "RTTI.h"
+#include "Utilities/RTTI.h"
 #include "Utilities/LinearAllocator.h"
 
 namespace vista

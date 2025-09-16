@@ -2,7 +2,7 @@
 #include "Hook/Hooks.h"
 #include "Hook/GlobalHooks.h"
 #include "Command/Commands.h"
-#include "Command/RTTI.h"
+#include "Utilities/RTTI.h"
 #include "Logging/DebuggerSink.h"
 #include "Logging/PipeSink.h"
 

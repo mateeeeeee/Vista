@@ -54,7 +54,7 @@
     <ClCompile Include="GUI\Visitors\EventListCommandVisitor.cpp">
       <Filter>GUI\Visitors</Filter>
     </ClCompile>
-    <ClCompile Include="Utilities\StringUtil.cpp">
+    <ClCompile Include="Utilities\StringConversions.cpp">
       <Filter>Utilities</Filter>
     </ClCompile>
     <ClCompile Include="Command\Commands\DeviceCommands.cpp">
@@ -259,7 +259,7 @@
     <ClInclude Include="Utilities\Delegate.h">
       <Filter>Utilities</Filter>
     </ClInclude>
-    <ClInclude Include="Utilities\EnumUtil.h">
+    <ClInclude Include="Utilities\Enum.h">
       <Filter>Utilities</Filter>
     </ClInclude>
     <ClInclude Include="Utilities\Ref.h">
@@ -279,16 +279,13 @@
     <ClInclude Include="Command\Command.h">
       <Filter>Command</Filter>
     </ClInclude>
-    <ClInclude Include="Utilities\Tree.h">
-      <Filter>Utilities</Filter>
-    </ClInclude>
     <ClInclude Include="Command\CommandVisitor.h">
       <Filter>Command</Filter>
     </ClInclude>
     <ClInclude Include="Command\CommandRecorder.h">
       <Filter>Command</Filter>
     </ClInclude>
-    <ClInclude Include="Utilities\AllocatorUtil.h">
+    <ClInclude Include="Utilities\Align.h">
       <Filter>Utilities</Filter>
     </ClInclude>
     <ClInclude Include="Utilities\IntrusiveList.h">
@@ -321,7 +318,7 @@
     <ClInclude Include="GUI\Visitors\EventListCommandVisitor.h">
       <Filter>GUI\Visitors</Filter>
     </ClInclude>
-    <ClInclude Include="Utilities\StringUtil.h">
+    <ClInclude Include="Utilities\StringConversions.h">
       <Filter>Utilities</Filter>
     </ClInclude>
     <ClInclude Include="Command\Commands\DeviceCommands.h">
@@ -339,7 +336,7 @@
     <ClInclude Include="Command\Commands\FenceCommands.h">
       <Filter>Command\Commands</Filter>
     </ClInclude>
-    <ClInclude Include="Utilities\HashUtil.h">
+    <ClInclude Include="Utilities\Hash.h">
       <Filter>Utilities</Filter>
     </ClInclude>
     <ClInclude Include="GUI\SelectedItem.h">
@@ -429,9 +426,6 @@
     <ClInclude Include="GUI\BufferFormatParser.h">
       <Filter>GUI</Filter>
     </ClInclude>
-    <ClInclude Include="Command\RTTI.h">
-      <Filter>Command</Filter>
-    </ClInclude>
     <ClInclude Include="DXIL\DxilModuleWrapper.h">
       <Filter>DXIL</Filter>
     </ClInclude>
@@ -479,6 +473,9 @@
     </ClInclude>
     <ClInclude Include="Logging\PipeSink.h">
       <Filter>Logging</Filter>
+    </ClInclude>
+    <ClInclude Include="Utilities\RTTI.h">
+      <Filter>Utilities</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

@@ -1,6 +1,6 @@
 #include "BindlessAccessCache.h"
 #include "BindlessAccess.h"
-#include "Utilities/HashUtil.h"
+#include "Utilities/Hash.h"
 
 namespace vista
 {

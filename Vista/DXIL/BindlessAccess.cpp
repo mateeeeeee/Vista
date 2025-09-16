@@ -1,6 +1,6 @@
 #include "BindlessAccess.h"
 #include "DxilModuleWrapper.h"
-#include "Utilities/HashUtil.h"
+#include "Utilities/Hash.h"
 #pragma warning(push)
 #pragma warning(disable: 4267 4244)
 #include "dxc/DXIL/DxilModule.h"

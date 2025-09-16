@@ -14,12 +14,12 @@
 #include "Command/Command.h"
 #include "Command/CommandRecorder.h"
 #include "Command/RecorderManager.h"
-#include "Command/RTTI.h"
 #include "Command/Commands/ListCommands.h"
 #include "Resource/ResourceCopyRequestManager.h"
 #include "DXIL/BindlessAccessCache.h"
 #include "D3D12/D3D12Util.h"
-#include "Utilities/HashUtil.h"
+#include "Utilities//RTTI.h"
+#include "Utilities/Hash.h"
 #include "ImGui/imgui.h"
 
 namespace vista
