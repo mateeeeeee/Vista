@@ -24,5 +24,5 @@
 #include <windows.h>
 
 #include "Core/Types.h"
-#include "Core/Macros.h"
+#include "Core/Defines.h"
 #include "Utilities/Ref.h"

@@ -8,7 +8,6 @@ namespace vista
 	{
 	public:
 		explicit ResourceViewer(ImGuiManager& imguiManager) : imguiManager(imguiManager) {}
-
 		void RenderResource(ID3D12Resource* resource);
 
 	private:

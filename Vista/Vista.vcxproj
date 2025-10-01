@@ -267,7 +267,7 @@ xcopy /Y /D "%INI_SRC%" "%INI_DST%\"</Command>
     <ClInclude Include="Command\CommandVisitor.h" />
     <ClInclude Include="Command\RecorderManager.h" />
     <ClInclude Include="Core\Vista.h" />
-    <ClInclude Include="Core\Macros.h" />
+    <ClInclude Include="Core\Defines.h" />
     <ClInclude Include="Core\Types.h" />
     <ClInclude Include="D3D12\D3D12Descriptor.h" />
     <ClInclude Include="D3D12\D3D12DescriptorAllocator.h" />

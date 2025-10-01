@@ -17,8 +17,8 @@
 #define VISTA_NOINLINE			        __declspec(noinline)
 #define VISTA_NODISCARD			        [[nodiscard]]
 #define VISTA_NORETURN				    [[noreturn]]
-#define VISTA_DEPRECATED			        [[deprecated]]
-#define VISTA_MAYBE_UNUSED               [[maybe_unused]]
+#define VISTA_DEPRECATED			    [[deprecated]]
+#define VISTA_MAYBE_UNUSED              [[maybe_unused]]
 #define VISTA_DEPRECATED_MSG(msg)	    [[deprecated(#msg)]]
 #define VISTA_DEBUGZONE_BEGIN            __pragma(optimize("", off))
 #define VISTA_DEBUGZONE_END              __pragma(optimize("", on))
